@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
-	"github.com/ZestHusky/femboy-control/Bot/config"
-	dbhelpers "github.com/ZestHusky/femboy-control/Bot/dbhelpers"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
-	logger "github.com/ZestHusky/femboy-control/Bot/logging"
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
+	dbhelpers "github.com/dabi-ngin/discgo-bot/Bot/dbhelpers"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
+	logger "github.com/dabi-ngin/discgo-bot/Bot/logging"
 )
 
 func Post(session *discordgo.Session, message *discordgo.MessageCreate, command string) {

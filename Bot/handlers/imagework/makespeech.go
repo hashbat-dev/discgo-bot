@@ -14,7 +14,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 	"golang.org/x/image/webp"
 )
 

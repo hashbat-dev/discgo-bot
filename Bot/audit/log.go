@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ZestHusky/femboy-control/Bot/config"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
 )
 
 var verboseStack bool = false

@@ -5,17 +5,16 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 	"sync"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
-	"github.com/ZestHusky/femboy-control/Bot/commands"
-	"github.com/ZestHusky/femboy-control/Bot/config"
-	"github.com/ZestHusky/femboy-control/Bot/constants"
-	dbhelpers "github.com/ZestHusky/femboy-control/Bot/dbhelpers"
-	"github.com/ZestHusky/femboy-control/Bot/handlers"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/commands"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
+	"github.com/dabi-ngin/discgo-bot/Bot/constants"
+	dbhelpers "github.com/dabi-ngin/discgo-bot/Bot/dbhelpers"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
 )
 
 var session *discordgo.Session
@@ -38,7 +37,6 @@ func Run() {
 
 	// Add Message event handlers to the Bot Session
 	session.AddHandler(handlers.NewMessageHandler)  // New message
-	session.AddHandler(handlers.EditMessageHandler) // Message edited
 
 	// Open the Discord Bot session
 	err = session.Open()
@@ -89,8 +87,6 @@ func Run() {
 	// Keep the bot running until an OS Shutdown/Exit
 	audit.Log("Setup complete, bot running on: " + config.ServerName)
 
-	stopLoop := make(chan bool)
-	go Loop(stopLoop)
 
 	// Report the bot as running to the Server
 	if !config.IsDev && !config.ReportedRunning {
@@ -125,15 +121,6 @@ func loadConfig() {
 		audit.Error(err)
 	} else {
 		config.ServerName = hostname
-	}
-
-	if !strings.Contains(strings.ToLower(hostname), "femboy-control-") {
-		// We should eventually move this to be environment driven so that each dev can set their
-		// env variable as their own discord userID and then automatically target themselves on local testing
-		config.BullyTarget = constants.USER_ID_ZEST
-		config.IsDev = true
-	} else {
-		config.BullyTarget = constants.USER_ID_POG
 	}
 
 	// Make sure the Temp Directory exists on Startup

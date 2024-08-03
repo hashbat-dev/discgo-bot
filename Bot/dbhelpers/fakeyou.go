@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 )
 
 type TTSEntry struct {

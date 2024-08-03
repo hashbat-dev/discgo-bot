@@ -5,12 +5,12 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
-	"github.com/ZestHusky/femboy-control/Bot/config"
-	"github.com/ZestHusky/femboy-control/Bot/constants"
-	dbhelpers "github.com/ZestHusky/femboy-control/Bot/dbhelpers"
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
+	"github.com/dabi-ngin/discgo-bot/Bot/constants"
+	dbhelpers "github.com/dabi-ngin/discgo-bot/Bot/dbhelpers"
 )
 
 // When releasing a new version...

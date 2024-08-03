@@ -6,8 +6,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 	"golang.org/x/net/html"
 )
 

@@ -4,10 +4,10 @@ import (
 	"math/rand"
 	"runtime"
 
-	"github.com/ZestHusky/femboy-control/Bot/config"
-	"github.com/ZestHusky/femboy-control/Bot/constants"
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
+	"github.com/dabi-ngin/discgo-bot/Bot/constants"
 )
 
 // Send a generic "Bot has had an error" message back to the channel which created the message

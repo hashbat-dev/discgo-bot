@@ -4,30 +4,26 @@ package handlers
 import (
 	"strings"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
-	"github.com/ZestHusky/femboy-control/Bot/commands"
-	"github.com/ZestHusky/femboy-control/Bot/config"
-	"github.com/ZestHusky/femboy-control/Bot/constants"
-	dbhelpers "github.com/ZestHusky/femboy-control/Bot/dbhelpers"
-	"github.com/ZestHusky/femboy-control/Bot/gifbank"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/adventures"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/animegif"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/fakeyou"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/fart"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/imagework"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/jason"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/pogcorrection"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/reactions"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/returnspecificmedia"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/sentience"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/slurs"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/toothjack"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/trackword"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/translate"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/wow"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
-	logger "github.com/ZestHusky/femboy-control/Bot/logging"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/commands"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
+	"github.com/dabi-ngin/discgo-bot/Bot/constants"
+	dbhelpers "github.com/dabi-ngin/discgo-bot/Bot/dbhelpers"
+	"github.com/dabi-ngin/discgo-bot/Bot/gifbank"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/adventures"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/animegif"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/fakeyou"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/imagework"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/jason"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/reactions"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/returnspecificmedia"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/sentience"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/toothjack"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/trackword"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/wow"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
+	logger "github.com/dabi-ngin/discgo-bot/Bot/logging"
 )
 
 func NewMessageHandler(session *discordgo.Session, message *discordgo.MessageCreate) {
@@ -124,14 +120,6 @@ func ProcessMessage(session *discordgo.Session, message *discordgo.MessageCreate
 					gifbank.Delete(message, action.Category)
 				} else if action.DoFakeYouTTS {
 					deleteOriginalMsg = fakeyou.FakeYouGetTTS(message, ttsCommand, msgWithoutCommand)
-				} else if action.DoPokeSlur {
-					deleteOriginalMsg = slurs.PokeSlur(message)
-				} else if action.DoFart {
-					fart.LogFart(message)
-				} else if action.DoTranslate {
-					translate.TranslateBottomSpeech(message)
-				} else if action.DoRacism {
-					slurs.SendASlur(message, botCommand)
 				} else if action.DoWowStat {
 					deleteOriginalMsg = wow.GetWowStat(message)
 				} else if action.DoJason {
@@ -163,21 +151,6 @@ func ProcessMessage(session *discordgo.Session, message *discordgo.MessageCreate
 
 	}
 
-	// Now we do Pog Correction checking, ALL Messages need to enter here
-	if !matched {
-		pogCorr := pogcorrection.Detect(message.Content, message.Author.ID, message.ReferencedMessage)
-		switch pogCorr {
-		case "tooth":
-			dbhelpers.CountCommand("pog-correction", message.Message.Author.ID)
-			gifbank.Post(session, message, "tooth")
-		case "correct":
-			pogcorrection.SendCorrection(message)
-			dbhelpers.CountCommand("pog-correction", message.Message.Author.ID)
-		}
-	}
-
-	sentience.DetectBotTalk(message, msgLower)
-
 	if !matched {
 		sentRandom := false
 		if !sentRandom {
@@ -185,9 +158,6 @@ func ProcessMessage(session *discordgo.Session, message *discordgo.MessageCreate
 		}
 		if !sentRandom {
 			sentRandom = sentience.RandomReplies(message)
-		}
-		if !sentRandom {
-			sentRandom = slurs.RandomSlur(message)
 		}
 		if !sentRandom {
 			sentRandom = jason.DetectJason(message)

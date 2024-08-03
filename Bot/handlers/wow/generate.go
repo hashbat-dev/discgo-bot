@@ -5,9 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZestHusky/femboy-control/Bot/friday"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
 )
 
 type GeneratedWow struct {
@@ -257,16 +256,6 @@ func GenerateWow(message *discordgo.MessageCreate) GeneratedWow {
 				}
 			}
 
-			// Is it Fwiday?
-			if friday.IsItFwiday() {
-				addFwiday := helpers.GetRandomNumber(0, maxRollWow)
-				wowMiddle += AddCharacter("o", addFwiday)
-				middleCount += addWows
-				diceRoll.RollLength += addFwiday
-				diceRoll.Special = "fwiday"
-				diceRoll.RollSpecial = append(diceRoll.RollSpecial, addFwiday)
-			}
-
 			// Any Deductions?
 			if deductRolls > 0 {
 				for d := 0; d < deductRolls; d++ {
@@ -279,7 +268,7 @@ func GenerateWow(message *discordgo.MessageCreate) GeneratedWow {
 			}
 
 			diceRolls = append(diceRolls, diceRoll)
-			break // YEET - Exit Rolling (Anti-Levi Moment) ==================
+			break // Exit Rolling 
 		}
 
 		if len(wowMiddle) > maxSize {

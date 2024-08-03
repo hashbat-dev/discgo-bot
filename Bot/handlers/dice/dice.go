@@ -3,9 +3,9 @@ package dice
 import (
 	"fmt"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
 )
 
 type DiceRolls struct {
@@ -30,10 +30,10 @@ func RollDice(interaction *discordgo.InteractionCreate) {
 	responseTitle := "🎲 Roll Dice 🎲"
 	totalDice := inD2 + inD6 + inD10 + inD20 + inD50 + inD100
 	if totalDice == 0 {
-		audit.SendInteractionResponse(interaction, responseTitle, "", "You didn't give me any dice! >w< What am I going to roll now? I'm not Levi..", true, true, "")
+		audit.SendInteractionResponse(interaction, responseTitle, "", "I need something to roll...", true, true, "")
 		return
 	} else if totalDice > 50 {
-		audit.SendInteractionResponse(interaction, responseTitle, "", "Bruh, I'm not rolling more than 50 Dice. My hands will get tired >w<", true, true, "")
+		audit.SendInteractionResponse(interaction, responseTitle, "", "don't have that many hands..", true, true, "")
 		return
 	}
 

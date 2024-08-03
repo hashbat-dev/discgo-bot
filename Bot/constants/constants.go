@@ -13,6 +13,7 @@ const (
 	TODO_FIRST_ID int = 1000
 
 	// Channels
+	// TODO: remove this and write server func to read out existing channel names
 	CHANNEL_BOT_TESTING     string = "1222571691851518024" // #bot-general
 	CHANNEL_BOT_ERRORS_LIVE string = "1226998385999872030" // #bot-log-live
 	CHANNEL_BOT_ERRORS_DEV  string = "1228049795034251284" // #bot-log-dev
@@ -30,11 +31,6 @@ const (
 	EMOTE_THUMB_UP   string = "👍🏻"
 	EMOTE_THUMB_DOWN string = "👎🏻"
 
-	// Discord User IDs ==============================================
-	USER_ID_POG    string = "711416363150737508"
-	USER_ID_ZEST   string = "192015008039698432"
-	USER_ID_CALLUM string = "261978245212143626"
-
 	// Gifs ==========================================================
 	GIF_AE_CRY string = "https://cdn.discordapp.com/emojis/610092066080292874.gif?size=96&quality=lossless"
 	GIF_UPDATE string = "https://cdn.discordapp.com/attachments/1124062364195627128/1228112087650406462/monkey-orangutan.gif?ex=662adb82&is=66186682&hm=d2b8adc34b1946b2f844993e061d09353fdce91a7e229b99cdbbb224647fb132&"
@@ -45,15 +41,7 @@ const (
 
 // We cannot make arrays/slices constants but we keep it here as we don't intend to change this
 var ERROR_RAND_TEXT = []string{
-	"I had a fucky wucky >w<! Pwease don't hate me",
-	"Please link your PSN to Bottom Bot",
-	"Something went wrong >w< It was probably Callum's fault",
-	"Waaaaaaah",
-	"KLSADSALKDSAHLKDH >w<",
 	"Action failed due to new Brexit regulations",
-	"I was on Second Hook >w<",
-	"Pog bottomed out so much I was unable to handle the submissiveness",
-	"Fuck this, Me and Levi are gonna go smoko",
-	"I'M ON SMOKO, SO LEAVE ME ALONE",
+	"On smoke break..",
 	"Absolutely fucked it",
 }

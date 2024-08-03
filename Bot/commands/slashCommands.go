@@ -3,25 +3,23 @@ package commands
 import (
 	"sort"
 
-	"github.com/ZestHusky/femboy-control/Bot/config"
-	"github.com/ZestHusky/femboy-control/Bot/constants"
-	dbhelper "github.com/ZestHusky/femboy-control/Bot/dbhelpers"
-	"github.com/ZestHusky/femboy-control/Bot/friday"
-	"github.com/ZestHusky/femboy-control/Bot/gifbank"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/animegif"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/ask"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/dice"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/fakeyou"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/help"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/meme"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/slurs"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/todo"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/userstats"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
-	"github.com/ZestHusky/femboy-control/Bot/logging"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
+	"github.com/dabi-ngin/discgo-bot/Bot/constants"
+	dbhelper "github.com/dabi-ngin/discgo-bot/Bot/dbhelpers"
+	"github.com/dabi-ngin/discgo-bot/Bot/gifbank"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/animegif"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/ask"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/dice"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/fakeyou"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/help"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/todo"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/userstats"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
+	"github.com/dabi-ngin/discgo-bot/Bot/logging"
 )
 
+// Get this into some kind of datastore that's configurable/elsewhere
 var Commands = []*discordgo.ApplicationCommand{
 	{
 		Name:        "fwiday",
@@ -308,20 +306,6 @@ var Commands = []*discordgo.ApplicationCommand{
 
 // CommandHandlers ==============================================
 var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-	"fwiday": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if DoNotProcess(i) {
-			return
-		}
-		friday.Fwiday(s, i, "w")
-		dbhelper.CountCommand("fwiday", i.Member.User.ID)
-	},
-	"friday": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if DoNotProcess(i) {
-			return
-		}
-		friday.Fwiday(s, i, "r")
-		dbhelper.CountCommand("fwiday", i.Member.User.ID)
-	},
 	"reacts": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if DoNotProcess(i) {
 			return
@@ -419,17 +403,6 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		ask.Question(i)
 		dbhelper.CountCommand("ask", i.Member.User.ID)
 	},
-	"meme": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if DoNotProcess(i) {
-			return
-		}
-		if i.Member.User.ID == constants.USER_ID_CALLUM {
-
-		}
-
-		meme.GetRandomMeme(i, 0)
-		dbhelper.CountCommand("meme", i.Member.User.ID)
-	},
 	"gif-dump": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if DoNotProcess(i) {
 			return
@@ -440,13 +413,6 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			gifbank.DumpCategory(i)
 			dbhelper.CountCommand("gif-dump", i.Member.User.ID)
 		}
-	},
-	"slur-definition": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if DoNotProcess(i) {
-			return
-		}
-		slurs.DefineASlur(i)
-		dbhelper.CountCommand("slur-definition", i.Member.User.ID)
 	},
 	"wow-board": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if DoNotProcess(i) {

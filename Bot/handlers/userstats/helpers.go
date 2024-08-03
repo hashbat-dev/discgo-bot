@@ -1,7 +1,7 @@
 package userstats
 
 import (
-	dbhelper "github.com/ZestHusky/femboy-control/Bot/dbhelpers"
+	dbhelper "github.com/dabi-ngin/discgo-bot/Bot/dbhelpers"
 )
 
 func GetBotRating(inUser string) (int, error) {

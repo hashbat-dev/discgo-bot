@@ -2,13 +2,14 @@ package animegif
 
 import (
 	"fmt"
-	"github.com/ZestHusky/femboy-control/Bot/audit"
+
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 
 	nb "github.com/Yakiyo/nekos_best.go"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
-	logger "github.com/ZestHusky/femboy-control/Bot/logging"
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
+	logger "github.com/dabi-ngin/discgo-bot/Bot/logging"
 )
 
 // AnimeGif https://docs.nekos.best/examples/unofficial/go.html
