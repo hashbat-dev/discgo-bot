@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 )
 
 func CountWord(userId string, keyword string) error {

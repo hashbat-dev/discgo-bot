@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
-	dbhelpers "github.com/ZestHusky/femboy-control/Bot/dbhelpers"
-	logger "github.com/ZestHusky/femboy-control/Bot/logging"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
+	dbhelpers "github.com/dabi-ngin/discgo-bot/Bot/dbhelpers"
+	logger "github.com/dabi-ngin/discgo-bot/Bot/logging"
 )
 
 type Mention struct {

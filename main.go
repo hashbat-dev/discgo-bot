@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sync"
 
-	bot "github.com/ZestHusky/femboy-control/Bot"
-	"github.com/ZestHusky/femboy-control/Bot/config"
-	ping "github.com/ZestHusky/femboy-control/Ping"
+	bot "github.com/dabi-ngin/discgo-bot/Bot"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
+	ping "github.com/dabi-ngin/discgo-bot/Ping"
 )
 
 func main() {

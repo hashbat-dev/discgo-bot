@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
-	"github.com/ZestHusky/femboy-control/Bot/config"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
-	"github.com/ZestHusky/femboy-control/Bot/logging"
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
+	"github.com/dabi-ngin/discgo-bot/Bot/logging"
 )
 
 func Question(interaction *discordgo.InteractionCreate) {
@@ -25,7 +25,7 @@ func Question(interaction *discordgo.InteractionCreate) {
 	errorText := ""
 	switch isQuestionInt {
 	case -1:
-		errorText = "Your question is too complex!\n\nI'm only an 'iddy biddy bot! >w<"
+		errorText = "grug no understand"
 	case 0:
 		errorText = "Either I'm stupid or that's not a question!"
 	}
@@ -100,7 +100,7 @@ func Question(interaction *discordgo.InteractionCreate) {
 	}
 
 	if replyText == "" {
-		retText := "Something went wrong >w<!"
+		retText := "Something went wrong!"
 
 		e := embed.NewEmbed()
 		e.SetTitle(inQuestion)

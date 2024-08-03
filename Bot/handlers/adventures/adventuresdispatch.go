@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 )
 
 type Adventure struct {

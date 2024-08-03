@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
-	"github.com/ZestHusky/femboy-control/Bot/constants"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/constants"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
 )
 
 func WowDetection(message *discordgo.MessageCreate) {

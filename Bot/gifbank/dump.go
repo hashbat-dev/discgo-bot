@@ -3,14 +3,14 @@ package gifbank
 import (
 	"fmt"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 
-	dbhelper "github.com/ZestHusky/femboy-control/Bot/dbhelpers"
+	dbhelper "github.com/dabi-ngin/discgo-bot/Bot/dbhelpers"
 
-	"github.com/ZestHusky/femboy-control/Bot/config"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
 	"github.com/google/uuid"
 )
 

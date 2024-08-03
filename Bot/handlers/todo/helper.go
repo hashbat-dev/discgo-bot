@@ -3,8 +3,8 @@ package todo
 import (
 	"strings"
 
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
 )
 
 func ToDoTypeSelector() []*discordgo.ApplicationCommandOptionChoice {

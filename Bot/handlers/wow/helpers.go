@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
-	"github.com/ZestHusky/femboy-control/Bot/config"
-	dbhelper "github.com/ZestHusky/femboy-control/Bot/dbhelpers"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
+	dbhelper "github.com/dabi-ngin/discgo-bot/Bot/dbhelpers"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
 )
 
 func AddCharacter(char string, times int) string {

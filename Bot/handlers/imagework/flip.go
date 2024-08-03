@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 )
 
 func FlipImage(imageReader io.Reader, isGif bool, buffer *bytes.Buffer, flipDirection string) error {

@@ -9,7 +9,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 )
 
 func ChangeSpeedGif(resizedImageReader io.Reader, buffer *bytes.Buffer, speedUp bool) error {

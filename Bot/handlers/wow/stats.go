@@ -3,12 +3,12 @@ package wow
 import (
 	"fmt"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
-	"github.com/ZestHusky/femboy-control/Bot/config"
-	"github.com/ZestHusky/femboy-control/Bot/helpers"
-	"github.com/ZestHusky/femboy-control/Bot/logging"
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/config"
+	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
+	"github.com/dabi-ngin/discgo-bot/Bot/logging"
 )
 
 func GetWowStat(message *discordgo.MessageCreate) bool {

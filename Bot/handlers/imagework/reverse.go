@@ -7,7 +7,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 )
 
 func ReverseGif(resizedImageReader io.Reader, buffer *bytes.Buffer) error {

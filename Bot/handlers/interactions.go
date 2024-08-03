@@ -4,10 +4,10 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/ZestHusky/femboy-control/Bot/audit"
-	"github.com/ZestHusky/femboy-control/Bot/commands"
-	"github.com/ZestHusky/femboy-control/Bot/handlers/meme"
 	"github.com/bwmarrin/discordgo"
+	"github.com/dabi-ngin/discgo-bot/Bot/audit"
+	"github.com/dabi-ngin/discgo-bot/Bot/commands"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/meme"
 )
 
 func AddInteractions(session *discordgo.Session) {

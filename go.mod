@@ -1,10 +1,11 @@
-module github.com/ZestHusky/femboy-control
+module github.com/dabi-ngin/discgo-bot
 
 go 1.20
 
 require (
 	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/bwmarrin/discordgo v0.27.1
+	github.com/chai2010/webp v1.1.1
 	github.com/clinet/discordgo-embed v0.0.0-20220113222025-bafe0c917646
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
@@ -16,7 +17,6 @@ require (
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
-	github.com/chai2010/webp v1.1.1 // indirect
 )
 
 require (
