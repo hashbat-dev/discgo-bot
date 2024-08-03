@@ -38,7 +38,11 @@ flowchart TB
 
 # Contribution Standards
 ## Branches
+Branches to add new features should be called ```feature/X```
 
+Branches to fix identified issues should be called ```issue/X```
+
+Branches specifically for documentation updates should be called ```docs/X```
 ## Coding Standards
 
 ## Pull requests
