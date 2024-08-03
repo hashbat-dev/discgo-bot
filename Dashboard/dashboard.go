@@ -50,6 +50,7 @@ func checkForDashboardMessage(r *http.Request) {
 	if config.ServiceSettings.DASHBOARDURL == "" {
 		config.ServiceSettings.DASHBOARDURL = fmt.Sprintf("http://%v/", r.Host)
 	}
+	return nil
 }
 
 func handleGetData(w http.ResponseWriter, r *http.Request) {

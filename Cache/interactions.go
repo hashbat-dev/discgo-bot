@@ -233,11 +233,3 @@ func UpdateInteraction(correlationId string, i *discordgo.InteractionCreate) {
 func InteractionComplete(correlationId string) {
 	delete(ActiveInteractions, correlationId)
 }
-
-func PruneCache() {
-	for key, item := range ActiveInteractions {
-		if time.Since(item.Started) > time.Duration(6*time.Hour) {
-			delete(ActiveInteractions, key)
-		}
-	}
-}

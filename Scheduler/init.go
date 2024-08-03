@@ -40,6 +40,11 @@ func Loop(stop chan bool) {
 				nextRun5Seconds = time.Now().Add(time.Second * 5)
 			}
 
+			if time.Now().After(nextRun5Seconds) {
+				RunEvery5Seconds()
+				nextRun5Seconds = time.Now().Add(time.Second * 5)
+			}
+
 			if time.Now().After(nextRun1Minute) {
 				RunEvery1Minute()
 				nextRun1Minute = time.Now().Add(time.Minute * 1)
