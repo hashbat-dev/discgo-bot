@@ -44,6 +44,7 @@ Branches to fix identified issues should be called ```issue/X```
 
 Branches specifically for documentation updates should be called ```docs/X```
 ## Coding Standards
+Code should be clean, readible, and commented!
 
 ## Pull requests
   1. Update the Version in version.go
