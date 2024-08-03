@@ -20,6 +20,7 @@ func GetAllGuildPhrases(guildId string) ([]triggers.PhraseLink, error) {
 
 	rows, err := Db.Query(query, guildId)
 	if err != nil {
+		logger.Error(guildId, err)
 		return nil, err
 	}
 	defer rows.Close()

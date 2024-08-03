@@ -1,0 +1,42 @@
+package slash
+
+import (
+	"github.com/bwmarrin/discordgo"
+	cache "github.com/dabi-ngin/discgo-bot/Cache"
+	database "github.com/dabi-ngin/discgo-bot/Database"
+	discord "github.com/dabi-ngin/discgo-bot/Discord"
+	logger "github.com/dabi-ngin/discgo-bot/Logger"
+)
+
+func AssignNewAdminRole(i *discordgo.InteractionCreate, correlationId string) {
+	cachedInteraction := cache.ActiveInteractions[correlationId]
+	newRoleId := ""
+	newRoleName := ""
+	if _, exists := cachedInteraction.Values.Role["role"]; exists {
+		newRoleId = cachedInteraction.Values.Role["role"].ID
+		newRoleName = cachedInteraction.Values.Role["role"].Name
+	}
+
+	if newRoleId == "" {
+		logger.ErrorText(i.GuildID, "Couldn't find input role id")
+		discord.SendGenericErrorFromInteraction(i)
+		return
+	}
+
+	guildDbObj, err := database.Guild_Get(i.GuildID)
+	oldRoleId := guildDbObj.GuildAdminRole
+	if err != nil {
+		discord.SendGenericErrorFromInteraction(i)
+		return
+	}
+
+	guildDbObj.GuildAdminRole = newRoleId
+	_, err = database.Guild_InsertUpdate(guildDbObj)
+	if err != nil {
+		discord.SendGenericErrorFromInteraction(i)
+		return
+	}
+
+	logger.Event(i.GuildID, "Bot Administrator role changed from [%s] to [%s]", oldRoleId, newRoleId)
+	discord.SendEmbedFromInteraction(i, "Admin Role Update", "Bot Administrator role is now: ["+newRoleName+"]")
+}
