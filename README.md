@@ -8,3 +8,5 @@
 ### User guide with examples
 
 ### [Developer Stuff](/docs/developer/developer.md)
+
+### [FAQ](/docs/FAQ/FAQ.md)
