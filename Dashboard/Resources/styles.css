@@ -1,0 +1,409 @@
+:root {
+    --background-dark-shade: #101010;
+    --background-light-shade: #282828;
+    --trim-color: #2c5179;
+    --header-color: #508ccc;
+    --font-color: #ebebeb;
+    --font-color-faded: #ababab;
+    --vertical-padding: 15px;
+    --table-row-even: #323232;
+    --table-row-odd: #3d3d3d;
+    --filter-background: #525252;
+    --font-normal: Arial, Helvetica, sans-serif;
+    --font-terminal: 'Courier New', Courier, monospace;
+    --font-heading: 'Gill Sans', sans-serif;
+
+    --log-colour-admin: #FF00FF;
+    --log-colour-error: #FF0000;
+    --log-colour-warn: #FFFF66;
+    --log-colour-event: #66FF66;
+    --log-colour-info: #FFFFFF;
+
+    --header-height: 38px;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-normal); 
+}
+body {
+    padding: var(--vertical-padding) 0;
+    background-color: var(--background-dark-shade);
+    color: var(--font-color);
+}
+.AlignCenter { text-align: center; }
+.FontSize10 { font-size: 10px; }
+
+/* Log Colours */
+.LogAdmin { color: var(--log-colour-admin); }
+.LogError { color: var(--log-colour-error); }
+.LogWarn { color: var(--log-colour-warn); }
+.LogEvent { color: var(--log-colour-event); }
+.LogInfo { color: var(--log-colour-info); }
+
+
+/* Header -----------------------------------------*/
+.Header {
+    float: left;
+    width: 98%;
+    height: 60px;
+    background: var(--background-light-shade);
+    border-radius: 5px;
+    margin: 0 1% -5px 1%;
+}
+.Header h1 {
+    float: left;
+    height: 60px;
+    line-height: 60px;
+    margin-left: 2%;
+    font-size: 28px;
+    font-weight: normal;
+    font-family: var(--font-heading);
+}
+/* Loading ----------------------------------------*/
+.Loading {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+  background-color: rgba(0,0,0,0.5);
+  background-image: url('loading.svg');
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+}
+.Widget .Loading {
+  background-size: 18%;
+}
+
+/* Widgets ----------------------------------------*/
+/* Widget Container */
+.WidgetContainer {
+  float: left;
+  width: 100%;
+  margin-top: var(--vertical-padding);
+  padding: 0 0.5%;
+}
+.WidgetContainer > .WidgetContainer {
+  margin-top: 0 !important;
+  background-color: var(--background-dark-shade) !important;
+}
+.WidgetContainer.Widget {
+  background-color: var(--background-dark-shade) !important;
+}
+
+/* Widget */
+.Widget {
+    float: left;
+    width: 25%;
+    border-radius: 5px;
+    padding: 10px 0.5%;
+    position: relative;
+}
+
+.Widget .WidgetHeader {
+  float: left;
+  width: 100%;
+  border-bottom: 2px solid var(--trim-color);
+  border-radius: 5px 5px 0 0;
+}
+
+.Widget.WidgetRight {
+  float: right;
+}
+
+.Widget .WidgetContent {
+  float: left;
+  width: 100%;
+  border-radius: 0 0 5px 5px;
+  background-color: var(--background-light-shade);
+  overflow-y: auto;
+  position: relative;
+}
+.Widget .WidgetHeader {
+  float: left;
+  width: 100%;
+  height: var(--header-height);
+  background-color: var(--background-light-shade);
+  z-index: 1000;
+  position: inherit;
+}
+.Widget .WidgetHeader  h2 {
+    float: left;
+    font-weight: normal;
+    padding: 5px 5px 5px 10px;
+    font-size: 22px;
+    color: var(--header-color);
+}
+.Widget .WidgetHeader .ConnectedIcon {
+   float: left;
+   margin: 8px 0 0 0;
+   height: 21px;
+   cursor: help;
+} 
+.Widget .DragHandle {
+    float: right;
+    height: calc(var(--header-height) - 2px);
+    width: var(--header-height);
+    background-color: rgba(255,255,255,0.05);
+    background-image: url('Img/drag.svg');
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    border-radius: 0 5px 0 0;
+    margin-left: 5px;
+}
+.Widget .DragHandle:hover {
+    cursor: grab;
+}
+
+.ChartContainer {
+    float: left;
+    width: 100%;
+    height: 300px;
+}
+
+.Widget table {
+    float: left;
+    width: 100%;
+}
+.Widget table tr th {
+    color: var(--header-color);
+    font-weight: normal;
+    text-align: left;
+    font-size: 14px;
+}
+.Widget table tr td {
+    font-size: 14px;
+    padding: 3px;
+    background-color: var(--table-row-odd);
+    font-family: var(--font-terminal);
+}
+.Widget table tr:nth-child(even) td {
+    background-color: var(--table-row-even);
+}
+.Widget.WidgetTable {
+  max-height: 400px;
+  overflow-y: auto;
+}
+/* Filters */
+.Widget .WidgetFilter {
+  float: right;
+  margin: 0 3px;
+  height: var(--header-height);
+}
+.Widget select, .Widget input[type=text], .Widget .SelectCheckbox {
+  margin-top: 5px;
+  border-radius: 3px;
+  color: #FFF;
+  border: 0;
+}
+.Widget select, .Widget input[type=text] {
+  width: 100%;
+  height: calc(var(--header-height) - 14px);
+  padding: 0 5px;
+  background-color: var(--filter-background);
+}
+.Widget .SelectCheckbox {
+  float: left;
+  width: 100%;
+}
+
+.Widget .SelectCheckbox .SelectCheckboxLabel {
+  float: left;
+  width: 100%;
+  padding: 0 20px 0 5px;
+  background-color: var(--filter-background);
+  background-image: url('Img/down_arrow.svg');
+  background-repeat: no-repeat;
+  background-position: calc(100% - 2px) 50%;
+  background-size: 15px;
+  height: calc(var(--header-height) - 14px);
+  line-height: calc(var(--header-height) - 14px);
+  font-size: 12px;
+  border-radius: 3px;
+  position: relative;
+}
+.Widget .SelectCheckbox .SelectCheckboxLabel:hover {
+  cursor: pointer;
+}
+.Widget .SelectCheckbox .SelectCheckboxList {
+  position: absolute;
+  top: calc(var(--header-height) - 9px);
+  background-color: var(--filter-background);
+  border-radius: 0 5px 5px 5px;
+  width: 200px;
+  box-shadow: 0px 10px 10px 0px rgba(0,0,0,0.3);
+  display: none;
+}
+.Widget .SelectCheckbox .SelectCheckboxList .SelectCheckboxListItem {
+  float: left;
+  width: 100%;
+  border-top: 1px solid #3d3d3d;
+}
+.Widget .SelectCheckbox .SelectCheckboxList .SelectCheckboxListItem input {
+  float: left;
+  width: 15px;
+  height: 15px;
+  margin: 5px;
+}
+.Widget .SelectCheckbox .SelectCheckboxList .SelectCheckboxListItem input:hover {
+  cursor: pointer;
+}
+.Widget .SelectCheckbox .SelectCheckboxList .SelectCheckboxListItem label {
+  float: left;
+  font-size: 12px;
+  height: 25px;
+  line-height: 25px;
+  width: auto;
+}
+.Widget .SelectCheckbox:hover > .SelectCheckboxList {
+  display: block;
+}
+
+/* Elements */
+.ToolTip {
+    cursor: help;
+    font-family: inherit;
+}
+
+/* Switch --------------------------------------------------- */
+.SwitchContainer {
+  float: right;
+}
+.Header .SwitchContainer {
+  margin: 16px 20px 0 0;
+}
+.Widget .SwitchContainer {
+  margin: 7px 7px 0 7px;
+}
+.SwitchLabel {
+  float: right;
+  color: var(--font-color-faded);
+}
+.Header .SwitchLabel {
+    height: 60px;
+    line-height: 60px;
+    margin-right: 10px;
+    font-size: 18px;
+}
+.Widget .SwitchLabel {
+  height: 20px;
+  line-height: 20px;
+  margin: 7px 8px 0 0;
+  font-size: 12px;
+}
+
+ /* The switch - the box around the slider */
+ .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 29px;
+  }
+  .Widget .switch {
+    width: 43px;
+    height: 21px;
+
+  }
+  
+  /* Hide default HTML checkbox */
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* The slider */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 21px;
+    width: 21px;
+    left: 5px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  .Widget .slider:before {
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 3px;
+  }
+  
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(19px);
+    -ms-transform: translateX(19px);
+    transform: translateX(19px);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  } 
+
+  /* jQuery ----------------------------------------- */
+  .DragDropPlaceholder {
+    float: left;
+    display: block;
+    width: 100px;
+    height: 100px;
+    background: #2B2B2B;
+    border: 3px dashed #6c6c6c;
+    border-radius: 5px;
+  }
+  .DragDropCursor {
+    cursor: move;
+  }
+  .DragDropHide {
+    display: none;
+  }
+
+  /*
+    MOBILE VIEW ADJUSTMENTS
+    ====================================================
+  */
+  .WidgetWidth100 { width: 100%; }
+  .WidgetWidth75 { width: 75%; }
+  .WidgetWidth50 { width: 50%; }
+  .WidgetWidth25 { width: 25%; }
+  
+  @media all and (max-width: 960px) {
+    .WidgetWidth100 { width: 100%; }
+    .WidgetWidth75 { width: 100%; }
+    .WidgetWidth50 { width: 50%; }
+    .WidgetWidth25 { width: 50%; }
+  }  
+  @media all and (max-width: 620px) {
+    .WidgetWidth100 { width: 100%; }
+    .WidgetWidth75 { width: 100%; }
+    .WidgetWidth50 { width: 100%; }
+    .WidgetWidth25 { width: 100%; }
+  }
