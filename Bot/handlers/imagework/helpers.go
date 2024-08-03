@@ -44,8 +44,9 @@ func ResizeImageGif(gifImg *gif.GIF, width uint) (io.Reader, error) {
 	start := time.Now()
 	// Resize each frame
 	var aspectRatio float64
-	var height uint = 0
+	var height uint
 	for i, frame := range gifImg.Image {
+
 		bounds := frame.Bounds()
 		aspectRatio = float64(bounds.Dy()) / float64(bounds.Dx())
 		height = uint(float64(width) * aspectRatio)

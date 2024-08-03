@@ -109,7 +109,10 @@ func AddGIF(message *discordgo.MessageCreate, category string) {
 		e.SetTitle("Gif Added to the " + category + " bank")
 		e.SetDescription("I will be sure to use this in future! " + helpers.GetEmote("yep", true))
 		msgRef := logger.MessageRefObj(message.Message)
-		config.Session.ChannelMessageSendEmbedReply(message.ChannelID, e.MessageEmbed, &msgRef)
+		_, senderr := config.Session.ChannelMessageSendEmbedReply(message.ChannelID, e.MessageEmbed, &msgRef)
+		if senderr != nil {
+			audit.Error(senderr)
+		}
 		audit.Log("Added ID: " + fmt.Sprint(id) + ", Category: " + category)
 	}
 
@@ -156,6 +159,9 @@ func Delete(message *discordgo.MessageCreate, category string) {
 		e := embed.NewEmbed()
 		e.SetTitle("Gif Deleted")
 		e.SetDescription("I've deleted this gif, thanks! " + helpers.GetEmote("yep", true))
-		config.Session.ChannelMessageSendEmbed(message.ChannelID, e.MessageEmbed)
+		_, senderr := config.Session.ChannelMessageSendEmbed(message.ChannelID, e.MessageEmbed)
+		if senderr != nil {
+			audit.Error(senderr)
+		}
 	}
 }

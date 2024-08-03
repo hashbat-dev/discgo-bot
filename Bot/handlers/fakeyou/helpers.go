@@ -41,7 +41,10 @@ func RequestAudioFromFakeYou(voiceModelID string, textToConvert string, message 
 
 	// Check the response status
 	if resp.StatusCode != http.StatusOK {
-		config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Uh oh...")
+		_, editerr := config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Uh oh...")
+		if editerr != nil {
+			audit.Error(editerr)
+		}
 		return "", fmt.Errorf("HTTP Response was %v", resp.Status)
 	}
 
@@ -49,7 +52,10 @@ func RequestAudioFromFakeYou(voiceModelID string, textToConvert string, message 
 	var ttsRequest TTSRequestResponse
 	err = json.NewDecoder(resp.Body).Decode(&ttsRequest)
 	if err != nil {
-		config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Uh oh...")
+		_, editerr := config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Uh oh...")
+		if editerr != nil {
+			audit.Error(editerr)
+		}
 		return "", err
 	}
 
@@ -62,7 +68,11 @@ func RequestAudioFromFakeYou(voiceModelID string, textToConvert string, message 
 
 		reqCheck, err := helpers.GetJsonFromURL(FakeYouURLCheckRequest + ttsRequest.JobToken)
 		if err != nil {
-			config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Uh oh...")
+			_, editerr := config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Uh oh...")
+			if editerr != nil {
+				audit.Error(editerr)
+			}
+			audit.Error(err)
 			return "", err
 		}
 
@@ -84,7 +94,10 @@ func RequestAudioFromFakeYou(voiceModelID string, textToConvert string, message 
 				audit.Error(err)
 			}
 
-			config.Session.ChannelMessageEdit(message.ChannelID, message.ID, fmt.Sprintf(ttsTypeName+" Request Status: %v"+messageSuffix, lastResponse))
+			_, editerr := config.Session.ChannelMessageEdit(message.ChannelID, message.ID, fmt.Sprintf(ttsTypeName+" Request Status: %v"+messageSuffix, lastResponse))
+			if editerr != nil {
+				audit.Error(editerr)
+			}
 			if len(messageSuffix) >= 5 {
 				messageSuffix = ""
 			} else {
@@ -92,7 +105,10 @@ func RequestAudioFromFakeYou(voiceModelID string, textToConvert string, message 
 			}
 
 			if status == "complete_failure" || status == "attempt_failed" || status == "dead" {
-				config.Session.ChannelMessageDelete(message.ChannelID, message.ID)
+				delerr := config.Session.ChannelMessageDelete(message.ChannelID, message.ID)
+				if delerr != nil {
+					audit.Error(delerr)
+				}
 				return "", err
 			}
 
@@ -108,7 +124,10 @@ func RequestAudioFromFakeYou(voiceModelID string, textToConvert string, message 
 		time.Sleep(time.Duration(constants.TTS_CHECK_DELAY) * time.Millisecond)
 	}
 
-	config.Session.ChannelMessageDelete(message.ChannelID, message.ID)
+	delerr := config.Session.ChannelMessageDelete(message.ChannelID, message.ID)
+	if delerr != nil {
+		audit.Error(delerr)
+	}
 
 	if ttsAudioPath == "" {
 		err = errors.New("no tts audio path returned after " + fmt.Sprint(constants.TTS_CHECK_ATTEMPTS) + " attempts")

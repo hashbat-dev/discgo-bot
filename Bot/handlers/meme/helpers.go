@@ -250,21 +250,7 @@ func ErrorWebHook() *discordgo.WebhookEdit {
 }
 
 func AddToInteractionCache(interaction *discordgo.InteractionCreate) {
-
-	var NewCache []CacheItem
-	for _, i := range InteractionCache {
-		if time.Since(i.Added).Minutes() <= float64(CacheTimeoutMins) {
-			NewCache = append(NewCache, i)
-		}
-	}
-
-	NewCache = append(InteractionCache, CacheItem{
-		Interaction: interaction,
-		Added:       time.Now(),
-	})
-
-	InteractionCache = NewCache
-
+	InteractionCache = append(InteractionCache, CacheItem{interaction, time.Now()})
 }
 
 func GetFromInteractionCache(ID string) (discordgo.InteractionCreate, error) {

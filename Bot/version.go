@@ -73,5 +73,6 @@ func VersionCheck(discord *discordgo.Session) {
 	e.SetTitle("Bottom Bot - v" + botVersionNumber)
 	e.SetDescription(verText)
 	e.SetImage(constants.GIF_UPDATE)
-	discord.ChannelMessageSendEmbed(constants.CHANNEL_BOT_FEEDBACK, e.MessageEmbed)
+	_, err = discord.ChannelMessageSendEmbed(constants.CHANNEL_BOT_FEEDBACK, e.MessageEmbed)
+	audit.Error(err)
 }

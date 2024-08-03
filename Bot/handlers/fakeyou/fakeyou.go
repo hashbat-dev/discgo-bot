@@ -73,12 +73,15 @@ func Search(interaction *discordgo.InteractionCreate) {
 		return
 	}
 
-	config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+	intererr := config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: embedContent,
 		},
 	})
+	if intererr != nil {
+		audit.Error(intererr)
+	}
 
 	modelList, err := helpers.GetJsonFromURL(FakeYouURLModelList)
 	if err != nil {
@@ -259,10 +262,17 @@ func RequestTTS(message *discordgo.MessageCreate, voice string, text string, sta
 	// Can we get a Model?
 	token, err := dbhelper.GetTTSModel(voice)
 	if err != nil {
-		config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Uh oh...")
+		_, editerr := config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Uh oh...")
+		if editerr != nil {
+			audit.Error(editerr)
+		}
+		audit.Error(err)
 		return false, err
 	} else if token == "" {
-		config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Couldn't find a "+ttsObjectName+" Model for !tts"+voice)
+		_, editerr := config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Couldn't find a "+ttsObjectName+" Model for !tts"+voice)
+		if editerr != nil {
+			audit.Error(editerr)
+		}
 		return false, errors.New("did not find TTS model for command: " + voice)
 	}
 
@@ -278,18 +288,30 @@ func RequestTTS(message *discordgo.MessageCreate, voice string, text string, sta
 	delOrig := replyMessage != ""
 
 	if ttsText == "" {
-		config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Uh oh...")
+		_, editerr := config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Uh oh...")
+		if editerr != nil {
+			audit.Error(editerr)
+		}
 		return false, errors.New("no text found! " + helpers.GetEmote("ae_cry", true))
 	}
 
 	ttsAudioPath, err := RequestAudioFromFakeYou(token, ttsText, msg, ttsObjectName)
 	if err != nil {
-		config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Error getting "+ttsObjectName+" >w<...\n"+err.Error())
+		_, editerr := config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Error getting "+ttsObjectName+" >w<...\n"+err.Error())
+		if editerr != nil {
+			audit.Error(editerr)
+		}
 	} else if ttsAudioPath == "" {
-		config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Error getting "+ttsObjectName+" >w<...\nThe API didn't give me a URL!")
+		_, editerr := config.Session.ChannelMessageEdit(message.ChannelID, message.ID, "Error getting "+ttsObjectName+" >w<...\nThe API didn't give me a URL!")
+		if editerr != nil {
+			audit.Error(editerr)
+		}
 	} else {
 		// Delete temp Message
-		config.Session.ChannelMessageDelete(message.ChannelID, message.ID)
+		delerr := config.Session.ChannelMessageDelete(message.ChannelID, message.ID)
+		if delerr != nil {
+			audit.Error(delerr)
+		}
 
 		// Download the .wav file and Send it
 		fileURL := FakeYouTTSAudioBaseUrl + ttsAudioPath
@@ -370,11 +392,14 @@ func GiveTTSHandler(interaction *discordgo.InteractionCreate) {
 		return
 	}
 
-	config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+	intererr := config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: embedContent,
 			Flags:  discordgo.MessageFlagsEphemeral,
 		},
 	})
+	if intererr != nil {
+		audit.Error(intererr)
+	}
 }

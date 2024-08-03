@@ -34,15 +34,24 @@ func DumpCategory(interaction *discordgo.InteractionCreate) {
 	gifs, err := dbhelper.GetAllGifs(category)
 	if err != nil {
 		audit.Error(err)
-		config.Session.ChannelMessageEditEmbed(interaction.ChannelID, resp.ID, helpers.GenericErrorEmbed(embTitle, "Couldn't get GIF Collection"))
+		_, editerr := config.Session.ChannelMessageEditEmbed(interaction.ChannelID, resp.ID, helpers.GenericErrorEmbed(embTitle, "Couldn't get GIF Collection"))
+		if editerr != nil {
+			audit.Error(editerr)
+		}
 		return
 	}
 
 	if len(gifs) == 0 {
-		config.Session.ChannelMessageEditEmbed(interaction.ChannelID, resp.ID, helpers.GenericEmbed(embTitle, "There are no GIFs in that collection"))
+		_, editerr := config.Session.ChannelMessageEditEmbed(interaction.ChannelID, resp.ID, helpers.GenericEmbed(embTitle, "There are no GIFs in that collection"))
+		if editerr != nil {
+			audit.Error(editerr)
+		}
 		return
 	} else {
-		config.Session.ChannelMessageEditEmbed(interaction.ChannelID, resp.ID, helpers.GenericEmbed(embTitle, "Outputting GIFs ("+fmt.Sprint(len(gifs))+" total)"))
+		_, editerr := config.Session.ChannelMessageEditEmbed(interaction.ChannelID, resp.ID, helpers.GenericEmbed(embTitle, "Outputting GIFs ("+fmt.Sprint(len(gifs))+" total)"))
+		if editerr != nil {
+			audit.Error(editerr)
+		}
 	}
 
 	random := uuid.New().String()[:5]
@@ -50,7 +59,10 @@ func DumpCategory(interaction *discordgo.InteractionCreate) {
 	thread, err := config.Session.ThreadStart(interaction.ChannelID, threadName, discordgo.ChannelTypeGuildText, 60)
 	if err != nil {
 		audit.Error(err)
-		config.Session.ChannelMessageEditEmbed(interaction.ChannelID, resp.ID, helpers.GenericErrorEmbed(embTitle, "Couldn't create Thread for the Dump"))
+		_, editerr := config.Session.ChannelMessageEditEmbed(interaction.ChannelID, resp.ID, helpers.GenericErrorEmbed(embTitle, "Couldn't create Thread for the Dump"))
+		if editerr != nil {
+			audit.Error(editerr)
+		}
 		return
 	}
 
@@ -72,5 +84,8 @@ func DumpCategory(interaction *discordgo.InteractionCreate) {
 			concludeText += "s"
 		}
 	}
-	config.Session.ChannelMessageEditEmbed(interaction.ChannelID, resp.ID, helpers.GenericEmbed(embTitle, concludeText))
+	_, editerr := config.Session.ChannelMessageEditEmbed(interaction.ChannelID, resp.ID, helpers.GenericEmbed(embTitle, concludeText))
+	if editerr != nil {
+		audit.Error(editerr)
+	}
 }
