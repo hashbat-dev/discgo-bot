@@ -127,7 +127,6 @@ func ToDoDBUpdate(category string, assignedId int, started string, finished stri
 		}
 		query += "Version = ?"
 		params = append(params, version)
-		addedCount++
 	}
 
 	query += " WHERE Category = ? AND AssignedID = ?"

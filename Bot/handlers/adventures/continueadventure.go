@@ -64,7 +64,10 @@ func GetMatchingAdventureFromRefCode(refcode string) Adventure {
 			audit.Error(err)
 		}
 
-		json.Unmarshal([]byte(fileText), &newAdventure)
+		jsonerr := json.Unmarshal([]byte(fileText), &newAdventure)
+		if err != nil {
+			audit.Error(jsonerr)
+		}
 
 		if newAdventure.Identifier == refcode {
 			return newAdventure

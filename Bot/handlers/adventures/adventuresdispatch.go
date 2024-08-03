@@ -38,7 +38,10 @@ func GetNewAdventure(rarity string, index int) Adventure {
 
 	var newAdventure Adventure
 
-	json.Unmarshal([]byte(fileText), &newAdventure)
+	jsonerr := json.Unmarshal([]byte(fileText), &newAdventure)
+	if jsonerr != nil {
+		audit.Error(jsonerr)
+	}
 
 	newAdventure = FormatAdventureText(newAdventure)
 

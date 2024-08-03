@@ -388,7 +388,10 @@ func DoesTextMentionWord(message string, phrase string) bool {
 }
 
 func DeleteSourceMessage(session *discordgo.Session, message *discordgo.MessageCreate) {
-	session.ChannelMessageDelete(message.ChannelID, message.ID)
+	err := session.ChannelMessageDelete(message.ChannelID, message.ID)
+	if err != nil {
+		audit.Error(err)
+	}
 }
 
 func GetEmote(emojiName string, forEmbed bool) string {

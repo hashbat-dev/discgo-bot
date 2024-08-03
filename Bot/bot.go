@@ -36,7 +36,7 @@ func Run() {
 	}
 
 	// Add Message event handlers to the Bot Session
-	session.AddHandler(handlers.NewMessageHandler)  // New message
+	session.AddHandler(handlers.NewMessageHandler) // New message
 
 	// Open the Discord Bot session
 	err = session.Open()
@@ -86,7 +86,6 @@ func Run() {
 	config.Session = session
 	// Keep the bot running until an OS Shutdown/Exit
 	audit.Log("Setup complete, bot running on: " + config.ServerName)
-
 
 	// Report the bot as running to the Server
 	if !config.IsDev && !config.ReportedRunning {

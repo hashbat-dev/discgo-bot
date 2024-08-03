@@ -168,7 +168,10 @@ func ToDoList(session *discordgo.Session, interaction *discordgo.InteractionCrea
 		}
 		e.SetFooter(footerText)
 
-		config.Session.ChannelMessageSendEmbed(interaction.ChannelID, e.MessageEmbed)
+		_, embederr := config.Session.ChannelMessageSendEmbed(interaction.ChannelID, e.MessageEmbed)
+		if embederr != nil {
+			audit.Error(embederr)
+		}
 
 	}
 

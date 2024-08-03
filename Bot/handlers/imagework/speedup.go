@@ -30,7 +30,7 @@ func ChangeSpeedGif(resizedImageReader io.Reader, buffer *bytes.Buffer, speedUp 
 		if frameDelay <= 2 {
 			alreadySlowestCount++
 		}
-		newValue := 1
+		var newValue int
 		if speedUp {
 			newValue = int(math.Round(float64(frameDelay) / 4.0))
 		} else {
