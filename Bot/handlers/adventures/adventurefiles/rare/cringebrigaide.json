@@ -1,0 +1,14 @@
+{
+    "Name": "Cring brigaide",
+    "Rarity": "rare",
+    "StartPrompt": "Someone said something cringe. Do you DM them in private or reply with !infidel?",
+    "Options": [
+        "DM",
+        "!infidel"
+    ],
+    "Conclusions": [
+        "They send you sounding gifs for an hour. f.",
+        "Correct. We must not stray from god."
+    ],
+    "Identifier": "r001"
+}

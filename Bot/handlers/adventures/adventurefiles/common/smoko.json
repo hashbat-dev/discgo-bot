@@ -1,0 +1,14 @@
+{
+    "Name": "Smoko!",
+    "Rarity": "common",
+    "StartPrompt": "It's time for smoko. You coming?",
+    "Options": [
+        "Fuck yes I love cancer",
+        "No, I have a M.Fix"
+    ],
+    "Conclusions": [
+        "Weird repsonse, but ok. Levi invites you for 500 cigarettes :)",
+        "If you weren't so shit at coding maybe you would be able to do a mustfix before smoko. Idiot."
+    ],
+    "Identifier": "c001"
+}

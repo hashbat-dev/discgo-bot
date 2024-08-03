@@ -1,0 +1,14 @@
+{
+    "Name": "Facebook Metavers",
+    "Rarity": "common",
+    "StartPrompt": "Zucc has invited you to hang in the metaverse! You coming?",
+    "Options": [
+        "Yeah",
+        "Nah"
+    ],
+    "Conclusions": [
+        "Welcome to the future!",
+        "Mark Zuck cries himself to sleep because PEOPLE LIKE YOU HATE NEW THINGS :angry:"
+    ],
+    "Identifier": "c003"
+}

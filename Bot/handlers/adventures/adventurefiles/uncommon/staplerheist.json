@@ -1,0 +1,16 @@
+{
+    "Name": "The great office stapler heist",
+    "Rarity": "uncommon",
+    "StartPrompt": " You are an office worker named Gary, toiling away in the mundane cubicle jungle. One day, you notice that your stapler has gone missing. Not just any stapler, mind you—it’s the legendary “StapleMaster 3000,” the most coveted stapler in the entire office. It’s said that whoever possesses it gains the power to staple through time and space.",
+    "Options": [
+        "You march into Janets office, interrupting her intense spreadsheet analysis. “Janet,” you say, deadpan, “I demand answers. Where is my StapleMaster 3000?",
+        "You gather your fellow office drones—Barbara from HR, Dave from Accounting, and Greg the Intern. Together, you form the “Stapler Sleuths.",
+        "You start stapling random objects—a banana, a stress ball, your boss’s toupee—hoping for enlightenment."
+    ],
+    "Conclusions": [
+        "Janet denies everything, but you notice a suspicious stapler-shaped bulge in her pocket.",
+        "Barbara confesses to stealing the stapler because she’s secretly writing a stapler-themed erotic fanfic.",
+        "HR sends you a memo: “Please stop stapling inappropriate places”. What the fuck did you think was gonna happen?"
+    ],
+    "Identifier": "u004"
+}

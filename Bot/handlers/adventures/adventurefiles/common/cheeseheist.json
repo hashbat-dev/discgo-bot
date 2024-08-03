@@ -1,0 +1,14 @@
+{
+    "Name": "The boys are streaming again",
+    "Rarity": "common",
+    "StartPrompt": "You find yourself in the heart of Cheeseburg, a city known for its obsession with cheese. The annual Cheese Festival is just around the corner, and the grand prize—a golden wheel of Gouda—is on display at the Cheese Museum. You, however, are not a cheese enthusiast. You’re a professional cheese thief, and you’ve been eyeing that golden wheel for months.",
+    "Options": [
+        "You dress up as a mouse, complete with oversized ears and a tiny tail. Your plan? Infiltrate the museum during the festival, blend in with the cheese-loving crowd, and snatch the golden Gouda when no one’s looking.",
+        "You pose as a Swiss tourist named Hans Fondue. Armed with a Swiss Army knife (which has 27 different cheese-related functions), you sweet-talk your way into the museum. Your plan? Distract the guards with cheesy jokes while you cut the golden wheel loose."
+    ],
+    "Conclusions": [
+        "Failure: You accidentally knock over a display of Roquefort, triggering the alarm. The security guards chase you, shouting, “Stop, cheese felon!”",
+        "Success: You slice through the security ropes, grab the Gouda, and exclaim, “That’s hole-y cheese!” The guards laugh, assuming it’s part of your act."
+    ],
+    "Identifier": "c004"
+}

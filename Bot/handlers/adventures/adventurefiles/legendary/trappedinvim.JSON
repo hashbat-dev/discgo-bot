@@ -1,0 +1,14 @@
+{
+    "Name": "Help! Someone is trapped in VIM!",
+    "Rarity": "legendary",
+    "StartPrompt": "A fellow gooner is trapped in vim and is going to be late for their divorce hearing. What do?",
+    "Options": [
+        "Throw pc out window.",
+        "Tell them to accept that they live in VIM now"
+    ],
+    "Conclusions": [
+        "The pc bounces off the window because you're too feeble to smash the glass. It hits your fellow goon in the head and kills them. Nice one. Murderer.",
+        "The gooner looks at you in disbelief. Slowly acceptance spreads accross their face. They are truly a goon now."
+    ],
+    "Identifier": "l002"
+}

@@ -1,0 +1,14 @@
+{
+    "Name": "OS Supremacy",
+    "Rarity": "uncommon",
+    "StartPrompt": "Windows or Linux?",
+    "Options": [
+        "Linux",
+        "Also Linux"
+    ],
+    "Conclusions": [
+        "Correct.",
+        "Also correct."
+    ],
+    "Identifier": "u002"
+}
