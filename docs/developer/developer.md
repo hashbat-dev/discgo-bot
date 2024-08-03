@@ -52,6 +52,8 @@ Code should be clean, readible, and commented!
   1. Push
   1. Make a pull request detailing your changes. Be Desciptive!
 
+**Note: Pull requests can't be merged if they don't pass all tests!**
+
 ## Automation Testing
 This is handled by GitHub actions making use of the Dockerfile we already wrote to spin up a container
 and run a suite of tests. The intention for this is for it to run the same kind of checks we run locally ahead
