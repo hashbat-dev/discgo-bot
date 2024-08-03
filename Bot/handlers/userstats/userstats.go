@@ -50,10 +50,13 @@ func GetStats(interaction *discordgo.InteractionCreate) {
 	embedText := ""
 
 	// Get Bot rating
-	botRating, err := GetBotRating(inUser)
-	if err != nil {
-		config.Session.InteractionResponseEdit(interaction.Interaction, &webHook)
-		audit.Error(err)
+	botRating, ratingerr := GetBotRating(inUser)
+	if ratingerr != nil {
+		audit.Error(ratingerr)
+		_, intererr := config.Session.InteractionResponseEdit(interaction.Interaction, &webHook)
+		if intererr != nil {
+			audit.Error(err)
+		}
 		return
 	}
 
@@ -114,10 +117,13 @@ func GetStats(interaction *discordgo.InteractionCreate) {
 	// Get Ranks for all tracked words
 	embedText += "\n\n"
 
-	rankCats, err := dbhelper.GetDistinctRanks()
-	if err != nil {
-		config.Session.InteractionResponseEdit(interaction.Interaction, &webHook)
-		audit.Error(err)
+	rankCats, rankserr := dbhelper.GetDistinctRanks()
+	if rankserr != nil {
+		audit.Error(rankserr)
+		_, intererr := config.Session.InteractionResponseEdit(interaction.Interaction, &webHook)
+		if intererr != nil {
+			audit.Error(intererr)
+		}
 		return
 	}
 
@@ -126,10 +132,13 @@ func GetStats(interaction *discordgo.InteractionCreate) {
 	} else {
 		embedText += userName + " is a..."
 		for _, rankCat := range rankCats {
-			rankCount, rankText, _, err := dbhelper.GetRankFromUser(inUser, rankCat)
-			if err != nil {
-				config.Session.InteractionResponseEdit(interaction.Interaction, &webHook)
-				audit.ErrorWithText("Category: "+rankCat, err)
+			rankCount, rankText, _, rankerr := dbhelper.GetRankFromUser(inUser, rankCat)
+			if rankerr != nil {
+				audit.ErrorWithText("Category: "+rankCat, rankerr)
+				_, intererr := config.Session.InteractionResponseEdit(interaction.Interaction, &webHook)
+				if intererr != nil {
+					audit.Error(intererr)
+				}
 				return
 			} else if rankCount == 0 {
 				continue
@@ -146,7 +155,10 @@ func GetStats(interaction *discordgo.InteractionCreate) {
 
 	var successHook discordgo.WebhookEdit
 	successHook.Embeds = &[]*discordgo.MessageEmbed{e.MessageEmbed}
-	config.Session.InteractionResponseEdit(interaction.Interaction, &successHook)
+	_, intererr := config.Session.InteractionResponseEdit(interaction.Interaction, &successHook)
+	if intererr != nil {
+		audit.Error(intererr)
+	}
 }
 
 func WowBoard(interaction *discordgo.InteractionCreate) {

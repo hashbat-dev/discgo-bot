@@ -12,7 +12,7 @@ import (
 )
 
 func RandToothjack(message *discordgo.MessageCreate, discord *discordgo.Session) bool {
-	chance := 500
+	var chance int
 	if message.Author.ID == config.BullyTarget {
 		chance = 200
 	} else {

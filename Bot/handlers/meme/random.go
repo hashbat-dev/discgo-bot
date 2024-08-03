@@ -13,7 +13,6 @@ import (
 )
 
 func GetRandomMeme(interaction *discordgo.InteractionCreate, loopCount int) {
-
 	// Put a Loading Interaction in
 	embedStart := embed.NewEmbed()
 	embedStart.SetDescription("Searching for the dankest meme...")
@@ -45,20 +44,29 @@ func GetRandomMeme(interaction *discordgo.InteractionCreate, loopCount int) {
 		if inSearch == "" && loopCount < len(GenericSearch) {
 			GetRandomMeme(interaction, loopCount+1)
 		} else {
-			config.Session.InteractionResponseEdit(interaction.Interaction, ErrorWebHook())
+			_, intererr := config.Session.InteractionResponseEdit(interaction.Interaction, ErrorWebHook())
+			if intererr != nil {
+				audit.Error(intererr)
+			}
 			return
 		}
 	}
 
 	// Post the Meme ===================================================================================
 	if fileUrl == "" {
-		config.Session.InteractionResponseEdit(interaction.Interaction, ErrorWebHook())
+		_, intererr := config.Session.InteractionResponseEdit(interaction.Interaction, ErrorWebHook())
+		if intererr != nil {
+			audit.Error(intererr)
+		}
 		audit.Error(errors.New("fileUrl was blank"))
 		return
 	}
 	msg, err := config.Session.ChannelMessageSend(interaction.ChannelID, FormatMessage(fileUrl, threadUrl, threadTitle))
 	if err != nil {
-		config.Session.InteractionResponseEdit(interaction.Interaction, ErrorWebHook())
+		_, intererr := config.Session.InteractionResponseEdit(interaction.Interaction, ErrorWebHook())
+		if intererr != nil {
+			audit.Error(intererr)
+		}
 		audit.Error(err)
 		return
 	}
@@ -105,7 +113,6 @@ func GetRandomMeme(interaction *discordgo.InteractionCreate, loopCount int) {
 }
 
 func HandleRegenerate(interaction *discordgo.InteractionCreate, interactionId string, messageId string, inSearch string, inStills string) {
-
 	// This stops the "(!) This interaction failed" error, do this first as it's Time Imperative
 	err := FakeInteractionResponse(interaction)
 	if err != nil {
@@ -139,9 +146,12 @@ func HandleRegenerate(interaction *discordgo.InteractionCreate, interactionId st
 	// Get the Search Term which was used
 	unEscaped, err := url.QueryUnescape(inSearch)
 	if err != nil {
-		config.Session.InteractionResponseEdit(originalInteraction.Interaction, &discordgo.WebhookEdit{
+		_, intererr := config.Session.InteractionResponseEdit(originalInteraction.Interaction, &discordgo.WebhookEdit{
 			Embeds: &[]*discordgo.MessageEmbed{ErrorEmbed()},
 		})
+		if intererr != nil {
+			audit.Error(intererr)
+		}
 		return
 	}
 
@@ -155,17 +165,23 @@ func HandleRegenerate(interaction *discordgo.InteractionCreate, interactionId st
 	}
 
 	if fileUrl == "" {
-		config.Session.InteractionResponseEdit(originalInteraction.Interaction, &discordgo.WebhookEdit{
+		_, intererr := config.Session.InteractionResponseEdit(originalInteraction.Interaction, &discordgo.WebhookEdit{
 			Embeds: &[]*discordgo.MessageEmbed{ErrorEmbed()},
 		})
+		if intererr != nil {
+			audit.Error(intererr)
+		}
 		return
 	} else {
 		_, err := config.Session.ChannelMessageEdit(interaction.ChannelID, messageId, FormatMessage(fileUrl, threadUrl, threadTitle))
 		if err != nil {
 			audit.Error(err)
-			config.Session.InteractionResponseEdit(originalInteraction.Interaction, &discordgo.WebhookEdit{
+			_, intererr := config.Session.InteractionResponseEdit(originalInteraction.Interaction, &discordgo.WebhookEdit{
 				Embeds: &[]*discordgo.MessageEmbed{ErrorEmbed()},
 			})
+			if intererr != nil {
+				audit.Error(intererr)
+			}
 		} else {
 			successEmbed := embed.NewEmbed()
 			successEmbed.SetDescription("All done! Enjoy your meme (Searched for: " + searchTerm + ")...")
@@ -180,7 +196,6 @@ func HandleRegenerate(interaction *discordgo.InteractionCreate, interactionId st
 }
 
 func HandleDelete(interaction *discordgo.InteractionCreate, interactionId string, messageId string) {
-
 	// This stops the "(!) This interaction failed" error, do this first as it's Time Imperative
 	err := FakeInteractionResponse(interaction)
 	if err != nil {
@@ -207,9 +222,12 @@ func HandleDelete(interaction *discordgo.InteractionCreate, interactionId string
 	err = config.Session.ChannelMessageDelete(originalInteraction.ChannelID, messageId)
 	if err != nil {
 		audit.Error(err)
-		config.Session.InteractionResponseEdit(originalInteraction.Interaction, &discordgo.WebhookEdit{
+		_, intererr := config.Session.InteractionResponseEdit(originalInteraction.Interaction, &discordgo.WebhookEdit{
 			Embeds: &[]*discordgo.MessageEmbed{ErrorEmbed()},
 		})
+		if intererr != nil {
+			audit.Error(intererr)
+		}
 	} else {
 		e := embed.NewEmbed()
 		e.SetDescription("Meme Deleted, forget this ever happened >_>")

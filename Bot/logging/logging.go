@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"fmt"
 	"math/rand"
 	"runtime"
 
@@ -16,7 +17,11 @@ func SendError(message *discordgo.MessageCreate) {
 	e.SetTitle("Error")
 	e.SetDescription(getRandomText(constants.ERROR_RAND_TEXT))
 	e.SetImage(constants.GIF_AE_CRY)
-	go config.Session.ChannelMessageSendEmbed(message.ChannelID, e.MessageEmbed)
+	_, err := config.Session.ChannelMessageSendEmbed(message.ChannelID, e.MessageEmbed)
+	if err != nil {
+		// add some logging which prints out err to logging
+		fmt.Printf("error sending embedded channel message, error=%s", err)
+	}
 }
 
 // Same function as above, but takes a MessageUpdate object for edits
@@ -25,7 +30,10 @@ func SendErrorFromEdit(message *discordgo.MessageUpdate) {
 	e.SetTitle("Error")
 	e.SetDescription(getRandomText(constants.ERROR_RAND_TEXT))
 	e.SetImage(constants.GIF_AE_CRY)
-	go config.Session.ChannelMessageSendEmbed(message.ChannelID, e.MessageEmbed)
+	_, err := config.Session.ChannelMessageSendEmbed(message.ChannelID, e.MessageEmbed)
+	if err != nil {
+		fmt.Printf("error sending message from edit, error=%s", err)
+	}
 }
 
 // Sends a "Bot has had an error" message but with a custom provided message
@@ -34,7 +42,10 @@ func SendErrorMsg(message *discordgo.MessageCreate, customMsg string) {
 	e.SetTitle("Error")
 	e.SetDescription(customMsg)
 	e.SetImage(constants.GIF_AE_CRY)
-	go config.Session.ChannelMessageSendEmbed(message.ChannelID, e.MessageEmbed)
+	_, err := config.Session.ChannelMessageSendEmbed(message.ChannelID, e.MessageEmbed)
+	if err != nil {
+		fmt.Printf("error sending message, error=%s", err)
+	}
 }
 
 // Sends a "Bot has had an error" message but with a custom provided message, replying to a message
@@ -43,7 +54,10 @@ func SendErrorMsgReply(message *discordgo.MessageCreate, customMsg string) {
 	e.SetTitle("Error")
 	e.SetDescription(customMsg)
 	e.SetImage(constants.GIF_AE_CRY)
-	go config.Session.ChannelMessageSendEmbedReply(message.ChannelID, e.MessageEmbed, message.ReferencedMessage.Reference())
+	_, err := config.Session.ChannelMessageSendEmbedReply(message.ChannelID, e.MessageEmbed, message.ReferencedMessage.Reference())
+	if err != nil {
+		fmt.Printf("error sending reply, error=%s", err)
+	}
 }
 
 // Sends an error from a /slash command input
@@ -52,7 +66,10 @@ func SendErrorInteraction(interaction *discordgo.InteractionCreate) {
 	e.SetTitle("Error")
 	e.SetDescription(getRandomText(constants.ERROR_RAND_TEXT))
 	e.SetImage(constants.GIF_AE_CRY)
-	go config.Session.ChannelMessageSendEmbed(interaction.ChannelID, e.MessageEmbed)
+	_, err := config.Session.ChannelMessageSendEmbed(interaction.ChannelID, e.MessageEmbed)
+	if err != nil {
+		fmt.Printf("error sending interaction, error=%s", err)
+	}
 }
 
 // Sends an error to a private /slash input that is only seen by the requesting user
@@ -69,20 +86,26 @@ func SendErrorMsgInteraction(interaction *discordgo.InteractionCreate, title str
 	}
 
 	if private {
-		go config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		err := config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: embedContent,
 				Flags:  discordgo.MessageFlagsEphemeral,
 			},
 		})
+		if err != nil {
+			fmt.Printf("error sending interaction, error=%s", err)
+		}
 	} else {
-		go config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		err := config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: embedContent,
 			},
 		})
+		if err != nil {
+			fmt.Printf("error sending interaction, error=%s", err)
+		}
 	}
 }
 
@@ -104,22 +127,27 @@ func SendMessageInteraction(interaction *discordgo.InteractionCreate, title stri
 	}
 
 	if isPrivate {
-		go config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		err := config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Flags:  discordgo.MessageFlagsEphemeral,
 				Embeds: embedContent,
 			},
 		})
+		if err != nil {
+			fmt.Printf("error sending interaction, error=%s", err)
+		}
 	} else {
-		go config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		err := config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: embedContent,
 			},
 		})
+		if err != nil {
+			fmt.Printf("error sending interaction, error=%s", err)
+		}
 	}
-
 }
 
 func MessageRefObj(msg *discordgo.Message) discordgo.MessageReference {
