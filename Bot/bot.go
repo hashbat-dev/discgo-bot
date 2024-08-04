@@ -113,6 +113,8 @@ func Run() {
 }
 
 func loadConfig() {
+	config.SetVars()
+
 	// Are we in Dev?
 	hostname, err := os.Hostname()
 	if err != nil {
