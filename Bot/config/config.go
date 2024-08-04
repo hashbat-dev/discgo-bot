@@ -38,7 +38,7 @@ var (
 	Session *discordgo.Session
 
 	// THESE DON'T CHANGE AT RUNTIME
-	// Database Config Settings
+	// DB Config Settings
 	DB_NAME       string = ""
 	DB_USER       string = ""
 	DB_PASSWORD   string = ""
