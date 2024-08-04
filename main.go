@@ -17,7 +17,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 		fmt.Println("Setting up Bot...")
-		config.BotToken = "MTIyMjEwMDUxOTg1MDQ3OTY0Nw.Gxij91.rED1SyMYxyoZyqER82p3r1p8Fmb7J2zwZWQd94"
+		config.BotToken = "MTI2OTYyOTY4NjIzMzgyNTI5MA.GmMv1T.vDmZJy5inKcVCxnx4ipe429o97Vg9PfaenSWDc"
 		go bot.Run()
 	}()
 

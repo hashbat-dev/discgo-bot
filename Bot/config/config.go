@@ -9,7 +9,7 @@ var (
 	IsDev           bool   = false
 	ReportedRunning bool   = false
 	ServerName      string = ""
-	BotToken        string
+	BotToken        string = "MTI2OTYyOTY4NjIzMzgyNTI5MA.GmMv1T.vDmZJy5inKcVCxnx4ipe429o97Vg9PfaenSWDc"
 	BullyTarget     string = ""
 	FwidayCancelled bool   = false
 
