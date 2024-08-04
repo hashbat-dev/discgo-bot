@@ -8,6 +8,7 @@ import (
 	"github.com/dabi-ngin/discgo-bot/Bot/constants"
 	dbhelper "github.com/dabi-ngin/discgo-bot/Bot/dbhelpers"
 	"github.com/dabi-ngin/discgo-bot/Bot/gifbank"
+	"github.com/dabi-ngin/discgo-bot/Bot/handlers/UI"
 	"github.com/dabi-ngin/discgo-bot/Bot/handlers/animegif"
 	"github.com/dabi-ngin/discgo-bot/Bot/handlers/ask"
 	"github.com/dabi-ngin/discgo-bot/Bot/handlers/dice"
@@ -22,14 +23,6 @@ import (
 // Get this into some kind of datastore that's configurable/elsewhere
 var Commands = []*discordgo.ApplicationCommand{
 	{
-		Name:        "fwiday",
-		Description: "Is it Fwiday? Check!",
-	},
-	{
-		Name:        "friday",
-		Description: "Is it Friday? Check!",
-	},
-	{
 		Name:        "reacts",
 		Description: "Get a (private) list of all the available Anime !reaction commands",
 	},
@@ -40,17 +33,6 @@ var Commands = []*discordgo.ApplicationCommand{
 	{
 		Name:        "voicelist",
 		Description: "Get a (private) list of all the available !TTS voices",
-	}, {
-		Name:        "slur-definition",
-		Description: "Make sure you know exactly what connotations are attached to the slurs you haul at people",
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "slur",
-				Description: "The Slur to Check",
-				Required:    true,
-			},
-		},
 	},
 	{
 		Name:        "todolist",
@@ -210,7 +192,6 @@ var Commands = []*discordgo.ApplicationCommand{
 			},
 		},
 	},
-
 	{
 		Name:        "userstats",
 		Description: "Check someone's Server Stats",
@@ -225,7 +206,7 @@ var Commands = []*discordgo.ApplicationCommand{
 	},
 	{
 		Name:        "ask",
-		Description: "Ask Bottom Bot a question, she knows all :3",
+		Description: "Ask me anything!",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Type:        discordgo.ApplicationCommandOptionString,
@@ -236,22 +217,6 @@ var Commands = []*discordgo.ApplicationCommand{
 		},
 	},
 	{
-		Name:        "meme",
-		Description: "Gets a Random Meme",
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "search",
-				Description: "Optional Search term, leave blank for a Random Subject",
-				Required:    false,
-			}, {
-				Type:        discordgo.ApplicationCommandOptionBoolean,
-				Name:        "allow-stills",
-				Description: "False by default, if set then .jpg/.png's are also included",
-				Required:    false,
-			},
-		},
-	}, {
 		Name:        "gif-dump",
 		Description: "Posts ALL entries in a GIF Bank to a new Thread (Ordered by Newest First)",
 		Options: []*discordgo.ApplicationCommandOption{
@@ -301,6 +266,10 @@ var Commands = []*discordgo.ApplicationCommand{
 				Required:    false,
 			},
 		},
+	},
+	{
+		Name:        "button",
+		Description: "interactive buttons stuff",
 	},
 }
 
@@ -441,6 +410,12 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		}
 		help.GetHelpText(i, cmdText)
 		dbhelper.CountCommand("bot-help", i.Member.User.ID)
+	},
+	"button": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		if DoNotProcess(i) {
+			return
+		}
+		UI.HandleMessage(s)
 	},
 }
 

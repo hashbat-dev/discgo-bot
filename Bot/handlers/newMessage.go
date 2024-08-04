@@ -22,6 +22,7 @@ import (
 	"github.com/dabi-ngin/discgo-bot/Bot/handlers/toothjack"
 	"github.com/dabi-ngin/discgo-bot/Bot/handlers/trackword"
 	"github.com/dabi-ngin/discgo-bot/Bot/handlers/wow"
+
 	"github.com/dabi-ngin/discgo-bot/Bot/helpers"
 	logger "github.com/dabi-ngin/discgo-bot/Bot/logging"
 )
@@ -141,6 +142,7 @@ func ProcessMessage(session *discordgo.Session, message *discordgo.MessageCreate
 				} else if action.Adventure {
 					adventures.HandleMessage(message)
 				}
+
 				dbhelpers.CountCommand(botCommand+ttsCommand, message.Message.Author.ID)
 
 				if matched {

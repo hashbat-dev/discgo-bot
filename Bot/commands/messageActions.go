@@ -25,6 +25,7 @@ type MessageAction struct {
 	DoImageWorkType       string
 	ReturnSpecificMedia   bool
 	Adventure             bool
+	UI                    bool
 }
 
 var MessageActions = map[string]MessageAction{
@@ -335,13 +336,7 @@ var MessageActions = map[string]MessageAction{
 	"translate": {
 		DoTranslate: true,
 	},
-	"slur": {
-		MessageAliases: []string{
-			"racism",
-			"abuse",
-		},
-		DoRacism: true,
-	},
+
 	"deepfry": {
 		DoImageWork:     true,
 		DoImageWorkType: "deepfry",
@@ -372,7 +367,6 @@ var MessageActions = map[string]MessageAction{
 		},
 		Adventure: true,
 	},
-
 	// Keep at the bottom!
 	"sound": {
 		MessageKeepOrigin:     true,
@@ -418,9 +412,6 @@ var MessageActions = map[string]MessageAction{
 		MessageKeepOrigin:     true,
 		MessageDontNeedExMark: true,
 		DoTrackWord:           true,
-	},
-	"infidel": {
-		ReturnSpecificMedia: true,
 	},
 	"speedup": {
 		DoImageWork:     true,
