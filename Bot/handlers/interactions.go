@@ -1,11 +1,9 @@
 package handlers
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 	"github.com/dabi-ngin/discgo-bot/Bot/commands"
 	"github.com/dabi-ngin/discgo-bot/Bot/handlers/meme"
 )
@@ -31,8 +29,6 @@ func AddInteractions(session *discordgo.Session) {
 				meme.HandleRegenerate(i, splitVal[1], splitVal[2], splitVal[3], splitVal[4])
 			case "delete":
 				meme.HandleDelete(i, splitVal[1], splitVal[2])
-			default:
-				audit.Error(errors.New("unknown command"))
 			}
 
 		} else if h, ok := commands.CommandHandlers[i.ApplicationCommandData().Name]; ok {
