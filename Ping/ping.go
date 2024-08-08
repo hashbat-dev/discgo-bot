@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
-	"github.com/dabi-ngin/discgo-bot/Bot/audit"
 )
 
 func Run() {
@@ -20,6 +18,6 @@ func getRoot(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Ping: got / request\n")
 	_, err := io.WriteString(w, "Ping!\n")
 	if err != nil {
-		audit.Error(err)
+		fmt.Println(fmt.Printf("Error Loading Ping: %v", err))
 	}
 }
