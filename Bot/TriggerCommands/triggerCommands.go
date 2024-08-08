@@ -2,7 +2,7 @@ package triggerCommands
 
 import (
 	"github.com/bwmarrin/discordgo"
-	testhandler "github.com/dabi-ngin/discgo-bot/Bot/Handlers/TestHandler"
+	testHandler "github.com/dabi-ngin/discgo-bot/Bot/Handlers/TestHandler"
 )
 
 var (
@@ -10,7 +10,7 @@ var (
 )
 
 func Init() bool {
-	commandTable["triggertest"] = testhandler.HandleNewTrigger
+	commandTable["triggertest"] = testHandler.HandleNewTrigger
 	return true
 }
 
