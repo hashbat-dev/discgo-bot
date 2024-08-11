@@ -6,9 +6,27 @@ import (
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
 
-func DoesUserHavePermissionToUseCommand(message *discordgo.MessageCreate) bool {
+const (
+	AllAccess  = iota
+	SuperAdmin = iota
+	Admin      = iota
+	Moderator  = iota
+	NormalUser = iota
+)
+
+var commandPriveledges map[string]int
+
+func InitPermissions() {
+	commandPriveledges["test"] = 1
+}
+
+func DoesUserHavePermissionToUseCommand(message *discordgo.MessageCreate, triggerPhrase string, exclamationCommand string) bool {
 
 	//TODO implement
+	if triggerPhrase != "" {
+
+	}
+
 	temp := true
 	logger.Remind("Permissions.go :: Temp used - needs to be changed to actually check perms.")
 

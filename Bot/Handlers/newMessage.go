@@ -22,17 +22,17 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 	// => Do we have an exclamation !command?
 	exclamationCommand := CheckForExclamationCommand(message.Content)
 
-	// 3. Determine permissions of the sending user
-	if exclamationCommand != "" {
-		if !helpers.DoesUserHavePermissionToUseCommand(message) {
-			return
-		}
-	}
-
 	// => If not, do we have a trigger phrase command?
 	triggerPhrase := ""
 	if exclamationCommand == "" {
 		triggerPhrase = CheckForTriggerPhrase(message.Content)
+	}
+
+	// 3. Determine permissions of the sending user
+	if exclamationCommand != "" {
+		if !helpers.DoesUserHavePermissionToUseCommand(message, triggerPhrase, exclamationCommand) {
+			return
+		}
 	}
 
 	// 4. Send the message to the relevant handler
