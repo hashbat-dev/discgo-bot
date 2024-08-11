@@ -11,6 +11,10 @@ func RunEvery2Seconds() {
 
 func sendNextAuditLogBatch() {
 
+	if !logger.InitComplete {
+		return
+	}
+
 	var newCache []string
 	nextMsg := ""
 

@@ -61,6 +61,11 @@ func SkipMessageCheck(session *discordgo.Session, message *discordgo.MessageCrea
 
 // Checks for, and returns if exists a !command
 func CheckForExclamationCommand(messageContent string) string {
+
+	if len(messageContent) == 0 {
+		return ""
+	}
+
 	if string([]rune(messageContent)[0]) == "!" {
 		spaceIndex := strings.Index(messageContent, " ")
 		if spaceIndex == -1 {

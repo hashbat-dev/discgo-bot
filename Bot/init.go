@@ -20,33 +20,33 @@ func Init() {
 		return
 	}
 
-	// 2. Discord Session Init
+	// 2. Database Init
+	if !database.Init() {
+		logger.Error("", errors.New("Failed to initialise database"))
+		return
+	}
+
+	// 3. Discord Session Init
 	if !sessionInit() {
 		logger.Error("", errors.New("Failed to initialise session"))
 		return
 	}
 
-	// 3. Add Handlers to the Session
+	// 4. Add Handlers to the Session
 	if !addHandlers() {
 		logger.Error("", errors.New("Failed to add handlers"))
 		return
 	}
 
-	// 4. Open the Discord session
+	// 5. Open the Discord session
 	if !sessionOpen() {
 		logger.Error("", errors.New("Failed to open session"))
 		return
 	}
 
-	// 5. Log Init
+	// 6. Log Init
 	if !logger.Init() {
 		logger.Error("", errors.New("Failed to initialise logging"))
-		return
-	}
-
-	// 6. Database Init
-	if !database.Init() {
-		logger.Error("", errors.New("Failed to initialise database"))
 		return
 	}
 
@@ -105,7 +105,8 @@ func sessionOpen() bool {
 
 func addHandlers() bool {
 
-	config.Session.AddHandler(handlers.HandleNewMessage)
+	config.Session.AddHandler(handlers.HandleNewMessage) // New Messages
+	config.Session.AddHandler(handlers.HandleNewGuild)   //	Added to a new Server
 	return true
 
 }

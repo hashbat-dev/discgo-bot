@@ -8,6 +8,8 @@ import (
 	config "github.com/dabi-ngin/discgo-bot/Config"
 )
 
+var InitComplete bool
+
 // Initialise the Logger package
 func Init() bool {
 	if config.LoggingUsesThreads {
@@ -27,6 +29,7 @@ func Init() bool {
 
 	}
 
+	InitComplete = true
 	return true
 
 }
