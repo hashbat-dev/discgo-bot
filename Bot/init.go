@@ -13,7 +13,6 @@ import (
 )
 
 func Init() {
-
 	// 1. Config Init
 	if !config.Init() {
 		logger.Error("", errors.New("Failed to load configs"))
@@ -73,7 +72,6 @@ func Init() {
 }
 
 func sessionInit() bool {
-
 	session, err := discordgo.New("Bot " + config.BotToken)
 	if err != nil {
 		logger.Error("", err)
