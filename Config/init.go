@@ -8,15 +8,38 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// These can be swapped around on the go, but pls don't lol
+// These can be swapped around on the go, but pls don't lol. If any are added make sure to also update
 const (
 	LoggingLevelAdmin = iota
-	LoggingLevelError = iota
-	LoggingLevelWarn  = iota
-	LoggingLevelEvent = iota
-	LoggingLevelInfo  = iota
-	LoggingLevelDebug = iota
+	LoggingLevelError
+	LoggingLevelWarn
+	LoggingLevelEvent
+	LoggingLevelInfo
+	LoggingLevelDebug
 )
+
+// This is used to denote types to the Dashbaord
+var LoggingLevels map[int]string = map[int]string{
+	LoggingLevelAdmin: "Admin",
+	LoggingLevelError: "Error",
+	LoggingLevelWarn:  "Warn",
+	LoggingLevelEvent: "Event",
+	LoggingLevelInfo:  "Info",
+	LoggingLevelDebug: "Debug",
+}
+
+const (
+	CommandTypeDefault = iota
+	CommandTypeBang
+	CommandTypePhrase
+)
+
+// This is used to denote types to the Dashbaord
+var CommandTypes map[int]string = map[int]string{
+	CommandTypeDefault: "Default",
+	CommandTypeBang:    "Bang",
+	CommandTypePhrase:  "Phrase",
+}
 
 type Vars struct {
 	IsDev       bool
@@ -27,6 +50,12 @@ type Vars struct {
 	VerboseStack       bool
 	LogFunctions       bool
 	LoggingLevel       int
+
+	DashboardMaxLogs            int
+	DashboardMaxCommands        int
+	CommandAveragePool          int
+	HardwareStatIntervalSeconds int
+	HardwareStatMaxIntervals    int
 
 	BotToken string
 
@@ -42,10 +71,15 @@ var (
 	HostName    string
 	SuperAdmins []string
 
-	LoggingChannelID    string
-	LoggingUsesThreads  bool
-	LoggingVerboseStack bool
-	LoggingLogFunctions bool
+	LoggingChannelID            string
+	LoggingUsesThreads          bool
+	LoggingVerboseStack         bool
+	LoggingLogFunctions         bool
+	DashboardMaxLogs            int
+	DashboardMaxCommands        int
+	CommandAveragePool          int
+	HardwareStatIntervalSeconds int
+	HardwareStatMaxIntervals    int
 
 	LoggingLevel int
 
@@ -57,15 +91,15 @@ var (
 	DB_PASSWORD   string
 	DB_IP_ADDRESS string
 	DB_PORT       string
+)
 
-	// Variables that will never change
+const (
 	MAX_MESSAGE_LENGTH int    = 2000
 	ROOT_FOLDER        string = "discgo-bot/"
 	BOT_SUB_FOLDER     string = "Bot/"
 )
 
 func Init() bool {
-
 	localConfigFile, err := os.ReadFile("config.json")
 
 	if err != nil {
@@ -95,6 +129,11 @@ func Init() bool {
 	LoggingVerboseStack = configFileVariables.VerboseStack
 	LoggingLogFunctions = configFileVariables.LogFunctions
 	LoggingLevel = configFileVariables.LoggingLevel
+	DashboardMaxLogs = configFileVariables.DashboardMaxLogs
+	DashboardMaxCommands = configFileVariables.DashboardMaxCommands
+	CommandAveragePool = configFileVariables.CommandAveragePool
+	HardwareStatIntervalSeconds = configFileVariables.HardwareStatIntervalSeconds
+	HardwareStatMaxIntervals = configFileVariables.HardwareStatMaxIntervals
 
 	BotToken = configFileVariables.BotToken
 
@@ -105,5 +144,4 @@ func Init() bool {
 	DB_PORT = configFileVariables.DB_PORT
 
 	return true
-
 }

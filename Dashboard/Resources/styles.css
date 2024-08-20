@@ -1,0 +1,229 @@
+:root {
+    --background-dark-shade: #101010;
+    --background-light-shade: #282828;
+    --trim-color: #2c5179;
+    --header-color: #508ccc;
+    --font-color: #ebebeb;
+    --font-color-faded: #ababab;
+    --vertical-padding: 15px;
+    --table-row-even: #323232;
+    --table-row-odd: #3d3d3d;
+    --font-normal: Arial, Helvetica, sans-serif;
+    --font-terminal: 'Courier New', Courier, monospace;
+
+    --log-colour-admin: #FF00FF;
+    --log-colour-error: #FF0000;
+    --log-colour-warn: #FFFF66;
+    --log-colour-event: #66FF66;
+    --log-colour-info: #FFFFFF;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-normal); 
+}
+body {
+    padding: var(--vertical-padding) 0;
+    background-color: var(--background-dark-shade);
+    color: var(--font-color);
+}
+.AlignCenter { text-align: center; }
+.FontSize10 { font-size: 10px; }
+
+/* Log Colours */
+.LogAdmin { color: var(--log-colour-admin); }
+.LogError { color: var(--log-colour-error); }
+.LogWarn { color: var(--log-colour-warn); }
+.LogEvent { color: var(--log-colour-event); }
+.LogInfo { color: var(--log-colour-info); }
+
+
+/* Dashboard Header */
+.Header {
+    float: left;
+    width: 98%;
+    height: 60px;
+    background: var(--background-light-shade);
+    border-radius: 5px;
+    margin: 0 1%;
+}
+.Header h1 {
+    float: left;
+    height: 60px;
+    line-height: 60px;
+    margin-left: 2%;
+    font-size: 28px;
+    font-weight: normal;
+}
+
+/* Flexbox */
+.FlexContainer {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 10px 1%;
+    float: left;
+    width: 100%;
+    padding: 0 0 0 1%;
+    margin-top: var(--vertical-padding);
+}
+
+.FlexContainer > .FlexContainer {
+  background-color: var(--background-dark-shade) !important;
+  padding: 0 !important;
+  margin-top: 0 !important;
+}
+
+.FlexContainer.FlexBase {
+  background-color: var(--background-dark-shade) !important;
+}
+
+.FlexBase {
+    width: 24%;
+    background-color: var(--background-light-shade);
+    border-radius: 5px;
+}
+.FlexBase .FlexHeader {
+  float: left;
+  width: 100%;
+  border-bottom: 2px solid var(--trim-color);
+}
+.FlexBase .FlexHeader h2 {
+    float: left;
+    font-weight: normal;
+    padding: 5px 10px;
+    font-size: 22px;
+    color: var(--header-color);
+}
+.FlexBase .FlexFilter {
+    float: right;
+    margin: 6px 10px 6px 0;
+    height: 23px;
+    width: 100px;
+    background-color: var(--background-dark-shade);
+    border: 0;
+    padding: 0 5px;
+    border-radius: 5px;
+    color: var(--font-color-faded);
+}
+
+.ChartContainer {
+    float: left;
+    width: 100%;
+    height: 300px;
+}
+
+.ScrollContainer {
+    float: left;
+    width: 100%;
+    overflow-y: auto;
+}
+
+.FlexBase table {
+    float: left;
+    width: 100%;
+}
+.FlexBase table tr th {
+    color: var(--header-color);
+    font-weight: normal;
+    text-align: left;
+    font-size: 14px;
+}
+.FlexBase table tr td {
+    font-size: 14px;
+    padding: 3px;
+    background-color: var(--table-row-odd);
+    font-family: var(--font-terminal);
+}
+.FlexBase table tr:nth-child(even) td {
+    background-color: var(--table-row-even);
+}
+.FlexBase.FlexTable {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Elements */
+.GuildID {
+    cursor: help;
+    font-family: inherit;
+}
+
+/* Switch --------------------------------------------------- */
+.SwitchLabel {
+    float: right;
+    height: 60px;
+    line-height: 60px;
+    margin-right: 10px;
+    font-size: 18px;
+    color: var(--font-color-faded);
+}
+.SwitchContainer {
+    float: right;
+    margin: 16px 20px 0 0;
+}
+ /* The switch - the box around the slider */
+ .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 29px;
+  }
+  
+  /* Hide default HTML checkbox */
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  /* The slider */
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 21px;
+    width: 21px;
+    left: 5px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(19px);
+    -ms-transform: translateX(19px);
+    transform: translateX(19px);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  } 

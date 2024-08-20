@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"time"
 
 	config "github.com/dabi-ngin/discgo-bot/Config"
@@ -12,21 +11,16 @@ var timerName string
 
 func Debug(guildId string, logText string, a ...any) {
 	if config.LoggingLevel <= config.LoggingLevelDebug {
-		infoLine := fmt.Sprintf("%v | %v", time.Now().Format("02/01/06 15:04:05.000"), GetStack())
-		if guildId != "" {
-			infoLine += " | " + guildId
-		}
-		formattedLogText := logText
-		if len(a) > 0 {
-			formattedLogText = FormatInboundLogText(logText, a...)
-		}
-		SendToConsole(infoLine, formattedLogText, config.LoggingLevelDebug)
-		if config.IsDev {
-			infoLine += " | " + config.HostName
-		}
-		SendLogToDiscord(infoLine, formattedLogText, config.LoggingLevelDebug)
+		infoLine, formattedLogText := ParseLoggingText(guildId, logText, a...)
+		SendLogs(infoLine, formattedLogText, config.LoggingLevelDebug, true)
 	}
+}
 
+func Debug_IgnoreDiscord(guildId string, logText string, a ...any) {
+	if config.LoggingLevel <= config.LoggingLevelDebug {
+		infoLine, formattedLogText := ParseLoggingText(guildId, logText, a...)
+		SendLogs(infoLine, formattedLogText, config.LoggingLevelDebug, false)
+	}
 }
 
 // StartTimer is used to start a timer when you want to time a method

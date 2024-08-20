@@ -1,0 +1,157 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="styles.css" rel="stylesheet" type="text/css" /> 
+        <title>Dashboard</title>
+        <script src="chart.js"></script>
+    </head>
+    <body>
+        <div class="Header">
+            <h1>Dashboard :: 
+                <span id="ServerName">Connecting...</span>
+            </h1>
+            <div class="SwitchContainer">
+                <label class="switch">
+                    <input id="WriteUpdates" type="checkbox" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+            <div class="SwitchLabel">
+                Write Updates
+            </div>
+        </div>
+        <div class="FlexContainer">
+
+            <!-- Recent Logs -->
+            <div class="FlexBase FlexTable" style="width:74%;">
+                <div class="FlexHeader">
+                    <h2>Recent Logs</h2>
+                    <select class="FlexFilter" id="LogFilterLevel">
+                        <option value="-1">All Levels...</option>
+                    </select>
+                    <select class="FlexFilter" id="LogFilterGuild">
+                        <option value="">All Guilds...</option>
+                    </select>
+                </div>
+                <div class="ScrollContainer">
+                    <table id="LogTable">
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Level</th>
+                                <th>Guild ID</th>
+                                <th>Source</th>
+                                <th>Log Text</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows added dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="FlexBase FlexContainer">
+                    
+                    <!-- Active Guilds -->
+                    <div class="FlexBase FlexTable" style="width:100%;">
+                        <div class="FlexHeader">
+                            <h2>Active Guilds</h2>
+                        </div>
+                        <div class="ScrollContainer">
+                            <table id="GuildTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Guild ID</th>
+                                        <th>Db ID</th>
+                                        <th>Calls</th>
+                                        <th>Last Command</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows added dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Command Info -->
+                    <div class="FlexBase FlexTable" style="width:100%;">
+                        <div class="FlexHeader">
+                            <h2>Command Info</h2>
+                        </div>
+                        <div class="ScrollContainer">
+                            <table id="CommandInfoTable">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Command</th>
+                                        <th>Count</th>
+                                        <th>Avg. Time</th>
+                                        <th>Last Call</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows added dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+            </div>
+
+
+            <!-- Recent Commands -->
+            <div class="FlexBase FlexTable" style="width:49%;">
+                <div class="FlexHeader">
+                    <h2>Recent Commands</h2>
+                </div>
+                <div class="ScrollContainer">
+                    <table id="CommandTable">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Name</th>
+                                <th>Guild ID</th>
+                                <th>User ID</th>
+                                <th>User Name</th>
+                                <th>Called</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Rows added dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- CPU Performance -->
+            <div class="FlexBase FlexChart">
+                <div class="FlexHeader">
+                    <h2>CPU Performance</h2>
+                </div>
+                <div class="ChartContainer">
+                    <canvas id="chartCpu"></canvas>
+                </div>
+            </div>
+
+
+
+            <!-- RAM Performance -->
+            <div class="FlexBase FlexChart">
+                <div class="FlexHeader">
+                    <h2>RAM Performance</h2>
+                </div>
+                <div class="ChartContainer">
+                    <canvas id="chartRam"></canvas>
+                </div>
+            </div>
+
+
+        </div>
+
+        <script src="scripts.js"></script>
+    </body>
+</html>

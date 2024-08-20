@@ -6,6 +6,9 @@
 ## Table of contents
 ### Introduction
 
+### Sections
+### [Dashboard](./components/dashboard.md)
+
 ### User guide with examples
 
 ### [Developer Stuff](./developer)
