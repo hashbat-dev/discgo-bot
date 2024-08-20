@@ -16,6 +16,9 @@ RUN go get github.com/Yakiyo/nekos_best.go
 RUN go get github.com/go-sql-driver/mysql
 RUN go get -u golang.org/x/image/webp
 RUN go get -u github.com/chai2010/webp
+RUN go get github.com/shirou/gopsutil/cpu
+RUN go get github.com/shirou/gopsutil/mem
+RUN go get github.com/google/uuid
 COPY . .
 
 RUN set CGO_CFLAGS=-IC:\libwebp\include

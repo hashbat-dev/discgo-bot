@@ -2,10 +2,14 @@ package handlers
 
 import (
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	bangCommands "github.com/dabi-ngin/discgo-bot/Bot/BangCommands"
 	triggerCommands "github.com/dabi-ngin/discgo-bot/Bot/TriggerCommands"
+	cache "github.com/dabi-ngin/discgo-bot/Cache"
+	config "github.com/dabi-ngin/discgo-bot/Config"
+	database "github.com/dabi-ngin/discgo-bot/Database"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
@@ -85,28 +89,45 @@ func CheckForTriggerPhrase(trigger string) string {
 
 // DispatchExclamationCommand sends !commands to the relevant handler
 func DispatchExclamationCommand(message *discordgo.MessageCreate, command string) {
-	logger.Event(message.GuildID, "User: [%v] has requested [!%v]", message.Author.Username, command)
 
+	// Setup the Command
+	logger.Event(message.GuildID, "User: [%v] has requested [!%v]", message.Author.Username, command)
+	commandType := config.CommandTypeBang
+	timeStart := time.Now()
 	foundCommand := bangCommands.GetCommand(command)
 
+	// Execute the Command if found
 	if foundCommand != nil {
 		err := bangCommands.RunCommand(command, message)
 		if err != nil {
 			logger.Error(message.GuildID, err)
+			return
 		}
 	} else {
 		logger.Info(message.GuildID, "User [%s] tried to use unknown command [!%s]", message.Author.Username, command)
 		return
 	}
 
+	// Log the Command
+	timeFinish := time.Now()
+	database.LogCommandUsage(message.GuildID, message.Author.ID, commandType, command)
+	cache.AddToCommandCache(commandType, command, message.GuildID, message.Author.ID, message.Author.Username, timeStart, timeFinish)
 }
 
 // DispatchTriggerCommand sends trigger commands to the relevant handler
 func DispatchTriggerCommand(message *discordgo.MessageCreate, command string) {
 	logger.Event(message.GuildID, "User: [%v] has triggered [%v]", message.Author.Username, command)
+	timeStart := time.Now()
+	commandType := config.CommandTypePhrase
 
 	err := triggerCommands.RunTriggerCommand(command, message)
 	if err != nil {
 		logger.Error(message.GuildID, err)
+	} else {
+		database.LogCommandUsage(message.GuildID, message.Author.ID, 2, command)
 	}
+
+	timeFinish := time.Now()
+	database.LogCommandUsage(message.GuildID, message.Author.ID, commandType, command)
+	cache.AddToCommandCache(commandType, command, message.GuildID, message.Author.ID, message.Author.Username, timeStart, timeFinish)
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// These can be swapped around on the go, but pls don't lol
+// These can be swapped around on the go, but pls don't lol. If any are added make sure to also update
 const (
 	LoggingLevelAdmin = iota
 	LoggingLevelError = iota
@@ -18,15 +18,43 @@ const (
 	LoggingLevelDebug = iota
 )
 
+// This is used to denote types to the Dashbaord
+var LoggingLevels map[int]string = map[int]string{
+	LoggingLevelAdmin: "Admin",
+	LoggingLevelError: "Error",
+	LoggingLevelWarn:  "Warn",
+	LoggingLevelEvent: "Event",
+	LoggingLevelInfo:  "Info",
+	LoggingLevelDebug: "Debug",
+}
+
+const (
+	CommandTypeDefault = iota
+	CommandTypeBang    = iota
+	CommandTypePhrase  = iota
+)
+
+// This is used to denote types to the Dashbaord
+var CommandTypes map[int]string = map[int]string{
+	CommandTypeDefault: "Default",
+	CommandTypeBang:    "Bang",
+	CommandTypePhrase:  "Phrase",
+}
+
 type Vars struct {
 	IsDev       bool
 	SuperAdmins []string
 
-	LoggingChannelID   string
-	LoggingUsesThreads bool
-	VerboseStack       bool
-	LogFunctions       bool
-	LoggingLevel       int
+	LoggingChannelID            string
+	LoggingUsesThreads          bool
+	VerboseStack                bool
+	LogFunctions                bool
+	LoggingLevel                int
+	DashboardMaxLogs            int
+	DashboardMaxCommands        int
+	CommandAveragePool          int
+	HardwareStatIntervalSeconds int
+	HardwareStatMaxIntervals    int
 
 	BotToken string
 
@@ -42,10 +70,15 @@ var (
 	HostName    string
 	SuperAdmins []string
 
-	LoggingChannelID    string
-	LoggingUsesThreads  bool
-	LoggingVerboseStack bool
-	LoggingLogFunctions bool
+	LoggingChannelID            string
+	LoggingUsesThreads          bool
+	LoggingVerboseStack         bool
+	LoggingLogFunctions         bool
+	DashboardMaxLogs            int
+	DashboardMaxCommands        int
+	CommandAveragePool          int
+	HardwareStatIntervalSeconds int
+	HardwareStatMaxIntervals    int
 
 	LoggingLevel int
 
@@ -95,6 +128,11 @@ func Init() bool {
 	LoggingVerboseStack = configFileVariables.VerboseStack
 	LoggingLogFunctions = configFileVariables.LogFunctions
 	LoggingLevel = configFileVariables.LoggingLevel
+	DashboardMaxLogs = configFileVariables.DashboardMaxLogs
+	DashboardMaxCommands = configFileVariables.DashboardMaxCommands
+	CommandAveragePool = configFileVariables.CommandAveragePool
+	HardwareStatIntervalSeconds = configFileVariables.HardwareStatIntervalSeconds
+	HardwareStatMaxIntervals = configFileVariables.HardwareStatMaxIntervals
 
 	BotToken = configFileVariables.BotToken
 

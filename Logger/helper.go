@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+	"time"
 
 	config "github.com/dabi-ngin/discgo-bot/Config"
 )
@@ -25,7 +26,35 @@ var (
 	ColourMagenta = "\033[35m"
 )
 
-func SendToConsole(infoLine string, logText string, logLevel int) {
+type LogInfo struct {
+	DateTime   time.Time
+	CodeSource string
+	GuildID    string
+}
+
+func SendLogs(infoLine LogInfo, logText string, logLevel int, sendToDiscord bool) {
+	SendToConsole(infoLine, logText, logLevel)
+	SendLogsToDashboard(infoLine, logText, logLevel)
+	if !sendToDiscord {
+		return
+	}
+	SendLogToDiscord(infoLine, logText, logLevel)
+}
+
+func ParseLoggingText(guildId string, logText string, a ...any) (LogInfo, string) {
+	logInfo := LogInfo{
+		DateTime:   time.Now(),
+		CodeSource: GetStack(),
+		GuildID:    guildId,
+	}
+	formattedLogText := logText
+	if len(a) > 0 {
+		formattedLogText = FormatInboundLogText(logText, a...)
+	}
+	return logInfo, formattedLogText
+}
+
+func SendToConsole(logInfo LogInfo, logText string, logLevel int) {
 	var useColour string
 	var logType string
 	switch logLevel {
@@ -46,6 +75,14 @@ func SendToConsole(infoLine string, logText string, logLevel int) {
 		logType = "[INFO]"
 	default:
 		useColour = ColourWhite
+	}
+
+	infoLine := fmt.Sprintf("%v | %v", logInfo.DateTime.Format("02/01/06 15:04:05.000"), logInfo.CodeSource)
+	if logInfo.GuildID != "" {
+		infoLine += " | " + logInfo.GuildID
+	}
+	if config.IsDev {
+		infoLine += " | " + config.HostName
 	}
 
 	fmt.Printf("%v%v %v :: %v %v \n", useColour, logType, infoLine, logText, ColourReset)
@@ -69,7 +106,7 @@ func ParseStackTrace(stack string) string {
 
 	isFirst := true
 
-	for i := 5; i < len(lines)-1; i++ {
+	for i := 7; i < len(lines)-1; i++ {
 
 		line := lines[i]
 		if strings.Contains(line, "logger") || strings.Contains(line, "created by") || strings.Contains(line, "main.go") {

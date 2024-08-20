@@ -1,27 +1,20 @@
 package logger
 
 import (
-	"fmt"
-	"time"
-
 	config "github.com/dabi-ngin/discgo-bot/Config"
 )
 
 // Logs info, Bozo... requires LoggingLevel 2 or lower in config
 func Info(guildId string, logText string, a ...any) {
-	if config.LoggingLevel <= config.LoggingLevelInfo {
-		infoLine := fmt.Sprintf("%v | %v", time.Now().Format("02/01/06 15:04:05.000"), GetStack())
-		if guildId != "" {
-			infoLine += " | " + guildId
-		}
-		formattedLogText := logText
-		if len(a) > 0 {
-			formattedLogText = FormatInboundLogText(logText, a...)
-		}
-		SendToConsole(infoLine, formattedLogText, config.LoggingLevelInfo)
-		if config.IsDev {
-			infoLine += " | " + config.HostName
-		}
-		SendLogToDiscord(infoLine, formattedLogText, config.LoggingLevelInfo)
+	if config.LoggingLevel <= config.LoggingLevelEvent {
+		infoLine, formattedLogText := ParseLoggingText(guildId, logText, a...)
+		SendLogs(infoLine, formattedLogText, config.LoggingLevelInfo, true)
+	}
+}
+
+func Info_IgnoreDiscord(guildId string, logText string, a ...any) {
+	if config.LoggingLevel <= config.LoggingLevelEvent {
+		infoLine, formattedLogText := ParseLoggingText(guildId, logText, a...)
+		SendLogs(infoLine, formattedLogText, config.LoggingLevelInfo, false)
 	}
 }

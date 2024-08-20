@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	bot "github.com/dabi-ngin/discgo-bot/Bot"
-	ping "github.com/dabi-ngin/discgo-bot/Ping"
+	dashboard "github.com/dabi-ngin/discgo-bot/Dashboard"
 	scheduler "github.com/dabi-ngin/discgo-bot/Scheduler"
 )
 
@@ -27,7 +27,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		ping.Run()
+		dashboard.Run()
 	}()
 
 	wg.Wait()
