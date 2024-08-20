@@ -16,7 +16,6 @@ import (
 
 // HandleNewMessage checks for Bot actions whenever a new Message is posted in a Server
 func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCreate) {
-
 	// 1. Do we want to skip this message?
 	if SkipMessageCheck(session, message) {
 		return
@@ -51,7 +50,6 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 
 // Determines whether we should ignore the inbound Message
 func SkipMessageCheck(session *discordgo.Session, message *discordgo.MessageCreate) bool {
-
 	if message.Author == nil {
 		return true
 	}
@@ -65,7 +63,6 @@ func SkipMessageCheck(session *discordgo.Session, message *discordgo.MessageCrea
 
 // Checks for, and returns if exists a !command
 func CheckForExclamationCommand(messageContent string) string {
-
 	if len(messageContent) == 0 {
 		return ""
 	}
@@ -89,7 +86,6 @@ func CheckForTriggerPhrase(trigger string) string {
 
 // DispatchExclamationCommand sends !commands to the relevant handler
 func DispatchExclamationCommand(message *discordgo.MessageCreate, command string) {
-
 	// Setup the Command
 	logger.Event(message.GuildID, "User: [%v] has requested [!%v]", message.Author.Username, command)
 	commandType := config.CommandTypeBang

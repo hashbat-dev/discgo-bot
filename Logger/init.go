@@ -31,5 +31,4 @@ func Init() bool {
 
 	InitComplete = true
 	return true
-
 }

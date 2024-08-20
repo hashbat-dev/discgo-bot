@@ -36,7 +36,6 @@ var CommandInfo []CmdInfo
 var CommandAverages []CmdAverage
 
 func AddToCommandCache(typeId int, command string, guildId string, userId string, userName string, timeStart time.Time, timeFinish time.Time) {
-
 	callDuration := timeFinish.Sub(timeStart)
 
 	// Commands

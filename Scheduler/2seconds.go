@@ -12,7 +12,6 @@ func RunEvery2Seconds() {
 }
 
 func sendNextDiscordLogBatch() {
-
 	if !logger.InitComplete {
 		return
 	}
@@ -41,7 +40,6 @@ func sendNextDiscordLogBatch() {
 }
 
 func sendLogsToDiscordChannel(logs string) {
-
 	_, err := config.Session.ChannelMessageSend(config.LoggingChannelID, logs)
 	if err != nil {
 		logger.Error("", err)

@@ -32,7 +32,6 @@ func SendLogToDiscord(logInfo LogInfo, logText string, logLevel int) {
 
 // Adds logs to the queue to send to the Dashboard
 func SendLogsToDashboard(logInfo LogInfo, logText string, logLevel int) {
-
 	newLog := DashboardLog{
 		LogInfo:  logInfo,
 		LogText:  logText,
@@ -45,5 +44,4 @@ func SendLogsToDashboard(logInfo LogInfo, logText string, logLevel int) {
 	}
 
 	LogsForDashboard = NewLogsForDashboard
-
 }

@@ -100,7 +100,6 @@ const (
 )
 
 func Init() bool {
-
 	localConfigFile, err := os.ReadFile("config.json")
 
 	if err != nil {
@@ -145,5 +144,4 @@ func Init() bool {
 	DB_PORT = configFileVariables.DB_PORT
 
 	return true
-
 }

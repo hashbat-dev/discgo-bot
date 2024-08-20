@@ -53,7 +53,6 @@ type CommandTypes struct {
 }
 
 func GetPacket() Packet {
-
 	var packet Packet
 
 	packet.PacketInfo = getPacketInfo()
@@ -67,7 +66,6 @@ func GetPacket() Packet {
 }
 
 func getPacketInfo() DashboardPacketInfo {
-
 	var returnStruct DashboardPacketInfo
 	returnStruct.PacketID = uuid.New().String()
 	returnStruct.TimeStamp = time.Now()
@@ -81,7 +79,6 @@ func getPacketInfo() DashboardPacketInfo {
 }
 
 func getDashboardLogging() DashboardLogging {
-
 	var returnStruct DashboardLogging
 	returnStruct.LogLevels = config.LoggingLevels
 	returnStruct.LogEntries = logger.LogsForDashboard
@@ -96,7 +93,6 @@ func getDashboardGuilds() []cache.Guild {
 var dashboardHardwareCache DashboardHardware
 
 func getDashboardHardware() DashboardHardware {
-
 	var newHardware DashboardHardware
 	if dashboardHardwareCache.CpuValues == nil {
 		dashboardHardwareCache.CpuValues = []float64{}
@@ -139,7 +135,6 @@ func getDashboardHardware() DashboardHardware {
 }
 
 func getDashboardCommands() DashboardCommands {
-
 	var returnStruct DashboardCommands
 	returnStruct.CommandTypes = config.CommandTypes
 	returnStruct.Commands = cache.Commands

@@ -30,7 +30,6 @@ func webhandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func returnData(w http.ResponseWriter) {
-
 	// Get the current Packet Data
 	packets := PacketCache
 
@@ -45,7 +44,6 @@ func returnData(w http.ResponseWriter) {
 }
 
 func getDashboard(w http.ResponseWriter, directory string) {
-
 	filePath := moduleRoot
 	if strings.Contains(directory, ".") {
 		filePath += "Resources/" + directory
@@ -69,7 +67,6 @@ func getDashboard(w http.ResponseWriter, directory string) {
 }
 
 func getUrlDirectory(s string) string {
-
 	if s == "/" {
 		return "dashboard"
 	}

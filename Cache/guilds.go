@@ -29,7 +29,6 @@ const (
 )
 
 func AddToActiveGuildCache(guild *discordgo.GuildCreate, dbId int) {
-
 	if ActiveGuilds == nil {
 		ActiveGuilds = []Guild{}
 	}
@@ -44,7 +43,6 @@ func AddToActiveGuildCache(guild *discordgo.GuildCreate, dbId int) {
 }
 
 func UpdateGuildLastCommand(guildId string) {
-
 	guildIndex := -1
 	for i, guild := range ActiveGuilds {
 		if guild.DiscordID == guildId {
