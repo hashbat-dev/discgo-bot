@@ -271,11 +271,13 @@ function updateGuildTable() {
         const dbIdCell = document.createElement('td');
         const discordIdCell = document.createElement('td');
         const nameCell = document.createElement('td');
+        const callsCell = document.createElement('td');
         const lastCmdCell = document.createElement('td');
 
         nameCell.textContent = guild.Name;
         discordIdCell.innerHTML = getConcatIDElement(guild.DiscordID);
         dbIdCell.textContent = guild.DbID;
+        callsCell.textContent = guild.CommandCount;
 
         const dateTimeString = formatDateTime(guild.LastCommand);
         if (dateTimeString === '') {
@@ -287,6 +289,7 @@ function updateGuildTable() {
         row.appendChild(nameCell);
         row.appendChild(discordIdCell);
         row.appendChild(dbIdCell);
+        row.appendChild(callsCell);
         row.appendChild(lastCmdCell);
 
         tableBody.appendChild(row);

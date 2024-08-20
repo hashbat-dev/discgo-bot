@@ -23,7 +23,7 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 	}
 
 	// 2. Decode the message to determine how to handle it
-	// => Do we have an exclamation !command?
+	// 	  => Do we have an exclamation !command?
 	exclamationCommand := CheckForExclamationCommand(message.Content)
 
 	// 3. Determine permissions of the sending user

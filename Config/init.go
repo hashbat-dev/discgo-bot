@@ -11,11 +11,11 @@ import (
 // These can be swapped around on the go, but pls don't lol. If any are added make sure to also update
 const (
 	LoggingLevelAdmin = iota
-	LoggingLevelError = iota
-	LoggingLevelWarn  = iota
-	LoggingLevelEvent = iota
-	LoggingLevelInfo  = iota
-	LoggingLevelDebug = iota
+	LoggingLevelError
+	LoggingLevelWarn
+	LoggingLevelEvent
+	LoggingLevelInfo
+	LoggingLevelDebug
 )
 
 // This is used to denote types to the Dashbaord
@@ -30,8 +30,8 @@ var LoggingLevels map[int]string = map[int]string{
 
 const (
 	CommandTypeDefault = iota
-	CommandTypeBang    = iota
-	CommandTypePhrase  = iota
+	CommandTypeBang
+	CommandTypePhrase
 )
 
 // This is used to denote types to the Dashbaord
@@ -45,11 +45,12 @@ type Vars struct {
 	IsDev       bool
 	SuperAdmins []string
 
-	LoggingChannelID            string
-	LoggingUsesThreads          bool
-	VerboseStack                bool
-	LogFunctions                bool
-	LoggingLevel                int
+	LoggingChannelID   string
+	LoggingUsesThreads bool
+	VerboseStack       bool
+	LogFunctions       bool
+	LoggingLevel       int
+
 	DashboardMaxLogs            int
 	DashboardMaxCommands        int
 	CommandAveragePool          int
@@ -90,8 +91,9 @@ var (
 	DB_PASSWORD   string
 	DB_IP_ADDRESS string
 	DB_PORT       string
+)
 
-	// Variables that will never change
+const (
 	MAX_MESSAGE_LENGTH int    = 2000
 	ROOT_FOLDER        string = "discgo-bot/"
 	BOT_SUB_FOLDER     string = "Bot/"

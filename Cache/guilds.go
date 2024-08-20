@@ -10,10 +10,11 @@ import (
 var ActiveGuilds []Guild
 
 type Guild struct {
-	DbID        int
-	DiscordID   string
-	Name        string
-	LastCommand time.Time
+	DbID         int
+	DiscordID    string
+	Name         string
+	CommandCount int
+	LastCommand  time.Time
 }
 
 type GuildPermissions struct {
@@ -53,6 +54,7 @@ func UpdateGuildLastCommand(guildId string) {
 	}
 
 	if guildIndex > -1 {
+		ActiveGuilds[guildIndex].CommandCount++
 		ActiveGuilds[guildIndex].LastCommand = time.Now()
 	}
 
