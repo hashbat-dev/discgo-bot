@@ -99,26 +99,24 @@ func DispatchBangCommand(message *discordgo.MessageCreate, command string) bool 
 	timeStart := time.Now()
 
 	// Check for a command
-	foundCommand, err := bangCommands.GetCommand(command)
-	if err != nil {
-		// Not matched
+	if foundCommand, ok := bangCommands.CommandTable[command]; !ok {
+		err := foundCommand.Execute(message, foundCommand)
+		if err != nil {
+			// Error during Processing - The error logging / reporting to users is done within the functions to ensure
+			// we can deliver relevant error messages where needed.
+			return false
+		}
+
+		// Log the Command
+		timeFinish := time.Now()
+		database.LogCommandUsage(message.GuildID, message.Author.ID, commandType, command)
+		cache.AddToCommandCache(commandType, command, message.GuildID, message.Author.ID, message.Author.Username, timeStart, timeFinish)
+
+		return true
+	} else {
 		logger.Info(message.GuildID, "User [%s] tried to use unknown command [!%s]", message.Author.Username, command)
 		return false
 	}
-
-	err = foundCommand.Begin(message, foundCommand)
-	if err != nil {
-		// Error during Processing - The error logging / reporting to users is done within the functions to ensure
-		// we can deliver relevant error messages where needed.
-		return false
-	}
-
-	// Log the Command
-	timeFinish := time.Now()
-	database.LogCommandUsage(message.GuildID, message.Author.ID, commandType, command)
-	cache.AddToCommandCache(commandType, command, message.GuildID, message.Author.ID, message.Author.Username, timeStart, timeFinish)
-
-	return true
 }
 
 // DispatchTriggerCommand sends trigger commands to the relevant handler

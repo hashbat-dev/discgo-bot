@@ -12,7 +12,6 @@ import (
 )
 
 func GetImg(message *discordgo.MessageCreate, self structs.BangCommand) error {
-
 	bangCommand := helpers.CheckForBangCommand(message.Content)
 	if bangCommand == "" {
 		helpers.SendUserError(message, "Invalid Command")
@@ -39,5 +38,4 @@ func GetImg(message *discordgo.MessageCreate, self structs.BangCommand) error {
 	}
 
 	return nil
-
 }
