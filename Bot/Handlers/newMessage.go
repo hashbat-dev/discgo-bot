@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -12,15 +13,28 @@ import (
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	structs "github.com/dabi-ngin/discgo-bot/Structs"
 )
 
-var chBang chan *DispatchInfo = make(chan *DispatchInfo)
+var chBang chan *bangChannelMessage= make(chan *bangChannelMessage)
 var chPhrase chan *DispatchInfo = make(chan *DispatchInfo)
+
+// init spins up some workers which will process messages passed into the
+// chBang and chPhrase channels
+func init() {
+	for i := 0; i < 5; i++ {
+		go bangCommandWorker(i, chBang)
+		go triggerCommandWorker(i, chPhrase)
+	}
+}
 
 // HandleNewMessage checks for Bot actions whenever a new Message is posted in a Server
 func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCreate) {
 	// 1. Do we want to skip this message?
 	if SkipMessageCheck(session, message) {
+		return
+	}
+	if !helpers.DoesUserHavePermissionToUseCommand(message) {
 		return
 	}
 
@@ -30,9 +44,8 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 
 	// 3. Determine permissions of the sending user
 	if bangCommand != "" {
-		if !helpers.DoesUserHavePermissionToUseCommand(message) {
-			return
-		}
+		go DispatchBangCommand(message, bangCommand)
+		return
 	}
 
 	// => If not, do we have a trigger phrase command?
@@ -40,30 +53,10 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 	if bangCommand == "" {
 		triggerPhrase = triggerCommands.CheckForTriggerPhrase(message.Content)
 	}
-
-	// 4. Create Channels
-
-	go func() {
-		for cmd := range chBang {
-			DispatchBangCommand(cmd.Message, cmd.Command)
-		}
-	}()
-
-	go func() {
-		for cmd := range chPhrase {
-			DispatchTriggerCommand(cmd.Message, cmd.Command)
-		}
-	}()
-
-	// 5. Add command to the relevant Channel
-	if bangCommand != "" {
-		chBang <- &DispatchInfo{Message: message, Command: bangCommand}
-	}
-
 	if triggerPhrase != "" {
-		chPhrase <- &DispatchInfo{Message: message, Command: triggerPhrase}
+		go DispatchTriggercommand(message, triggerPhrase)
+		return
 	}
-
 }
 
 // Determines whether we should ignore the inbound Message
@@ -85,39 +78,31 @@ func CheckForTriggerPhrase(trigger string) string {
 }
 
 type DispatchInfo struct {
-	Message *discordgo.MessageCreate
-	Command string
+	Message     *discordgo.MessageCreate
+	CommandName string
+}
+
+type bangChannelMessage struct {
+	Message     *discordgo.MessageCreate
+	CommandName string
+	Command 	structs.BangCommand
 }
 
 // DispatchBangCommand sends !commands to the relevant handler
-func DispatchBangCommand(message *discordgo.MessageCreate, command string) bool {
-
+func DispatchBangCommand(message *discordgo.MessageCreate, commandName string) bool {
 	// Setup the Command
-	command = strings.ToLower(command)
-	logger.Event(message.GuildID, "User: [%v] has requested [!%v]", message.Author.Username, command)
+	commandName = strings.ToLower(commandName)
+	logger.Event(message.GuildID, "User: [%v] has requested [!%v]", message.Author.Username, commandName)
 	commandType := config.CommandTypeBang
-	timeStart := time.Now()
-
 	// Check for a command
-	foundCommand, err := bangCommands.GetCommand(command)
-	if err != nil {
-		// Not matched
-		logger.Info(message.GuildID, "User [%s] tried to use unknown command [!%s]", message.Author.Username, command)
+	command, ok := bangCommands.CommandTable[commandName]; !ok {
+		logger.Info(message.GuildID, "User [%s] tried to use unknown command [!%s]", message.Author.Username, commandName)
 		return false
 	}
+	chBang<- &bangChannelMessage{message, commandName, command}
 
-	err = foundCommand.Begin(message, foundCommand)
-	if err != nil {
-		// Error during Processing - The error logging / reporting to users is done within the functions to ensure
-		// we can deliver relevant error messages where needed.
-		return false
-	}
-
-	// Log the Command
-	timeFinish := time.Now()
-	database.LogCommandUsage(message.GuildID, message.Author.ID, commandType, command)
-	cache.AddToCommandCache(commandType, command, message.GuildID, message.Author.ID, message.Author.Username, timeStart, timeFinish)
-
+	database.LogCommandUsage(message.GuildID, message.Author.ID, commandType, commandName)
+	// cache.AddToCommandCache(commandType, commandName, message.GuildID, message.Author.ID, message.Author.Username, timeStart, timeFinish)
 	return true
 }
 
@@ -139,4 +124,43 @@ func DispatchTriggerCommand(message *discordgo.MessageCreate, command string) bo
 	database.LogCommandUsage(message.GuildID, message.Author.ID, commandType, command)
 	cache.AddToCommandCache(commandType, command, message.GuildID, message.Author.ID, message.Author.Username, timeStart, timeFinish)
 	return true
+}
+
+// bangCommandWorker is intended to be used as a goroutine which loops over the messages in a channel
+// of type *DispatchAction, reading out the message and actioning any functions necessary.
+func bangCommandWorker(id int, ch <-chan *bangChannelMessage) {
+	for {
+		select {
+		case bangChanMessage, ok := <-ch:
+			if !ok {
+				// Channel is closed, exit goroutine
+				logger.Info(bangChanMessage.Message.GuildID, fmt.Sprintf("Worker %d: Channel closed, exiting...\n", id))
+				return
+			}
+			fmt.Printf("Worker %d: Processing command '%s'\n", id, command.CommandName)
+			err := bangChanMessage.Command.Begin(message, bangChanMessage.Command)
+			if err != nil {
+				logger.Error(bangChanMessage.Message.GuildID, err)
+			}
+		}
+	}
+}
+
+// triggerCommandWorker is intended to be used as a goroutine which loops over the messages in a channel
+// of type *DispatchAction, reading out the message and actioning any functions necessary.
+func triggerCommandWorker(id int, ch <-chan *DispatchInfo) {
+	for {
+		select {
+		case command, ok := <-ch:
+			if !ok {
+				logger.Info(command.CommandName, fmt.Sprintf("Worker %d: Channel closing...", id))
+				return
+			}
+			logger.Info(command.Message.GuildID, fmt.Sprintf("Worker %d: Processing command %s", id, command.CommandName))
+			err := triggerCommands.RunTriggerCommand(command.CommandName, command.Message)
+			if err != nil {
+				logger.Error(command.Message.GuildID, err)
+			}
+		}
+	}
 }

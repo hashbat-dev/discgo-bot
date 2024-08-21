@@ -11,7 +11,6 @@ import (
 
 // Checks for, and returns if exists a !command
 func CheckForBangCommand(messageContent string) string {
-
 	if len(messageContent) == 0 {
 		return ""
 	}
