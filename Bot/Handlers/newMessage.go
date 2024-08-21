@@ -99,7 +99,7 @@ func DispatchBangCommand(message *discordgo.MessageCreate, command string) bool 
 	timeStart := time.Now()
 
 	// Check for a command
-	if foundCommand, ok := bangCommands.CommandTable[command]; !ok {
+	if foundCommand, ok := bangCommands.CommandTable[command]; ok {
 		err := foundCommand.Execute(message, foundCommand)
 		if err != nil {
 			// Error during Processing - The error logging / reporting to users is done within the functions to ensure
