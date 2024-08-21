@@ -8,7 +8,6 @@ import (
 
 func DoesUserHavePermissionToUseCommand(message *discordgo.MessageCreate) bool {
 
-	//TODO implement
 	temp := true
 	logger.Remind("Permissions.go :: Temp used - needs to be changed to actually check perms.")
 

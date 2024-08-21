@@ -19,7 +19,7 @@ func GetImageUrlFromTenor(tenorLink string) (string, error) {
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return "", errors.New("failed to fetch Tenor GIF from URL, response code: " + fmt.Sprint(res.StatusCode))
+		return "", fmt.Errorf("failed to fetch Tenor GIF from URL, Tenor responded with Status Code: %d", res.StatusCode)
 	}
 
 	// Step 2: Parse the HTML document

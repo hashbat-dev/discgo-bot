@@ -8,7 +8,6 @@ import (
 
 func SendUserError(message *discordgo.MessageCreate, errorText string) {
 
-	//TODO - Flesh this out
 	sendText := "An Error occured: " + errorText
 	_, err := config.Session.ChannelMessageSendReply(message.ChannelID, sendText, message.Reference())
 	if err != nil {
@@ -19,7 +18,6 @@ func SendUserError(message *discordgo.MessageCreate, errorText string) {
 
 func SendUserMessage(message *discordgo.MessageCreate, messageText string) {
 
-	//TODO - Flesh this out
 	_, err := config.Session.ChannelMessageSendReply(message.ChannelID, messageText, message.Reference())
 	if err != nil {
 		logger.Error(message.GuildID, err)

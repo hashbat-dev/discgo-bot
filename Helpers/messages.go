@@ -16,7 +16,7 @@ func CheckForBangCommand(messageContent string) string {
 		return ""
 	}
 
-	if string([]rune(messageContent)[0]) == "!" {
+	if strings.HasPrefix(messageContent, "!") {
 		spaceIndex := strings.Index(messageContent, " ")
 		if spaceIndex == -1 {
 			// No spaces in the Content, we assume the whole message is the ! command
