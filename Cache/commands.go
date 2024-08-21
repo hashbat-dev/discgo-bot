@@ -58,61 +58,53 @@ func AddToCommandCache(typeId int, command string, guildId string, userId string
 
 	// CommandInfo
 	// 1. Work out Averages
-	var newAvgCache []CmdAverage
-	var cmdAvg CmdAverage
-	found := false
-	for _, avg := range CommandAverages {
+	avgIndex := -1
+	for i, avg := range CommandAverages {
 		if typeId == avg.TypeID && command == avg.Command {
-			cmdAvg = avg
-			found = true
-		} else {
-			newAvgCache = append(newAvgCache, avg)
+			avgIndex = i
+			break
 		}
 	}
 
-	if !found {
-		cmdAvg = CmdAverage{
-			TypeID:  typeId,
-			Command: command,
-		}
+	if avgIndex == -1 {
+		CommandAverages = append(CommandAverages, CmdAverage{
+			TypeID:      typeId,
+			Command:     command,
+			Durations:   []time.Duration{callDuration},
+			AvgDuration: callDuration,
+		})
+		avgIndex = len(CommandAverages) - 1
+	} else {
+		CommandAverages[avgIndex].Durations = append(CommandAverages[avgIndex].Durations, callDuration)
+		CommandAverages[avgIndex].AvgDuration = AverageDuration(CommandAverages[avgIndex].Durations)
 	}
 
-	cmdAvg.Durations = append(cmdAvg.Durations, callDuration)
-	cmdAvg.AvgDuration = AverageDuration(cmdAvg.Durations)
-
-	if len(cmdAvg.Durations) > config.CommandAveragePool {
-		cmdAvg.Durations = cmdAvg.Durations[1:]
+	if len(CommandAverages[avgIndex].Durations) > config.CommandAveragePool {
+		CommandAverages[avgIndex].Durations = CommandAverages[avgIndex].Durations[1:]
 	}
-
-	newAvgCache = append(newAvgCache, cmdAvg)
-	CommandAverages = newAvgCache
 
 	// 2. Update Info
-	var newCmdInfo []CmdInfo
-	var cmdInfo CmdInfo
-	found = false
-	for _, cmd := range CommandInfo {
+	infoIndex := -1
+	for i, cmd := range CommandInfo {
 		if typeId == cmd.TypeID && command == cmd.Command {
-			cmdInfo = cmd
-			found = true
-		} else {
-			newCmdInfo = append(newCmdInfo, cmd)
+			infoIndex = i
+			break
 		}
 	}
 
-	if !found {
-		cmdInfo = CmdInfo{
-			TypeID:  typeId,
-			Command: command,
-		}
+	if infoIndex == -1 {
+		CommandInfo = append(CommandInfo, CmdInfo{
+			TypeID:      typeId,
+			Command:     command,
+			Count:       1,
+			AvgDuration: CommandAverages[avgIndex].AvgDuration,
+			LastCall:    time.Now(),
+		})
+	} else {
+		CommandInfo[infoIndex].Count++
+		CommandInfo[infoIndex].AvgDuration = CommandAverages[avgIndex].AvgDuration
+		CommandInfo[infoIndex].LastCall = time.Now()
 	}
-
-	cmdInfo.Count++
-	cmdInfo.AvgDuration = cmdAvg.AvgDuration
-	cmdInfo.LastCall = time.Now()
-
-	newCmdInfo = append(newCmdInfo, cmdInfo)
-	CommandInfo = newCmdInfo
 
 }
 

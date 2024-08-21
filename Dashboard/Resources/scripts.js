@@ -26,6 +26,10 @@ let commandInfo = [];
 function pageLoop() {
     fetchData().then(newData => {
         
+        if (newData['Logging']['LogLevels'] == null) {
+            return
+        }
+        
         const writeUpdates = document.getElementById('WriteUpdates');
         if (!writeUpdates.checked) {
             return

@@ -10,6 +10,7 @@ COPY go.mod .
 COPY go.sum .
 
 RUN go mod download
+RUN go get github.com/PuerkitoBio/goquery
 RUN go get github.com/bwmarrin/discordgo
 RUN go get github.com/clinet/discordgo-embed
 RUN go get github.com/Yakiyo/nekos_best.go

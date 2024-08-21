@@ -45,6 +45,7 @@ type Vars struct {
 	IsDev       bool
 	SuperAdmins []string
 
+	LogToDiscord       bool
 	LoggingChannelID   string
 	LoggingUsesThreads bool
 	VerboseStack       bool
@@ -67,10 +68,12 @@ type Vars struct {
 }
 
 var (
-	IsDev       bool
-	HostName    string
-	SuperAdmins []string
+	IsDev        bool
+	HostName     string
+	SuperAdmins  []string
+	DashboardUrl string
 
+	LogToDiscord                bool
 	LoggingChannelID            string
 	LoggingUsesThreads          bool
 	LoggingVerboseStack         bool
@@ -85,6 +88,8 @@ var (
 
 	BotToken string
 	Session  *discordgo.Session
+
+	ValidImageExtensions []string
 
 	DB_NAME       string
 	DB_USER       string
@@ -121,7 +126,18 @@ func Init() bool {
 		HostName = currentHostName
 	}
 
+	ValidImageExtensions = []string{
+		".gif",
+		".png",
+		".jpg",
+		".webp",
+	}
+
 	IsDev = configFileVariables.IsDev
+	if IsDev {
+		DashboardUrl = "http://localhost:3333/"
+	}
+
 	SuperAdmins = configFileVariables.SuperAdmins
 
 	LoggingChannelID = configFileVariables.LoggingChannelID
@@ -134,6 +150,7 @@ func Init() bool {
 	CommandAveragePool = configFileVariables.CommandAveragePool
 	HardwareStatIntervalSeconds = configFileVariables.HardwareStatIntervalSeconds
 	HardwareStatMaxIntervals = configFileVariables.HardwareStatMaxIntervals
+	LogToDiscord = configFileVariables.LogToDiscord
 
 	BotToken = configFileVariables.BotToken
 

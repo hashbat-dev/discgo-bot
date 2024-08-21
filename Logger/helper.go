@@ -35,7 +35,7 @@ type LogInfo struct {
 func SendLogs(infoLine LogInfo, logText string, logLevel int, sendToDiscord bool) {
 	SendToConsole(infoLine, logText, logLevel)
 	SendLogsToDashboard(infoLine, logText, logLevel)
-	if !sendToDiscord {
+	if !config.LogToDiscord || !sendToDiscord {
 		return
 	}
 	SendLogToDiscord(infoLine, logText, logLevel)
