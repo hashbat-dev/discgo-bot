@@ -22,9 +22,11 @@ var chPhrase chan *DispatchInfo = make(chan *DispatchInfo)
 // init spins up some workers which will process messages passed into the
 // chBang and chPhrase channels
 func init() {
-	for i := 0; i < 5; i++ {
-		go bangCommandWorker(i, chBang)
+	for i := 0; i < 20; i++ {
 		go triggerCommandWorker(i, chPhrase)
+	}
+	for i := 0; i < 3; i++ {
+		go bangCommandWorker(i, chBang)
 	}
 }
 
@@ -34,6 +36,8 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 	if SkipMessageCheck(session, message) {
 		return
 	}
+
+	if command, ok := bangCommands.CommandTable[]
 	if !helpers.DoesUserHavePermissionToUseCommand(message) {
 		return
 	}
@@ -136,10 +140,10 @@ func bangCommandWorker(id int, ch <-chan *bangChannelMessage) {
 		case bangChanMessage, ok := <-ch:
 			if !ok {
 				// Channel is closed, exit goroutine
-				logger.Info(bangChanMessage.Message.GuildID, "Worker %d: Channel closed, exiting...\n", id)
+				logger.Info(bangChanMessage.Message.GuildID, "BangCommandWorker %d: Channel closed, exiting...\n", id)
 				return
 			}
-			fmt.Printf("Worker %d: Processing command '%s'\n", id, bangChanMessage.CommandName)
+			fmt.Printf("BangCommandWorker %d: Processing command '%s'\n", id, bangChanMessage.CommandName)
 			err := bangChanMessage.Command.Begin(bangChanMessage.Message, bangChanMessage.Command)
 			if err != nil {
 				logger.Error(bangChanMessage.Message.GuildID, err)
@@ -155,10 +159,10 @@ func triggerCommandWorker(id int, ch <-chan *DispatchInfo) {
 		select {
 		case command, ok := <-ch:
 			if !ok {
-				logger.Info(command.CommandName, "Worker %d: Channel closing...", id)
+				logger.Info(command.CommandName, "TriggerCommandWorker %d: Channel closing...", id)
 				return
 			}
-			logger.Info(command.Message.GuildID, "Worker %d: Processing command %s", id, command.CommandName)
+			logger.Info(command.Message.GuildID, "TriggerCommandWorker %d: Processing command %s", id, command.CommandName)
 			err := triggerCommands.RunTriggerCommand(command.CommandName, command.Message)
 			if err != nil {
 				logger.Error(command.Message.GuildID, err)

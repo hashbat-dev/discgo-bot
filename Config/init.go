@@ -29,6 +29,14 @@ var LoggingLevels map[int]string = map[int]string{
 }
 
 const (
+	CommandLevelAdmin = iota
+	CommandLevelMod
+	CommandLevelVIP
+	CommandLevelUser
+	CommandLevelRestricted
+)
+
+const (
 	CommandTypeDefault = iota
 	CommandTypeBang
 	CommandTypePhrase
