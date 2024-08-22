@@ -16,7 +16,7 @@ import (
 	structs "github.com/dabi-ngin/discgo-bot/Structs"
 )
 
-var chBang chan *bangChannelMessage= make(chan *bangChannelMessage)
+var chBang chan *bangChannelMessage = make(chan *bangChannelMessage)
 var chPhrase chan *DispatchInfo = make(chan *DispatchInfo)
 
 // init spins up some workers which will process messages passed into the
@@ -54,7 +54,7 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 		triggerPhrase = triggerCommands.CheckForTriggerPhrase(message.Content)
 	}
 	if triggerPhrase != "" {
-		go DispatchTriggercommand(message, triggerPhrase)
+		go DispatchTriggerCommand(message, triggerPhrase)
 		return
 	}
 }
@@ -85,7 +85,7 @@ type DispatchInfo struct {
 type bangChannelMessage struct {
 	Message     *discordgo.MessageCreate
 	CommandName string
-	Command 	structs.BangCommand
+	Command     structs.BangCommand
 }
 
 // DispatchBangCommand sends !commands to the relevant handler
@@ -95,11 +95,13 @@ func DispatchBangCommand(message *discordgo.MessageCreate, commandName string) b
 	logger.Event(message.GuildID, "User: [%v] has requested [!%v]", message.Author.Username, commandName)
 	commandType := config.CommandTypeBang
 	// Check for a command
-	command, ok := bangCommands.CommandTable[commandName]; !ok {
-		logger.Info(message.GuildID, "User [%s] tried to use unknown command [!%s]", message.Author.Username, commandName)
+	command, ok := bangCommands.CommandTable[commandName]
+	if !ok {
+		errMsg := fmt.Sprintf("User '%s' tried to use unknown command '!%s'", message.Author.Username, commandName)
+		logger.Info(message.GuildID, errMsg)
 		return false
 	}
-	chBang<- &bangChannelMessage{message, commandName, command}
+	chBang <- &bangChannelMessage{message, commandName, command}
 
 	database.LogCommandUsage(message.GuildID, message.Author.ID, commandType, commandName)
 	// cache.AddToCommandCache(commandType, commandName, message.GuildID, message.Author.ID, message.Author.Username, timeStart, timeFinish)
@@ -134,11 +136,11 @@ func bangCommandWorker(id int, ch <-chan *bangChannelMessage) {
 		case bangChanMessage, ok := <-ch:
 			if !ok {
 				// Channel is closed, exit goroutine
-				logger.Info(bangChanMessage.Message.GuildID, fmt.Sprintf("Worker %d: Channel closed, exiting...\n", id))
+				logger.Info(bangChanMessage.Message.GuildID, "Worker %d: Channel closed, exiting...\n", id)
 				return
 			}
-			fmt.Printf("Worker %d: Processing command '%s'\n", id, command.CommandName)
-			err := bangChanMessage.Command.Begin(message, bangChanMessage.Command)
+			fmt.Printf("Worker %d: Processing command '%s'\n", id, bangChanMessage.CommandName)
+			err := bangChanMessage.Command.Begin(bangChanMessage.Message, bangChanMessage.Command)
 			if err != nil {
 				logger.Error(bangChanMessage.Message.GuildID, err)
 			}
@@ -153,10 +155,10 @@ func triggerCommandWorker(id int, ch <-chan *DispatchInfo) {
 		select {
 		case command, ok := <-ch:
 			if !ok {
-				logger.Info(command.CommandName, fmt.Sprintf("Worker %d: Channel closing...", id))
+				logger.Info(command.CommandName, "Worker %d: Channel closing...", id)
 				return
 			}
-			logger.Info(command.Message.GuildID, fmt.Sprintf("Worker %d: Processing command %s", id, command.CommandName))
+			logger.Info(command.Message.GuildID, "Worker %d: Processing command %s", id, command.CommandName)
 			err := triggerCommands.RunTriggerCommand(command.CommandName, command.Message)
 			if err != nil {
 				logger.Error(command.Message.GuildID, err)
