@@ -4,39 +4,10 @@ import (
 	"time"
 
 	config "github.com/dabi-ngin/discgo-bot/Config"
+	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 )
 
-type Command struct {
-	TypeID       int
-	Command      string
-	GuildID      string
-	UserID       string
-	UserName     string
-	CallTime     time.Time
-	CallDuration time.Duration
-}
-
-type CmdInfo struct {
-	TypeID      int
-	Command     string
-	Count       int
-	AvgDuration time.Duration
-	LastCall    time.Time
-}
-
-type CmdAverage struct {
-	TypeID      int
-	Command     string
-	Durations   []time.Duration
-	AvgDuration time.Duration
-}
-
-var Commands []Command
-var CommandInfo []CmdInfo
-var CommandAverages []CmdAverage
-
-func AddToCommandCache(typeId int, command string, guildId string, userId string, userName string, timeStart time.Time, timeFinish time.Time) {
-	callDuration := timeFinish.Sub(timeStart)
+func AddToCommandCache(typeId int, command string, guildId string, userId string, userName string, timeStart time.Time, callDuration time.Duration) {
 
 	// Commands
 	newCmd := Command{
@@ -76,7 +47,7 @@ func AddToCommandCache(typeId int, command string, guildId string, userId string
 		avgIndex = len(CommandAverages) - 1
 	} else {
 		CommandAverages[avgIndex].Durations = append(CommandAverages[avgIndex].Durations, callDuration)
-		CommandAverages[avgIndex].AvgDuration = AverageDuration(CommandAverages[avgIndex].Durations)
+		CommandAverages[avgIndex].AvgDuration = helpers.AverageDuration(CommandAverages[avgIndex].Durations)
 	}
 
 	if len(CommandAverages[avgIndex].Durations) > config.CommandAveragePool {
@@ -106,19 +77,4 @@ func AddToCommandCache(typeId int, command string, guildId string, userId string
 		CommandInfo[infoIndex].LastCall = time.Now()
 	}
 
-}
-
-func AverageDuration(durations []time.Duration) time.Duration {
-	var total time.Duration
-
-	for _, duration := range durations {
-		total += duration
-	}
-
-	if len(durations) == 0 {
-		return 0
-	}
-
-	average := total / time.Duration(len(durations))
-	return average
 }

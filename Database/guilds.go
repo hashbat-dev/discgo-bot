@@ -11,7 +11,7 @@ import (
 func Guild_DoesGuildExist(GuildID string) (int, error) {
 
 	var ID sql.NullInt32
-	err := db.QueryRow("SELECT ID FROM Guilds WHERE GuildID = ?", GuildID).Scan(&ID)
+	err := Db.QueryRow("SELECT ID FROM Guilds WHERE GuildID = ?", GuildID).Scan(&ID)
 	if err != nil {
 		return 0, err
 	}
@@ -27,7 +27,7 @@ func Guild_DoesGuildExist(GuildID string) (int, error) {
 func Guild_UpdateMemberCount(GuildID string, MemberCount int) error {
 
 	query := "UPDATE Guilds SET GuildMemberCount = ?, GuildMemberCountLastCheck = NOW() WHERE GuildID = ?"
-	_, err := db.ExecContext(context.Background(), query, MemberCount, GuildID)
+	_, err := Db.ExecContext(context.Background(), query, MemberCount, GuildID)
 	if err != nil {
 		return err
 	} else {
@@ -38,7 +38,7 @@ func Guild_UpdateMemberCount(GuildID string, MemberCount int) error {
 
 func Guild_InsertNewEntry(GuildID string, GuildName string, MemberCount int, OwnerID string) (int, error) {
 	query := "INSERT INTO Guilds (GuildID, GuildName, GuildMemberCount, GuildOwnerID) VALUES (?, ?, ?, ?)"
-	insertResult, err := db.ExecContext(context.Background(), query, GuildID, GuildName, MemberCount, OwnerID)
+	insertResult, err := Db.ExecContext(context.Background(), query, GuildID, GuildName, MemberCount, OwnerID)
 	if err != nil {
 		return 0, err
 	}

@@ -4,9 +4,7 @@ import (
 	"errors"
 
 	"github.com/bwmarrin/discordgo"
-	bangCommands "github.com/dabi-ngin/discgo-bot/Bot/BangCommands"
 	handlers "github.com/dabi-ngin/discgo-bot/Bot/Handlers"
-	triggerCommands "github.com/dabi-ngin/discgo-bot/Bot/TriggerCommands"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
@@ -49,25 +47,13 @@ func Init() {
 		return
 	}
 
-	// 7. Bang Init
-	if !bangCommands.Init() {
-		logger.Error("", errors.New("Failed to initialise bang commands"))
-		return
-	}
-
-	//8. Trigger Init
-	if !triggerCommands.Init() {
-		logger.Error("", errors.New("Failed to initialise trigger commands"))
-		return
-	}
-
 	initText := "Bot initalisation successful"
 	if config.DashboardUrl != "" {
 		initText += ", Dashboard open at: " + config.DashboardUrl
 	}
 	logger.Info("", initText)
 
-	// 8. Register Discord /commands
+	// 7. Register Discord /commands
 	if !registerCommands() {
 		logger.Error("", errors.New("Failed to register commands"))
 		return

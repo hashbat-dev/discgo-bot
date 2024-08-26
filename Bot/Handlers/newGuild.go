@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
@@ -18,12 +19,25 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 		logger.Error(newGuild.ID, err)
 	}
 
+	var triggers []triggers.Phrase
+
 	if dbId > 0 {
 		// => Guild already exists, update the Member Count
 		err = database.Guild_UpdateMemberCount(newGuild.ID, newGuild.MemberCount)
 		if err != nil {
 			logger.Error(newGuild.ID, err)
 			return
+		}
+
+		// => Does the Guild have any Triggers? If so get for the Cache
+		phraseLinks, err := database.GetAllGuildPhrases(newGuild.ID)
+		if err != nil {
+			logger.Error(newGuild.ID, err)
+			return
+		}
+
+		for _, phrase := range phraseLinks {
+			triggers = append(triggers, phrase.Phrase)
 		}
 
 		logger.Event(newGuild.ID, "Existing Guild connected: %v", newGuild.Name)
@@ -44,5 +58,5 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 	}
 
 	// 3. Add to the Active Cache
-	cache.AddToActiveGuildCache(newGuild, dbId)
+	cache.AddToActiveGuildCache(newGuild, dbId, triggers)
 }

@@ -1,12 +1,13 @@
 package handlers
 
 import (
+	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	bangCommands "github.com/dabi-ngin/discgo-bot/Bot/BangCommands"
-	triggerCommands "github.com/dabi-ngin/discgo-bot/Bot/TriggerCommands"
+	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	database "github.com/dabi-ngin/discgo-bot/Database"
@@ -14,56 +15,22 @@ import (
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
 
-var chBang chan *DispatchInfo = make(chan *DispatchInfo)
-var chPhrase chan *DispatchInfo = make(chan *DispatchInfo)
-
 // HandleNewMessage checks for Bot actions whenever a new Message is posted in a Server
 func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCreate) {
+
 	// 1. Do we want to skip this message?
 	if SkipMessageCheck(session, message) {
 		return
 	}
 
-	// 2. Decode the message to determine how to handle it
-	// 	  => Do we have an bang !command?
-	bangCommand := helpers.CheckForBangCommand(message.Content)
-
-	// 3. Determine permissions of the sending user
+	// 2. Did we find any Bang Commands?
+	bangCommand := ExtractCommand(message.Content)
 	if bangCommand != "" {
-		if !helpers.DoesUserHavePermissionToUseCommand(message) {
-			return
-		}
+		go DispatchCommand(message, bangCommand)
 	}
 
-	// => If not, do we have a trigger phrase command?
-	triggerPhrase := ""
-	if bangCommand == "" {
-		triggerPhrase = triggerCommands.CheckForTriggerPhrase(message.Content)
-	}
-
-	// 4. Create Channels
-
-	go func() {
-		for cmd := range chBang {
-			DispatchBangCommand(cmd.Message, cmd.Command)
-		}
-	}()
-
-	go func() {
-		for cmd := range chPhrase {
-			DispatchTriggerCommand(cmd.Message, cmd.Command)
-		}
-	}()
-
-	// 5. Add command to the relevant Channel
-	if bangCommand != "" {
-		chBang <- &DispatchInfo{Message: message, Command: bangCommand}
-	}
-
-	if triggerPhrase != "" {
-		chPhrase <- &DispatchInfo{Message: message, Command: triggerPhrase}
-	}
-
+	// 3. Check for and Process Triggers
+	CheckForAndProcessTriggers(message)
 }
 
 // Determines whether we should ignore the inbound Message
@@ -79,62 +46,77 @@ func SkipMessageCheck(session *discordgo.Session, message *discordgo.MessageCrea
 	return false
 }
 
-// CheckForTriggerPhrase Determines whether a string contains a trigger phrase for bot action
-func CheckForTriggerPhrase(trigger string) string {
-	return triggerCommands.CheckForTriggerPhrase(trigger)
+func ExtractCommand(input string) string {
+	if strings.HasPrefix(input, "!") {
+		parts := strings.SplitN(input[1:], " ", 2)
+		return strings.ToLower(parts[0])
+	}
+	return ""
 }
 
-type DispatchInfo struct {
-	Message *discordgo.MessageCreate
-	Command string
-}
-
-// DispatchBangCommand sends !commands to the relevant handler
-func DispatchBangCommand(message *discordgo.MessageCreate, command string) bool {
-
-	// Setup the Command
-	command = strings.ToLower(command)
-	logger.Event(message.GuildID, "User: [%v] has requested [!%v]", message.Author.Username, command)
-	commandType := config.CommandTypeBang
-	timeStart := time.Now()
-
-	// Check for a command
-	if foundCommand, ok := bangCommands.CommandTable[command]; ok {
-		err := foundCommand.Execute(message, foundCommand)
-		if err != nil {
-			// Error during Processing - The error logging / reporting to users is done within the functions to ensure
-			// we can deliver relevant error messages where needed.
-			return false
+func CheckForAndProcessTriggers(message *discordgo.MessageCreate) {
+	var matchedPhrases []triggers.Phrase
+	guildIndex := cache.GetGuildIndex(message.GuildID)
+	for _, trigger := range cache.ActiveGuilds[guildIndex].Triggers {
+		var regexString string
+		if trigger.WordOnlyMatch {
+			regexString = `(?i)\b%s\b`
+		} else {
+			regexString = `(?i)%s`
 		}
 
-		// Log the Command
-		timeFinish := time.Now()
-		database.LogCommandUsage(message.GuildID, message.Author.ID, commandType, command)
-		cache.AddToCommandCache(commandType, command, message.GuildID, message.Author.ID, message.Author.Username, timeStart, timeFinish)
+		check := regexp.MustCompile(fmt.Sprintf(regexString, regexp.QuoteMeta(trigger.Phrase)))
+		if check.MatchString(message.Content) {
+			matchedPhrases = append(matchedPhrases, trigger)
+		}
+	}
 
-		return true
-	} else {
-		logger.Info(message.GuildID, "User [%s] tried to use unknown command [!%s]", message.Author.Username, command)
-		return false
+	// Process any matching Triggers
+	var notifyPhrases []string
+	for _, phrase := range matchedPhrases {
+		database.LogCommandUsage(message.GuildID, message.Author.ID, config.CommandTypePhrase, phrase.Phrase)
+		if phrase.NotifyOnDetection {
+			notifyPhrases = append(notifyPhrases, phrase.Phrase)
+		}
+	}
+
+	if len(notifyPhrases) > 0 {
+		showText := strings.ToUpper(helpers.ConcatStringWithAnd(notifyPhrases)) + " MENTIONED"
+		_, err := config.Session.ChannelMessageSend(message.ChannelID, showText)
+		if err != nil {
+			logger.Error(message.GuildID, err)
+		}
 	}
 }
 
-// DispatchTriggerCommand sends trigger commands to the relevant handler
-func DispatchTriggerCommand(message *discordgo.MessageCreate, command string) bool {
-	logger.Event(message.GuildID, "User: [%v] has triggered [%v]", message.Author.Username, command)
-	timeStart := time.Now()
-	commandType := config.CommandTypePhrase
-
-	err := triggerCommands.RunTriggerCommand(command, message)
-	if err != nil {
-		logger.Error(message.GuildID, err)
-		return false
+// Dispatches a Command to its appropriate channel. If SpecifiedChannel is -1 the channel will be determined from the Command object
+func DispatchCommand(message *discordgo.MessageCreate, bangCommand string) {
+	// See if can get match the request to a Command
+	var cmd Command
+	if value, exists := Commands[bangCommand]; !exists {
+		logger.Info(message.GuildID, "User [%v] called command [!%v] which did not exist", message.Author.ID, bangCommand)
+		return
 	} else {
-		database.LogCommandUsage(message.GuildID, message.Author.ID, 2, command)
+		cmd = value
 	}
 
-	timeFinish := time.Now()
-	database.LogCommandUsage(message.GuildID, message.Author.ID, commandType, command)
-	cache.AddToCommandCache(commandType, command, message.GuildID, message.Author.ID, message.Author.Username, timeStart, timeFinish)
-	return true
+	// Build the Request
+	chRequest := &ChannelRequest{
+		Message:     message,
+		CommandName: bangCommand,
+		Command:     cmd,
+	}
+
+	// Check the Channel exists
+	poolIota := cmd.ProcessPool().ProcessPoolIota
+	if poolIota > config.LastPoolIota {
+		logger.Error(message.GuildID, fmt.Errorf("processPoolIota of %v does not have a channel to handle it", cmd.ProcessPool().ProcessPoolIota))
+		return
+	}
+
+	// Dispatch the Command
+	PoolQueue[poolIota]++
+	PoolLastAdded[poolIota] = time.Now()
+	Pools[poolIota] <- chRequest
+
 }

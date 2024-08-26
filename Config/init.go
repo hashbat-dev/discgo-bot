@@ -29,16 +29,68 @@ var LoggingLevels map[int]string = map[int]string{
 }
 
 const (
+	CommandLevelBotAdmin = iota
+	CommandLevelServerOwner
+	CommandLevelAdmin
+	CommandLevelMod
+	CommandLevelVIP
+	CommandLevelUser
+	CommandLevelRestricted
+	CommandLevelDisabled
+)
+
+// Command Types
+// This is used to denote types to the Dashboard
+// ------------------------------------------------
+const ( // A) Populate A + B!
 	CommandTypeDefault = iota
 	CommandTypeBang
 	CommandTypePhrase
 )
 
-// This is used to denote types to the Dashbaord
+// B) Populate A + B!
 var CommandTypes map[int]string = map[int]string{
 	CommandTypeDefault: "Default",
 	CommandTypeBang:    "Bang",
 	CommandTypePhrase:  "Phrase",
+}
+
+// ------------------------------------------------
+
+// Process Pools
+// Used to dispatch BangCommands in the newMessage Handler
+// ------------------------------------------------
+const (
+	ProcessPoolText = iota
+	ProcessPoolImages
+	ProcessPoolExternal
+)
+
+var LastPoolIota int = ProcessPoolExternal
+
+var ProcessPools map[int]ProcessPool = map[int]ProcessPool{
+	ProcessPoolText: {
+		ProcessPoolIota: ProcessPoolText,
+		PoolName:        "Text",
+		MaxWorkers:      50,
+	},
+	ProcessPoolImages: {
+		ProcessPoolIota: ProcessPoolImages,
+		PoolName:        "Images",
+		MaxWorkers:      25,
+	},
+	ProcessPoolExternal: {
+		ProcessPoolIota: ProcessPoolExternal,
+		PoolName:        "External",
+		MaxWorkers:      10,
+	},
+}
+
+// -------------------------------------------------
+type ProcessPool struct {
+	ProcessPoolIota int
+	PoolName        string
+	MaxWorkers      int
 }
 
 type Vars struct {

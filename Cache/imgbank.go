@@ -1,8 +1,5 @@
 package cache
 
-var ImgCategories []ImgCategory
+import img "github.com/dabi-ngin/discgo-bot/Img"
 
-type ImgCategory struct {
-	ID       int
-	Category string
-}
+var ImgCategories []img.ImgCategory

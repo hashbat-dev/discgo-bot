@@ -6,27 +6,9 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	config "github.com/dabi-ngin/discgo-bot/Config"
+	external "github.com/dabi-ngin/discgo-bot/External"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
-
-// Checks for, and returns if exists a !command
-func CheckForBangCommand(messageContent string) string {
-
-	if len(messageContent) == 0 {
-		return ""
-	}
-
-	if strings.HasPrefix(messageContent, "!") {
-		spaceIndex := strings.Index(messageContent, " ")
-		if spaceIndex == -1 {
-			// No spaces in the Content, we assume the whole message is the ! command
-			return messageContent[1:]
-		} else {
-			return strings.Split(messageContent, " ")[0]
-		}
-	}
-	return ""
-}
 
 // Returns the Image URL if one exists in the message, if not the String is blank. If a specific extension is needed enter it as the second variable, if blank it will accept anything defined in Config.
 func GetImageFromMessage(message *discordgo.Message, requiredExtension string) string {
@@ -48,7 +30,7 @@ func GetImageFromMessage(message *discordgo.Message, requiredExtension string) s
 
 	// C. Is this a Tenor link?
 	if strings.Contains(msgContentLower, "tenor.com/") {
-		tenorLink, err := GetImageUrlFromTenor(msgContentLower)
+		tenorLink, err := external.GetImageUrlFromTenor(msgContentLower)
 		if err != nil {
 			logger.Error(message.GuildID, err)
 			return ""

@@ -7,7 +7,8 @@
 ### Introduction
 
 ### Sections
-### [Dashboard](./components/dashboard.md)
+* **[Dashboard](./components/dashboard.md)** - The HTML/JS Dashboard used to monitor the bot.
+* **[Triggers](./components/triggers.md)** - Word/Phrase detection and response logic.
 
 ### User guide with examples
 

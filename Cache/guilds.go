@@ -1,34 +1,14 @@
 package cache
 
 import (
-	"time"
-
 	"github.com/bwmarrin/discordgo"
+	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 )
 
 var ActiveGuilds []Guild
 
-type Guild struct {
-	DbID         int
-	DiscordID    string
-	Name         string
-	CommandCount int
-	LastCommand  time.Time
-}
-
-type GuildPermissions struct {
-	CommandType  int
-	RequiredRole string
-}
-
-const (
-	CommandTypeAdmin   = iota
-	CommandTypeBang    = iota
-	CommandTypeTrigger = iota
-)
-
-func AddToActiveGuildCache(guild *discordgo.GuildCreate, dbId int) {
+func AddToActiveGuildCache(guild *discordgo.GuildCreate, dbId int, triggers []triggers.Phrase) {
 	if ActiveGuilds == nil {
 		ActiveGuilds = []Guild{}
 	}
@@ -38,11 +18,12 @@ func AddToActiveGuildCache(guild *discordgo.GuildCreate, dbId int) {
 		DiscordID:   guild.ID,
 		Name:        guild.Name,
 		LastCommand: helpers.GetNullDateTime(),
+		Triggers:    triggers,
 	})
 
 }
 
-func UpdateGuildLastCommand(guildId string) {
+func GetGuildIndex(guildId string) int {
 	guildIndex := -1
 	for i, guild := range ActiveGuilds {
 		if guild.DiscordID == guildId {
@@ -51,9 +32,5 @@ func UpdateGuildLastCommand(guildId string) {
 		}
 	}
 
-	if guildIndex > -1 {
-		ActiveGuilds[guildIndex].CommandCount++
-		ActiveGuilds[guildIndex].LastCommand = time.Now()
-	}
-
+	return guildIndex
 }

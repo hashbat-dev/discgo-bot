@@ -23,7 +23,7 @@ func GetBangs() ([]BangCommand, error) {
 			  	WHERE Active = 1
 			 `
 
-	rows, err := db.Query(query)
+	rows, err := Db.Query(query)
 	if err != nil {
 		return nil, err
 	}

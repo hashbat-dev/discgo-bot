@@ -22,6 +22,7 @@ let activeGuilds = [];
 let logs = [];
 let commands = [];
 let commandInfo = [];
+let pools = [];
 
 function pageLoop() {
     fetchData().then(newData => {
@@ -95,6 +96,11 @@ function pageLoop() {
         if (newData['Commands']['CommandInfo'] != null) {
             commandInfo = newData['Commands']['CommandInfo'];
             updateCommandInfoTable();
+        }
+
+        if (newData['Pools'] != null) {
+            pools = newData['Pools'];
+            updatePoolTable();
         }
        
     }).catch(error => {
@@ -416,6 +422,41 @@ function updateCommandInfoTable() {
         tableBody.appendChild(row);
     });
 }
+
+function updatePoolTable() {
+    const tableBody = document.querySelector('#PoolTable tbody');
+    tableBody.innerHTML = ''; // Clear existing rows
+
+    pools.forEach(pool => {
+
+        const row = document.createElement('tr');
+        const nameCell = document.createElement('td');
+        const processCountCell = document.createElement('td');
+        const processLastCell = document.createElement('td');
+        const queueCountCell = document.createElement('td');
+        const queueLastCell = document.createElement('td');
+        const avgDurationCell = document.createElement('td');
+
+        nameCell.textContent = pool['Name'];
+        processCountCell.textContent = pool['ProcessingCount'];
+        processCountCell.style.width = '50px';
+        processLastCell.textContent = formatDateTime(pool['ProcessingLastAdded'], true);
+        queueCountCell.textContent = pool['QueueCount'];
+        queueCountCell.style.width = '50px';
+        queueLastCell.textContent = formatDateTime(pool['QueueLastAdded'], true);
+        avgDurationCell.textContent = formatDuration(pool['AverageDuration'])
+
+        row.appendChild(nameCell);
+        row.appendChild(processCountCell);
+        row.appendChild(processLastCell);
+        row.appendChild(queueCountCell);
+        row.appendChild(queueLastCell);
+        row.appendChild(avgDurationCell);
+
+        tableBody.appendChild(row);
+    });
+}
+
 function getConcatIDElement(guildId) {
 
     if (guildId.length <= 5) {
@@ -426,8 +467,8 @@ function getConcatIDElement(guildId) {
     return "<span class='GuildID' title='"+guildId+"'>.." + lastFiveChars + "</span>";
 }
 
-function formatDateTime(dateTimeString) {
-    
+function formatDateTime(dateTimeString, noMilliseconds) {
+    noMilliseconds = (typeof noMilliseconds === 'undefined') ? false : noMilliseconds;
     // Create a Date object from the DateTime string
     const date = new Date(dateTimeString);
     
@@ -443,13 +484,22 @@ function formatDateTime(dateTimeString) {
     const isToday = date.toDateString() === today.toDateString();
     
     // Define options for formatting
-    const options = {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        fractionalSecondDigits: 3 // For milliseconds
-    };
-    
+    let options;
+    if (noMilliseconds == true) {
+        options = {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        };
+    } else {
+        options = {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            fractionalSecondDigits: 3 // For milliseconds
+        };
+    }
+        
     // Format time part
     const timeFormatter = new Intl.DateTimeFormat('en-GB', options);
     const formattedTime = timeFormatter.format(date);

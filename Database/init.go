@@ -9,7 +9,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var db *sql.DB
+var Db *sql.DB
 
 func Init() bool {
 	dataSourceName := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
@@ -25,6 +25,6 @@ func Init() bool {
 		return false
 	}
 
-	db = dbIn
+	Db = dbIn
 	return true
 }
