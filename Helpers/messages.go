@@ -12,7 +12,6 @@ import (
 
 // Returns the Image URL if one exists in the message, if not the String is blank. If a specific extension is needed enter it as the second variable, if blank it will accept anything defined in Config.
 func GetImageFromMessage(message *discordgo.Message, requiredExtension string) string {
-
 	msgContent := strings.Trim(message.Content, " ")
 	msgContentLower := strings.ToLower(msgContent)
 

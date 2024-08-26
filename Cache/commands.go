@@ -8,7 +8,6 @@ import (
 )
 
 func AddToCommandCache(typeId int, command string, guildId string, userId string, userName string, timeStart time.Time, callDuration time.Duration) {
-
 	// Commands
 	newCmd := Command{
 		TypeID:       typeId,
@@ -19,13 +18,13 @@ func AddToCommandCache(typeId int, command string, guildId string, userId string
 		CallTime:     timeStart,
 		CallDuration: callDuration,
 	}
-	NewCommandCache := append([]Command{newCmd}, Commands...)
+	newCommandCache := append([]Command{newCmd}, Commands...)
 
 	if len(Commands) > config.DashboardMaxCommands {
-		NewCommandCache = NewCommandCache[1:]
+		newCommandCache = newCommandCache[1:]
 	}
 
-	Commands = NewCommandCache
+	Commands = newCommandCache
 
 	// CommandInfo
 	// 1. Work out Averages
@@ -76,5 +75,4 @@ func AddToCommandCache(typeId int, command string, guildId string, userId string
 		CommandInfo[infoIndex].AvgDuration = CommandAverages[avgIndex].AvgDuration
 		CommandInfo[infoIndex].LastCall = time.Now()
 	}
-
 }

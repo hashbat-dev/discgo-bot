@@ -39,6 +39,21 @@ const (
 	CommandLevelDisabled
 )
 
+// Task categories for channels in message handling
+const (
+	// TRIVIAL_TASK involves small CPU and no IO waiting
+	TRIVIAL_TASK = iota
+	// CPU_BOUND_TASK involves intensive operations
+	CPU_BOUND_TASK
+	// IO_BUOND_TASK involves waiting on API/DB response
+	IO_BOUND_TASK
+)
+
+const (
+	N_TRIVIAL_WORKERS = 100
+	N_IO_WORKERS      = 1000
+)
+
 // Command Types
 // This is used to denote types to the Dashboard
 // ------------------------------------------------

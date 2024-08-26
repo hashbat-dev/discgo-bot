@@ -12,22 +12,18 @@ import (
 type AddImage struct{}
 
 func (s AddImage) Name() string {
-	return "AddImage"
+	return "addimage"
 }
 
 func (s AddImage) PermissionRequirement() int {
 	return config.CommandLevelUser
 }
 
-func (s AddImage) ProcessPool() config.ProcessPool {
-	return config.ProcessPools[config.ProcessPoolText]
-}
-func (s AddImage) LockedByDefault() bool {
-	return true
+func (s AddImage) Complexity() int {
+	return config.TRIVIAL_TASK
 }
 
 func (s AddImage) Execute(message *discordgo.MessageCreate, command string) error {
-
 	imgUrl := helpers.GetImageFromMessage(message.Message, "")
 	if imgUrl == "" {
 		return errors.New("no image found")
@@ -35,5 +31,4 @@ func (s AddImage) Execute(message *discordgo.MessageCreate, command string) erro
 
 	err := database.AddImg(message, helpers.RemoveStartingXCharacters(command, 3), imgUrl)
 	return err
-
 }

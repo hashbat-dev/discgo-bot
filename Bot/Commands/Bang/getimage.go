@@ -13,23 +13,18 @@ import (
 type GetImage struct{}
 
 func (s GetImage) Name() string {
-	return "GetImage"
+	return "getimage"
 }
 
 func (s GetImage) PermissionRequirement() int {
 	return config.CommandLevelUser
 }
 
-func (s GetImage) ProcessPool() config.ProcessPool {
-	return config.ProcessPools[config.ProcessPoolText]
-}
-
-func (s GetImage) LockedByDefault() bool {
-	return false
+func (s GetImage) Complexity() int {
+	return config.TRIVIAL_TASK
 }
 
 func (s GetImage) Execute(message *discordgo.MessageCreate, command string) error {
-
 	imgCat, err := database.GetImgCategory(message.GuildID, command)
 	if err != nil {
 		discord.SendUserError(message, "Invalid Category")

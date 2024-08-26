@@ -10,7 +10,6 @@ import (
 )
 
 func GetImageUrlFromTenor(tenorLink string) (string, error) {
-
 	// Step 1: Fetch the HTML from the URL
 	res, err := http.Get(tenorLink)
 	if err != nil {

@@ -12,23 +12,18 @@ import (
 type MakeSpeech struct{}
 
 func (s MakeSpeech) Name() string {
-	return "MakeSpeech"
+	return "makespeech"
 }
 
 func (s MakeSpeech) PermissionRequirement() int {
 	return config.CommandLevelUser
 }
 
-func (s MakeSpeech) ProcessPool() config.ProcessPool {
-	return config.ProcessPools[config.ProcessPoolImages]
-}
-
-func (s MakeSpeech) LockedByDefault() bool {
-	return true
+func (s MakeSpeech) Complexity() int {
+	return config.IO_BOUND_TASK
 }
 
 func (s MakeSpeech) Execute(message *discordgo.MessageCreate, command string) error {
-
 	// Check we have an Image and that it's a valid extension
 	imgUrl := helpers.GetImageFromMessage(message.Message, "")
 	if imgUrl == "" {

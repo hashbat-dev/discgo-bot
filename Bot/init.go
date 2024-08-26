@@ -58,7 +58,6 @@ func Init() {
 		logger.Error("", errors.New("Failed to register commands"))
 		return
 	}
-
 }
 
 func sessionInit() bool {
@@ -73,11 +72,9 @@ func sessionInit() bool {
 
 	config.Session = session
 	return true
-
 }
 
 func sessionOpen() bool {
-
 	err := config.Session.Open()
 	if err != nil {
 		logger.Error("", err)
@@ -88,15 +85,12 @@ func sessionOpen() bool {
 		logger.Error("FUCK", err)
 	}
 	return true
-
 }
 
 func addHandlers() bool {
-
 	config.Session.AddHandler(handlers.HandleNewMessage) // New Messages
 	config.Session.AddHandler(handlers.HandleNewGuild)   //	Added to a new Server
 	return true
-
 }
 
 func registerCommands() bool {

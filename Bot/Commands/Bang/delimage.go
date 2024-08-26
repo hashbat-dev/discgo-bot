@@ -12,23 +12,18 @@ import (
 type DelImage struct{}
 
 func (s DelImage) Name() string {
-	return "DelImage"
+	return "delimage"
 }
 
 func (s DelImage) PermissionRequirement() int {
 	return config.CommandLevelUser
 }
 
-func (s DelImage) ProcessPool() config.ProcessPool {
-	return config.ProcessPools[config.ProcessPoolText]
-}
-
-func (s DelImage) LockedByDefault() bool {
-	return true
+func (s DelImage) Complexity() int {
+	return config.TRIVIAL_TASK
 }
 
 func (s DelImage) Execute(message *discordgo.MessageCreate, command string) error {
-
 	imgUrl := helpers.GetImageFromMessage(message.Message, "")
 	if imgUrl == "" {
 		return errors.New("no image found")
@@ -50,5 +45,4 @@ func (s DelImage) Execute(message *discordgo.MessageCreate, command string) erro
 	}
 
 	return database.DeleteGuildLink(imgGuildLink)
-
 }

@@ -7,20 +7,16 @@ import (
 )
 
 func SendUserError(message *discordgo.MessageCreate, errorText string) {
-
 	sendText := "An Error occured: " + errorText
 	_, err := config.Session.ChannelMessageSendReply(message.ChannelID, sendText, message.Reference())
 	if err != nil {
 		logger.Error(message.GuildID, err)
 	}
-
 }
 
 func SendUserMessage(message *discordgo.MessageCreate, messageText string) {
-
 	_, err := config.Session.ChannelMessageSendReply(message.ChannelID, messageText, message.Reference())
 	if err != nil {
 		logger.Error(message.GuildID, err)
 	}
-
 }

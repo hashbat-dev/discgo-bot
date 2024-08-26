@@ -3,7 +3,6 @@ package dashboard
 import (
 	"time"
 
-	handlers "github.com/dabi-ngin/discgo-bot/Bot/Handlers"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
@@ -20,7 +19,7 @@ type Packet struct {
 	HardwareInfo DashboardHardware
 	Logging      DashboardLogging
 	Commands     DashboardCommands
-	Pools        []handlers.DashboardChannelInfo
+	Pools        []DashboardChannelInfo
 }
 
 type DashboardPacketInfo struct {
@@ -146,17 +145,17 @@ func getDashboardCommands() DashboardCommands {
 	return returnStruct
 }
 
-func getPoolInfo() []handlers.DashboardChannelInfo {
-	var returnStruct []handlers.DashboardChannelInfo
+func getPoolInfo() []DashboardChannelInfo {
+	var returnStruct []DashboardChannelInfo
 
 	for i, pool := range config.ProcessPools {
-		returnStruct = append(returnStruct, handlers.DashboardChannelInfo{
+		returnStruct = append(returnStruct, DashboardChannelInfo{
 			Name:                pool.PoolName,
-			ProcessingCount:     handlers.PoolProcessing[i],
-			ProcessingLastAdded: handlers.PoolLastAdded[i],
-			QueueCount:          handlers.PoolQueue[i],
-			QueueLastAdded:      handlers.QueueLastAdded[i],
-			AverageDuration:     handlers.PoolDurations[i].AvgDuration,
+			ProcessingCount:     PoolProcessing[i],
+			ProcessingLastAdded: PoolLastAdded[i],
+			QueueCount:          PoolQueue[i],
+			QueueLastAdded:      QueueLastAdded[i],
+			AverageDuration:     PoolDurations[i].AvgDuration,
 		})
 	}
 

@@ -2,7 +2,7 @@ package commands
 
 import "strings"
 
-func CheckForBangCommand(messageContent string) string {
+func GetBangCommand(messageContent string) string {
 	if len(messageContent) == 0 {
 		return ""
 	}

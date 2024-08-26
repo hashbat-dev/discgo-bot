@@ -13,7 +13,6 @@ import (
 )
 
 func AddImg(message *discordgo.MessageCreate, category string, imgUrl string) error {
-
 	// 1. Get the Gif Category
 	imgCat, err := GetImgCategory(message.GuildID, category)
 	if err != nil {
@@ -30,7 +29,6 @@ func AddImg(message *discordgo.MessageCreate, category string, imgUrl string) er
 	err = InsertImgGuildLink(storageId.ID, imgCat.ID, message.GuildID, message.Author.ID)
 
 	return err
-
 }
 
 // Returns the Img Category object from the database, using the Cache if available
@@ -100,7 +98,6 @@ func GetImgCategory(guildId string, category string) (img.ImgCategory, error) {
 	imgCat.ID = int(lastInsertID)
 	imgCat.Category = strings.ToLower(category)
 	return imgCat, nil
-
 }
 
 func GetImgStorage(guildId string, imgUrl string) (img.ImgStorage, error) {
@@ -174,11 +171,9 @@ func GetImgStorage(guildId string, imgUrl string) (img.ImgStorage, error) {
 	imgStorage.ID = int(lastInsertID)
 	imgStorage.URL = imgUrl
 	return imgStorage, nil
-
 }
 
 func GetImgGuildLink(guildId string, category img.ImgCategory, storage img.ImgStorage) (img.ImgGuildLink, error) {
-
 	var imgGuildLink img.ImgGuildLink = img.ImgGuildLink{}
 
 	// 1. Is it in the Database?
@@ -254,11 +249,9 @@ func GetImgGuildLink(guildId string, category img.ImgCategory, storage img.ImgSt
 	}
 
 	return imgGuildLink, errors.New("no rows found")
-
 }
 
 func InsertImgGuildLink(storageId int, categoryId int, guildId string, userId string) error {
-
 	query := `INSERT INTO ImgGuildLink (StorageID, CategoryID, GuildID, AddedByUserID)
           SELECT * FROM (SELECT ? AS StorageID, ? AS CategoryID, ? AS GuildID, ? AS AddedByUserID) AS tmp
           WHERE NOT EXISTS (
@@ -272,11 +265,9 @@ func InsertImgGuildLink(storageId int, categoryId int, guildId string, userId st
 	}
 
 	return nil
-
 }
 
 func DeleteGuildLink(guildLink img.ImgGuildLink) error {
-
 	// 1. Delete from the Link table
 	query := `DELETE FROM ImgGuildLink WHERE ID = ?`
 	_, err := Db.Exec(query, guildLink.ID)
@@ -287,11 +278,9 @@ func DeleteGuildLink(guildLink img.ImgGuildLink) error {
 
 	// 2. Tidy up orphaned Storage items
 	return TidyImgStorage(guildLink.GuildID)
-
 }
 
 func GetRandomImage(guildId string, categoryId int) (string, error) {
-
 	query := `SELECT S.URL FROM ImgGuildLink L
 			INNER JOIN ImgStorage S ON S.ID = L.StorageID
 			WHERE L.CategoryID = ? AND L.GuildID = ?
@@ -312,7 +301,6 @@ func GetRandomImage(guildId string, categoryId int) (string, error) {
 	}
 
 	return dbImg.String, nil
-
 }
 
 func TidyImgStorage(guildId string) error {
