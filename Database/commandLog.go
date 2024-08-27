@@ -1,6 +1,8 @@
 package database
 
 import (
+	"time"
+
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
@@ -14,7 +16,7 @@ func LogCommandUsage(guildId string, userId string, commandTypeId int, command s
 		WHERE GuildID = ? AND UserID = ? AND CommandTypeID = ? AND Command = ?
 	`
 
-	result, err := db.Exec(updateQuery, guildId, userId, commandTypeId, command)
+	result, err := Db.Exec(updateQuery, guildId, userId, commandTypeId, command)
 	if err != nil {
 		logger.Error(guildId, err)
 		return
@@ -36,7 +38,7 @@ func LogCommandUsage(guildId string, userId string, commandTypeId int, command s
 			(?, ?, ?, ?)
 		`
 
-		_, err = db.Exec(insertQuery, guildId, userId, commandTypeId, command)
+		_, err = Db.Exec(insertQuery, guildId, userId, commandTypeId, command)
 		if err != nil {
 			logger.Error(guildId, err)
 			return
@@ -44,5 +46,13 @@ func LogCommandUsage(guildId string, userId string, commandTypeId int, command s
 	}
 
 	// 4. Update the Guild Cache
-	cache.UpdateGuildLastCommand(guildId)
+	UpdateGuildLastCommand(guildId)
+}
+
+func UpdateGuildLastCommand(guildId string) {
+	guildIndex := cache.GetGuildIndex(guildId)
+	if guildIndex > -1 {
+		cache.ActiveGuilds[guildIndex].CommandCount++
+		cache.ActiveGuilds[guildIndex].LastCommand = time.Now()
+	}
 }

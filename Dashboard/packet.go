@@ -19,6 +19,7 @@ type Packet struct {
 	HardwareInfo DashboardHardware
 	Logging      DashboardLogging
 	Commands     DashboardCommands
+	Pools        []DashboardChannelInfo
 }
 
 type DashboardPacketInfo struct {
@@ -60,6 +61,7 @@ func GetPacket() Packet {
 	packet.ActiveGuilds = getDashboardGuilds()
 	packet.HardwareInfo = getDashboardHardware()
 	packet.Commands = getDashboardCommands()
+	packet.Pools = getPoolInfo()
 
 	return packet
 
@@ -139,6 +141,23 @@ func getDashboardCommands() DashboardCommands {
 	returnStruct.CommandTypes = config.CommandTypes
 	returnStruct.Commands = cache.Commands
 	returnStruct.CommandInfo = cache.CommandInfo
+
+	return returnStruct
+}
+
+func getPoolInfo() []DashboardChannelInfo {
+	var returnStruct []DashboardChannelInfo
+
+	for i, pool := range config.ProcessPools {
+		returnStruct = append(returnStruct, DashboardChannelInfo{
+			Name:                pool.PoolName,
+			ProcessingCount:     PoolProcessing[i],
+			ProcessingLastAdded: PoolLastAdded[i],
+			QueueCount:          PoolQueue[i],
+			QueueLastAdded:      QueueLastAdded[i],
+			AverageDuration:     PoolDurations[i].AvgDuration,
+		})
+	}
 
 	return returnStruct
 }

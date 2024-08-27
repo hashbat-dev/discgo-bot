@@ -4,40 +4,10 @@ import (
 	"time"
 
 	config "github.com/dabi-ngin/discgo-bot/Config"
+	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 )
 
-type Command struct {
-	TypeID       int
-	Command      string
-	GuildID      string
-	UserID       string
-	UserName     string
-	CallTime     time.Time
-	CallDuration time.Duration
-}
-
-type CmdInfo struct {
-	TypeID      int
-	Command     string
-	Count       int
-	AvgDuration time.Duration
-	LastCall    time.Time
-}
-
-type CmdAverage struct {
-	TypeID      int
-	Command     string
-	Durations   []time.Duration
-	AvgDuration time.Duration
-}
-
-var Commands []Command
-var CommandInfo []CmdInfo
-var CommandAverages []CmdAverage
-
-func AddToCommandCache(typeId int, command string, guildId string, userId string, userName string, timeStart time.Time, timeFinish time.Time) {
-	callDuration := timeFinish.Sub(timeStart)
-
+func AddToCommandCache(typeId int, command string, guildId string, userId string, userName string, timeStart time.Time, callDuration time.Duration) {
 	// Commands
 	newCmd := Command{
 		TypeID:       typeId,
@@ -48,85 +18,61 @@ func AddToCommandCache(typeId int, command string, guildId string, userId string
 		CallTime:     timeStart,
 		CallDuration: callDuration,
 	}
-	NewCommandCache := append([]Command{newCmd}, Commands...)
+	newCommandCache := append([]Command{newCmd}, Commands...)
 
 	if len(Commands) > config.DashboardMaxCommands {
-		NewCommandCache = NewCommandCache[1:]
+		newCommandCache = newCommandCache[1:]
 	}
 
-	Commands = NewCommandCache
+	Commands = newCommandCache
 
 	// CommandInfo
 	// 1. Work out Averages
-	var newAvgCache []CmdAverage
-	var cmdAvg CmdAverage
-	found := false
-	for _, avg := range CommandAverages {
+	avgIndex := -1
+	for i, avg := range CommandAverages {
 		if typeId == avg.TypeID && command == avg.Command {
-			cmdAvg = avg
-			found = true
-		} else {
-			newAvgCache = append(newAvgCache, avg)
+			avgIndex = i
+			break
 		}
 	}
 
-	if !found {
-		cmdAvg = CmdAverage{
-			TypeID:  typeId,
-			Command: command,
-		}
+	if avgIndex == -1 {
+		CommandAverages = append(CommandAverages, CmdAverage{
+			TypeID:      typeId,
+			Command:     command,
+			Durations:   []time.Duration{callDuration},
+			AvgDuration: callDuration,
+		})
+		avgIndex = len(CommandAverages) - 1
+	} else {
+		CommandAverages[avgIndex].Durations = append(CommandAverages[avgIndex].Durations, callDuration)
+		CommandAverages[avgIndex].AvgDuration = helpers.AverageDuration(CommandAverages[avgIndex].Durations)
 	}
 
-	cmdAvg.Durations = append(cmdAvg.Durations, callDuration)
-	cmdAvg.AvgDuration = AverageDuration(cmdAvg.Durations)
-
-	if len(cmdAvg.Durations) > config.CommandAveragePool {
-		cmdAvg.Durations = cmdAvg.Durations[1:]
+	if len(CommandAverages[avgIndex].Durations) > config.CommandAveragePool {
+		CommandAverages[avgIndex].Durations = CommandAverages[avgIndex].Durations[1:]
 	}
-
-	newAvgCache = append(newAvgCache, cmdAvg)
-	CommandAverages = newAvgCache
 
 	// 2. Update Info
-	var newCmdInfo []CmdInfo
-	var cmdInfo CmdInfo
-	found = false
-	for _, cmd := range CommandInfo {
+	infoIndex := -1
+	for i, cmd := range CommandInfo {
 		if typeId == cmd.TypeID && command == cmd.Command {
-			cmdInfo = cmd
-			found = true
-		} else {
-			newCmdInfo = append(newCmdInfo, cmd)
+			infoIndex = i
+			break
 		}
 	}
 
-	if !found {
-		cmdInfo = CmdInfo{
-			TypeID:  typeId,
-			Command: command,
-		}
+	if infoIndex == -1 {
+		CommandInfo = append(CommandInfo, CmdInfo{
+			TypeID:      typeId,
+			Command:     command,
+			Count:       1,
+			AvgDuration: CommandAverages[avgIndex].AvgDuration,
+			LastCall:    time.Now(),
+		})
+	} else {
+		CommandInfo[infoIndex].Count++
+		CommandInfo[infoIndex].AvgDuration = CommandAverages[avgIndex].AvgDuration
+		CommandInfo[infoIndex].LastCall = time.Now()
 	}
-
-	cmdInfo.Count++
-	cmdInfo.AvgDuration = cmdAvg.AvgDuration
-	cmdInfo.LastCall = time.Now()
-
-	newCmdInfo = append(newCmdInfo, cmdInfo)
-	CommandInfo = newCmdInfo
-
-}
-
-func AverageDuration(durations []time.Duration) time.Duration {
-	var total time.Duration
-
-	for _, duration := range durations {
-		total += duration
-	}
-
-	if len(durations) == 0 {
-		return 0
-	}
-
-	average := total / time.Duration(len(durations))
-	return average
 }

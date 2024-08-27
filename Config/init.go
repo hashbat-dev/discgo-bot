@@ -29,22 +29,90 @@ var LoggingLevels map[int]string = map[int]string{
 }
 
 const (
+	CommandLevelBotAdmin = iota
+	CommandLevelServerOwner
+	CommandLevelAdmin
+	CommandLevelMod
+	CommandLevelVIP
+	CommandLevelUser
+	CommandLevelRestricted
+	CommandLevelDisabled
+)
+
+// Task categories for channels in message handling
+const (
+	// TRIVIAL_TASK involves small CPU and no IO waiting
+	TRIVIAL_TASK = iota
+	// CPU_BOUND_TASK involves intensive operations
+	CPU_BOUND_TASK
+	// IO_BOUND_TASK involves waiting on API/DB response
+	IO_BOUND_TASK
+)
+
+const (
+	N_TRIVIAL_WORKERS = 100
+	N_IO_WORKERS      = 1000
+)
+
+// Command Types
+// This is used to denote types to the Dashboard
+// ------------------------------------------------
+const ( // A) Populate A + B!
 	CommandTypeDefault = iota
 	CommandTypeBang
 	CommandTypePhrase
 )
 
-// This is used to denote types to the Dashbaord
+// B) Populate A + B!
 var CommandTypes map[int]string = map[int]string{
 	CommandTypeDefault: "Default",
 	CommandTypeBang:    "Bang",
 	CommandTypePhrase:  "Phrase",
 }
 
+// ------------------------------------------------
+
+// Process Pools
+// Used to dispatch BangCommands in the newMessage Handler
+// ------------------------------------------------
+const (
+	ProcessPoolText = iota
+	ProcessPoolImages
+	ProcessPoolExternal
+)
+
+var LastPoolIota int = ProcessPoolExternal
+
+var ProcessPools map[int]ProcessPool = map[int]ProcessPool{
+	ProcessPoolText: {
+		ProcessPoolIota: ProcessPoolText,
+		PoolName:        "Text",
+		MaxWorkers:      50,
+	},
+	ProcessPoolImages: {
+		ProcessPoolIota: ProcessPoolImages,
+		PoolName:        "Images",
+		MaxWorkers:      25,
+	},
+	ProcessPoolExternal: {
+		ProcessPoolIota: ProcessPoolExternal,
+		PoolName:        "External",
+		MaxWorkers:      10,
+	},
+}
+
+// -------------------------------------------------
+type ProcessPool struct {
+	ProcessPoolIota int
+	PoolName        string
+	MaxWorkers      int
+}
+
 type Vars struct {
 	IsDev       bool
 	SuperAdmins []string
 
+	LogToDiscord       bool
 	LoggingChannelID   string
 	LoggingUsesThreads bool
 	VerboseStack       bool
@@ -67,10 +135,12 @@ type Vars struct {
 }
 
 var (
-	IsDev       bool
-	HostName    string
-	SuperAdmins []string
+	IsDev        bool
+	HostName     string
+	SuperAdmins  []string
+	DashboardUrl string
 
+	LogToDiscord                bool
 	LoggingChannelID            string
 	LoggingUsesThreads          bool
 	LoggingVerboseStack         bool
@@ -85,6 +155,8 @@ var (
 
 	BotToken string
 	Session  *discordgo.Session
+
+	ValidImageExtensions []string
 
 	DB_NAME       string
 	DB_USER       string
@@ -121,7 +193,18 @@ func Init() bool {
 		HostName = currentHostName
 	}
 
+	ValidImageExtensions = []string{
+		".gif",
+		".png",
+		".jpg",
+		".webp",
+	}
+
 	IsDev = configFileVariables.IsDev
+	if IsDev {
+		DashboardUrl = "http://localhost:3333/"
+	}
+
 	SuperAdmins = configFileVariables.SuperAdmins
 
 	LoggingChannelID = configFileVariables.LoggingChannelID
@@ -134,6 +217,7 @@ func Init() bool {
 	CommandAveragePool = configFileVariables.CommandAveragePool
 	HardwareStatIntervalSeconds = configFileVariables.HardwareStatIntervalSeconds
 	HardwareStatMaxIntervals = configFileVariables.HardwareStatMaxIntervals
+	LogToDiscord = configFileVariables.LogToDiscord
 
 	BotToken = configFileVariables.BotToken
 
