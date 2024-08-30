@@ -6,9 +6,17 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
+
+// CommandLatencies is our growable map which records what the runtime of each command has been as the workers complete running them.
+var CommandLatencies map[string][]time.Duration
+
+func init() {
+	CommandLatencies = make(map[string][]time.Duration)
+}
 
 func Run() {
 	http.HandleFunc("/", webhandler)

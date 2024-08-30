@@ -8,6 +8,7 @@ import (
 	commands "github.com/dabi-ngin/discgo-bot/Bot/Commands"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
+	dashboard "github.com/dabi-ngin/discgo-bot/Dashboard"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 	"github.com/google/uuid"
 )
@@ -46,9 +47,8 @@ func commandWorker(id int, ch <-chan *CommandTask) {
 				logger.Info(msg.Message.GuildID, "commandWorker %d: Channel closed, exiting...\n", id)
 				return
 			}
-
+			start := time.Now()
 			logger.Info(msg.Message.GuildID, "commandWorker[%d] :: processing command [%v] correlation-id :: %v", id, msg.Command.Name(), msg.CorrelationId)
-			timeStart := time.Now()
 
 			execErr := msg.Command.Execute(msg.Message, msg.Command.Name())
 			if execErr != nil {
@@ -56,11 +56,11 @@ func commandWorker(id int, ch <-chan *CommandTask) {
 				continue // Failed to execute, skip loop iteration
 			}
 
-			callDuration := time.Since(timeStart)
-			cache.AddToCommandCache(config.CommandTypeBang, msg.Command.Name(), msg.Message.GuildID, msg.Message.Author.ID, msg.Message.Author.Username, timeStart, callDuration)
-
-			// TODO - Change below to create some "Completed Task" object to pass off to a channel dashboard will own
-			logger.Info(msg.Message.GuildID, "CommandWorker :: [%v] Ended successfully after %v :: correlation-id :: %v", msg.Command.Name(), callDuration, msg.CorrelationId)
+			duration := time.Since(start)
+			cache.AddToCommandCache(config.CommandTypeBang, msg.Command.Name(), msg.Message.GuildID, msg.Message.Author.ID, msg.Message.Author.Username, start, duration)
+			latencyMsg := dashboard.LatencyMessage{CommandName: msg.Command.Name(), TimeTaken: duration}
+			dashboard.LatencyCh <- latencyMsg
+			logger.Info(msg.Message.GuildID, "CommandWorker :: [%v] Ended successfully after %v :: correlation-id :: %v", msg.Command.Name(), duration, msg.CorrelationId)
 		}
 	}
 }
