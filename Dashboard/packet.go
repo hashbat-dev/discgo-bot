@@ -82,7 +82,7 @@ func getPacketInfo() DashboardPacketInfo {
 
 func getDashboardLogging() DashboardLogging {
 	var returnStruct DashboardLogging
-	returnStruct.LogLevels = config.LoggingLevels
+	//returnStruct.LogLevels = config.LoggingLevels
 	returnStruct.LogEntries = logger.LogsForDashboard
 
 	return returnStruct

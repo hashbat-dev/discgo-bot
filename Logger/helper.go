@@ -17,15 +17,6 @@ func FormatInboundLogText(logText string, a ...any) string {
 	}
 }
 
-var (
-	ColourReset   = "\033[0m"
-	ColourRed     = "\033[31m"
-	ColourGreen   = "\033[32m"
-	ColourYellow  = "\033[33m"
-	ColourWhite   = "\033[97m"
-	ColourMagenta = "\033[35m"
-)
-
 type LogInfo struct {
 	DateTime   time.Time
 	CodeSource string
@@ -55,27 +46,8 @@ func ParseLoggingText(guildId string, logText string, a ...any) (LogInfo, string
 }
 
 func SendToConsole(logInfo LogInfo, logText string, logLevel int) {
-	var useColour string
-	var logType string
-	switch logLevel {
-	case config.LoggingLevelAdmin:
-		useColour = ColourMagenta
-		logType = "[ADMIN]"
-	case config.LoggingLevelError:
-		useColour = ColourRed
-		logType = "[ERROR]"
-	case config.LoggingLevelWarn:
-		useColour = ColourYellow
-		logType = "[WARN]"
-	case config.LoggingLevelEvent:
-		useColour = ColourGreen
-		logType = "[EVENT]"
-	case config.LoggingLevelInfo:
-		useColour = ColourWhite
-		logType = "[INFO]"
-	default:
-		useColour = ColourWhite
-	}
+
+	logType := config.LoggingLevels[logLevel]
 
 	infoLine := fmt.Sprintf("%v | %v", logInfo.DateTime.Format("02/01/06 15:04:05.000"), logInfo.CodeSource)
 	if logInfo.GuildID != "" {
@@ -85,7 +57,7 @@ func SendToConsole(logInfo LogInfo, logText string, logLevel int) {
 		infoLine += " | " + config.HostName
 	}
 
-	fmt.Printf("%v%v %v :: %v %v \n", useColour, logType, infoLine, logText, ColourReset)
+	fmt.Printf("%v[%v] %v :: %v %v \n", logType.Colour.Terminal, strings.ToUpper(logType.Name), infoLine, logText, config.Colours["default"].Terminal)
 }
 
 // GetStack gets that bread homie
