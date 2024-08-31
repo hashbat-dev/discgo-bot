@@ -10,7 +10,15 @@ import (
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
 
-type GetImage struct{}
+type GetImage struct {
+	ImageCategory string
+}
+
+func NewGetImage(imageCategory string) *GetImage {
+	return &GetImage{
+		ImageCategory: imageCategory,
+	}
+}
 
 func (s GetImage) Name() string {
 	return "getimage"
@@ -25,7 +33,7 @@ func (s GetImage) Complexity() int {
 }
 
 func (s GetImage) Execute(message *discordgo.MessageCreate, command string) error {
-	imgCat, err := database.GetImgCategory(message.GuildID, command)
+	imgCat, err := database.GetImgCategory(message.GuildID, s.ImageCategory)
 	if err != nil {
 		discord.SendUserError(message, "Invalid Category")
 		return errors.New("unable to get gif category")

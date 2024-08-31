@@ -17,8 +17,8 @@ var (
 )
 
 func init() {
-	JumpTable["speech"] = bang.GetImage{}
-	JumpTable["addspeech"] = bang.AddImage{}
-	JumpTable["delspeech"] = bang.DelImage{}
+	JumpTable["speech"] = bang.GetImage{ImageCategory: "speech"}
+	JumpTable["addspeech"] = bang.AddImage{ImageCategory: "speech"}
+	JumpTable["delspeech"] = bang.DelImage{ImageCategory: "speech"}
 	JumpTable["makespeech"] = bang.MakeSpeech{}
 }

@@ -9,7 +9,15 @@ import (
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 )
 
-type DelImage struct{}
+type DelImage struct {
+	ImageCategory string
+}
+
+func NewDelImage(imageCategory string) *DelImage {
+	return &DelImage{
+		ImageCategory: imageCategory,
+	}
+}
 
 func (s DelImage) Name() string {
 	return "delimage"
