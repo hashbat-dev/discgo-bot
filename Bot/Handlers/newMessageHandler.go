@@ -16,6 +16,24 @@ import (
 	"github.com/google/uuid"
 )
 
+var TaskQueue []CommandTask
+
+func enqueueTask(task *CommandTask) {
+	TaskQueue = append(TaskQueue, *task)
+}
+
+func queueWorker() {
+	for {
+		for _, task := range TaskQueue {
+			dispatchTask(&task)
+		}
+	}
+}
+
+func init() {
+	go queueWorker()
+}
+
 // HandleNewMessage checks for Bot actions whenever a new Message is posted in a Server
 func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCreate) {
 	// 1. Do we want to skip this message?
@@ -40,7 +58,7 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 				Command:       command,
 				CorrelationId: correlationId,
 			}
-			dispatchTask(task)
+			enqueueTask(task)
 		} else {
 			logger.Debug(message.GuildID, "invalid message command attempt :: could not retrieve '%s' from jump table :: correlation-id :: %v", commandName, correlationId)
 		}
