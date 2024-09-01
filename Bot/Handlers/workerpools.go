@@ -19,9 +19,9 @@ type CommandTask struct {
 }
 
 var (
-	IO_TASKS      = make(chan *CommandTask)
-	CPU_TASKS     = make(chan *CommandTask)
-	TRIVIAL_TASKS = make(chan *CommandTask)
+	IO_TASKS      = make(chan *CommandTask, 100)
+	CPU_TASKS     = make(chan *CommandTask, 100)
+	TRIVIAL_TASKS = make(chan *CommandTask, 1000)
 )
 
 func init() {
