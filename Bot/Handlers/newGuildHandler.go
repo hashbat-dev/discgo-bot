@@ -9,6 +9,7 @@ import (
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 )
 
 // Calls whenever a new Guild connects to the bot. This also runs for all active Guilds on startup.
@@ -59,4 +60,5 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 
 	// 3. Add to the Active Cache
 	cache.AddToActiveGuildCache(newGuild, dbId, triggers)
+	reporting.Guilds()
 }

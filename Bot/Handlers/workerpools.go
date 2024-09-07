@@ -8,6 +8,7 @@ import (
 	commands "github.com/dabi-ngin/discgo-bot/Bot/Commands"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 	"github.com/google/uuid"
 )
 
@@ -55,8 +56,7 @@ func commandWorker(id int, ch <-chan *CommandTask) {
 				continue // Failed to execute, skip loop iteration
 			}
 
-			callDuration := time.Since(timeStart)
-			ReportCommand(config.CommandTypeBang, msg.Command.Name(), msg.Message.GuildID, msg.Message.Author.ID, msg.Message.Author.Username, timeStart, callDuration)
+			reporting.Command(config.CommandTypeBang, msg.Message, msg.Command, msg.CorrelationId, timeStart)
 		}
 	}
 }

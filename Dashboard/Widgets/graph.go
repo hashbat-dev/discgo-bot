@@ -3,48 +3,93 @@ package widgets
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
+	"math"
 	"time"
 
 	dashboard "github.com/dabi-ngin/discgo-bot/Dashboard"
+	"github.com/google/uuid"
 )
 
 type GraphWidget struct {
-	Name    string
-	Data    interface{}
-	Options GraphWidgetOptions
+	Options   GraphWidgetOptions
+	RefreshMs int
+}
+
+const (
+	GraphWidgetChartType_Bar = iota
+	GraphWidgetChartType_Line
+	GraphWidgetChartType_Pie
+)
+
+var GraphWidgetChartTypes map[int]string = map[int]string{
+	GraphWidgetChartType_Bar:  "bar",
+	GraphWidgetChartType_Line: "line",
+	GraphWidgetChartType_Pie:  "pie",
 }
 
 type GraphWidgetOptions struct {
-	Width      string
-	LineColour string
-	MinValue   int
-	MaxValue   int
+	Name                 string
+	Width                string
+	GraphWidgetChartType string
+	ChartLabels          []string
+	Datasets             []GraphWidgetDataset
+	MinValue             int `json:"MinValue,omitempty"`
+	MaxValue             int `json:"MaxValue,omitempty"`
+	XLabel               string
+	YLabel               string
+}
+
+type GraphWidgetDataset struct {
+	Label            string
+	Data             interface{}
+	BackgroundColour []string
+	BorderColour     []string
+	BorderWidth      int
+	Fill             bool
+	PointRadius      int
 }
 
 // Writes JSON data for a GraphWidget object
 func SaveGraphWidget(widget GraphWidget) error {
-	dataValue := reflect.ValueOf(widget.Data)
 
-	// Check that Data is a slice and []int or []float64
-	if dataValue.Kind() != reflect.Slice {
-		return fmt.Errorf("Data should be a slice")
+	// No Labels?
+	if widget.Options.ChartLabels == nil || len(widget.Options.ChartLabels) == 0 {
+		maxDataset := 0
+		for _, dataset := range widget.Options.Datasets {
+			switch data := dataset.Data.(type) {
+			case []int:
+				if len(data) > maxDataset {
+					maxDataset = len(data)
+				}
+			case []float64:
+				// Round each float64 value to 3 decimal places
+				for i, v := range data {
+					data[i] = math.Round(v*1000) / 1000
+				}
+				if len(data) > maxDataset {
+					maxDataset = len(data)
+				}
+			default:
+				return fmt.Errorf("unsupported dataset data type: %T", dataset.Data)
+			}
+		}
+
+		widget.Options.ChartLabels = make([]string, maxDataset)
+		for i := range widget.Options.ChartLabels {
+			widget.Options.ChartLabels[i] = fmt.Sprintf("%d", i+1)
+		}
 	}
 
-	elemKind := dataValue.Type().Elem().Kind()
-	if elemKind != reflect.Int && elemKind != reflect.Float64 {
-		return fmt.Errorf("Data slice not an accepted format for a graph")
-	}
-
-	dataSlice := make([]interface{}, dataValue.Len())
-	for i := 0; i < dataValue.Len(); i++ {
-		dataSlice[i] = dataValue.Index(i).Interface()
+	if widget.RefreshMs == 0 {
+		widget.RefreshMs = DefaultMsTimes[DefaultMsGraph]
 	}
 
 	saveJson := map[string]interface{}{
-		"Data":      dataSlice,
+		"ID":        uuid.New(),
+		"Name":      widget.Options.Name,
 		"Options":   widget.Options,
 		"Timestamp": time.Now(),
+		"Type":      "graph",
 	}
 
 	jsonData, err := json.MarshalIndent(saveJson, "", "  ")
@@ -52,6 +97,5 @@ func SaveGraphWidget(widget GraphWidget) error {
 		return err
 	}
 
-	dashboard.SaveJsonData(widget.Name, jsonData)
-	return nil
+	return dashboard.SaveJsonData(widget.Options.Name, jsonData, widget.Options.Width, widget.RefreshMs)
 }

@@ -1,5 +1,5 @@
 package cache
 
-import img "github.com/dabi-ngin/discgo-bot/Img"
+import imgwork "github.com/dabi-ngin/discgo-bot/ImgWork"
 
-var ImgCategories []img.ImgCategory
+var ImgCategories []imgwork.ImgCategory

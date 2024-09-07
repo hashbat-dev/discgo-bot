@@ -7,6 +7,7 @@ import (
 func Init() {
 
 	nextRun2Seconds = time.Now()
+	nextRun5Seconds = time.Now()
 	nextRun1Minute = time.Now()
 	nextRun5Minutes = time.Now()
 
@@ -15,6 +16,7 @@ func Init() {
 }
 
 var nextRun2Seconds time.Time
+var nextRun5Seconds time.Time
 var nextRun1Minute time.Time
 var nextRun5Minutes time.Time
 var pollingSeconds int = 2
@@ -27,6 +29,10 @@ func Loop(stop chan bool) {
 		case <-time.After(time.Duration(pollingSeconds) * time.Second):
 			if time.Now().After(nextRun2Seconds) {
 				RunEvery2Seconds()
+			}
+
+			if time.Now().After(nextRun5Seconds) {
+				RunEvery5Seconds()
 			}
 
 			if time.Now().After(nextRun1Minute) {
