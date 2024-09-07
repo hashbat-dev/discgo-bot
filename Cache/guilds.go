@@ -1,8 +1,6 @@
 package cache
 
 import (
-	"time"
-
 	"github.com/bwmarrin/discordgo"
 	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
