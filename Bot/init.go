@@ -11,37 +11,32 @@ import (
 )
 
 func Init() {
-	// 1. Config Init
-	if !config.Init() {
-		logger.Error("", errors.New("Failed to load configs"))
-		return
-	}
 
-	// 2. Database Init
+	// 1. Database Init
 	if !database.Init() {
 		logger.Error("", errors.New("Failed to initialise database"))
 		return
 	}
 
-	// 3. Discord Session Init
+	// 2. Discord Session Init
 	if !sessionInit() {
 		logger.Error("", errors.New("Failed to initialise session"))
 		return
 	}
 
-	// 4. Add Handlers to the Session
+	// 3. Add Handlers to the Session
 	if !addHandlers() {
 		logger.Error("", errors.New("Failed to add handlers"))
 		return
 	}
 
-	// 5. Open the Discord session
+	// 4. Open the Discord session
 	if !sessionOpen() {
 		logger.Error("", errors.New("Failed to open session"))
 		return
 	}
 
-	// 6. Log Init
+	// 5. Log Init
 	if !logger.Init() {
 		logger.Error("", errors.New("Failed to initialise logging"))
 		return
@@ -53,7 +48,7 @@ func Init() {
 	}
 	logger.Info("", initText)
 
-	// 7. Register Discord /commands
+	// 6. Register Discord /commands
 	if !registerCommands() {
 		logger.Error("", errors.New("Failed to register commands"))
 		return

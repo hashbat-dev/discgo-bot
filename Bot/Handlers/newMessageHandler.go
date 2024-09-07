@@ -96,11 +96,8 @@ func dispatchTask(task *CommandTask) {
 
 func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 	var matchedPhrases []triggers.Phrase
-	guildIndex := cache.GetGuildIndex(message.GuildID)
-	if guildIndex < 0 {
-		return
-	}
-	for _, trigger := range cache.ActiveGuilds[guildIndex].Triggers {
+
+	for _, trigger := range cache.ActiveGuilds[message.GuildID].Triggers {
 		var regexString string
 		if trigger.WordOnlyMatch {
 			regexString = `(?i)\b%s\b`

@@ -8,7 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
-	img "github.com/dabi-ngin/discgo-bot/Img"
+	imgwork "github.com/dabi-ngin/discgo-bot/ImgWork"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
 
@@ -32,8 +32,8 @@ func AddImg(message *discordgo.MessageCreate, category string, imgUrl string) er
 }
 
 // Returns the Img Category object from the database, using the Cache if available
-func GetImgCategory(guildId string, category string) (img.ImgCategory, error) {
-	var imgCat img.ImgCategory = img.ImgCategory{}
+func GetImgCategory(guildId string, category string) (imgwork.ImgCategory, error) {
+	var imgCat imgwork.ImgCategory = imgwork.ImgCategory{}
 
 	//	=> Is it in the Cache?
 	for _, cat := range cache.ImgCategories {
@@ -100,8 +100,8 @@ func GetImgCategory(guildId string, category string) (img.ImgCategory, error) {
 	return imgCat, nil
 }
 
-func GetImgStorage(guildId string, imgUrl string) (img.ImgStorage, error) {
-	var imgStorage img.ImgStorage = img.ImgStorage{
+func GetImgStorage(guildId string, imgUrl string) (imgwork.ImgStorage, error) {
+	var imgStorage imgwork.ImgStorage = imgwork.ImgStorage{
 		LastChecked: helpers.GetNullDateTime(),
 	}
 
@@ -173,8 +173,8 @@ func GetImgStorage(guildId string, imgUrl string) (img.ImgStorage, error) {
 	return imgStorage, nil
 }
 
-func GetImgGuildLink(guildId string, category img.ImgCategory, storage img.ImgStorage) (img.ImgGuildLink, error) {
-	var imgGuildLink img.ImgGuildLink = img.ImgGuildLink{}
+func GetImgGuildLink(guildId string, category imgwork.ImgCategory, storage imgwork.ImgStorage) (imgwork.ImgGuildLink, error) {
+	var imgGuildLink imgwork.ImgGuildLink = imgwork.ImgGuildLink{}
 
 	// 1. Is it in the Database?
 	var ID sql.NullInt32
@@ -267,7 +267,7 @@ func InsertImgGuildLink(storageId int, categoryId int, guildId string, userId st
 	return nil
 }
 
-func DeleteGuildLink(guildLink img.ImgGuildLink) error {
+func DeleteGuildLink(guildLink imgwork.ImgGuildLink) error {
 	// 1. Delete from the Link table
 	query := `DELETE FROM ImgGuildLink WHERE ID = ?`
 	_, err := Db.Exec(query, guildLink.ID)
