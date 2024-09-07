@@ -15,7 +15,15 @@ func GetImageFromMessage(message *discordgo.Message, requiredExtension string) s
 	msgContent := strings.Trim(message.Content, " ")
 	msgContentLower := strings.ToLower(msgContent)
 
-	// 1. Check for a file =========================================
+	// 1. Check if there's a Replied to Message ====================
+	if message.ReferencedMessage != nil {
+		repliedToImg := GetImageFromMessage(message.ReferencedMessage, requiredExtension)
+		if repliedToImg != "" {
+			return repliedToImg
+		}
+	}
+
+	// 2. Check for a file =========================================
 	// A. Are there any Embeds?
 	imgLink := ""
 	if len(message.Embeds) > 0 {
@@ -28,10 +36,9 @@ func GetImageFromMessage(message *discordgo.Message, requiredExtension string) s
 	}
 
 	// C. Is this a Tenor link?
-	if strings.Contains(msgContentLower, "tenor.com/") {
-		tenorLink, err := external.GetImageUrlFromTenor(msgContentLower)
+	if imgLink == "" && strings.Contains(msgContentLower, "tenor.com/") {
+		tenorLink, err := external.GetImageUrlFromTenor(message.GuildID, msgContent)
 		if err != nil {
-			logger.Error(message.GuildID, err)
 			return ""
 		} else if tenorLink != "" {
 			imgLink = tenorLink
@@ -60,7 +67,7 @@ func GetImageFromMessage(message *discordgo.Message, requiredExtension string) s
 		return ""
 	}
 
-	// 2. Now lets validate the file name (if any) ================================
+	// 3. Now lets validate the file name (if any) ================================
 	extValid := false
 	if requiredExtension == "" {
 		for _, ext := range config.ValidImageExtensions {
@@ -80,6 +87,6 @@ func GetImageFromMessage(message *discordgo.Message, requiredExtension string) s
 		return ""
 	}
 
-	// 3. Return! =====================================================================
+	// 4. Return! =====================================================================
 	return imgLink
 }

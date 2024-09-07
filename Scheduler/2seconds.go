@@ -2,13 +2,18 @@ package scheduler
 
 import (
 	config "github.com/dabi-ngin/discgo-bot/Config"
-	dashboard "github.com/dabi-ngin/discgo-bot/Dashboard"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 )
 
 func RunEvery2Seconds() {
-	saveNextDashboardInfo()
+	pollHardwareStats()
 	sendNextDiscordLogBatch()
+	reporting.Logs()
+}
+
+func RunEvery5Seconds() {
+	reporting.Guilds()
 }
 
 func sendNextDiscordLogBatch() {
@@ -47,6 +52,6 @@ func sendLogsToDiscordChannel(logs string) {
 
 }
 
-func saveNextDashboardInfo() {
-	dashboard.PacketCache = dashboard.GetPacket()
+func pollHardwareStats() {
+	reporting.Hardware()
 }

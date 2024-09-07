@@ -9,7 +9,15 @@ import (
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 )
 
-type AddImage struct{}
+type AddImage struct {
+	ImageCategory string
+}
+
+func NewAddImage(imageCategory string) *AddImage {
+	return &AddImage{
+		ImageCategory: imageCategory,
+	}
+}
 
 func (s AddImage) Name() string {
 	return "addimage"

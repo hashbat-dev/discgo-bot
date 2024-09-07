@@ -6,9 +6,9 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	commands "github.com/dabi-ngin/discgo-bot/Bot/Commands"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 	"github.com/google/uuid"
 )
 
@@ -56,11 +56,7 @@ func commandWorker(id int, ch <-chan *CommandTask) {
 				continue // Failed to execute, skip loop iteration
 			}
 
-			callDuration := time.Since(timeStart)
-			cache.AddToCommandCache(config.CommandTypeBang, msg.Command.Name(), msg.Message.GuildID, msg.Message.Author.ID, msg.Message.Author.Username, timeStart, callDuration)
-
-			// TODO - Change below to create some "Completed Task" object to pass off to a channel dashboard will own
-			logger.Info(msg.Message.GuildID, "CommandWorker :: [%v] Ended successfully after %v :: correlation-id :: %v", msg.Command.Name(), callDuration, msg.CorrelationId)
+			reporting.Command(config.CommandTypeBang, msg.Message, msg.Command, msg.CorrelationId, timeStart)
 		}
 	}
 }

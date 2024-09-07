@@ -8,7 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-// These can be swapped around on the go, but pls don't lol. If any are added make sure to also update
+// These can be swapped around on the go, but pls don't lol. If any are added make sure to also update the map
 const (
 	LoggingLevelAdmin = iota
 	LoggingLevelError
@@ -18,14 +18,88 @@ const (
 	LoggingLevelDebug
 )
 
-// This is used to denote types to the Dashbaord
-var LoggingLevels map[int]string = map[int]string{
-	LoggingLevelAdmin: "Admin",
-	LoggingLevelError: "Error",
-	LoggingLevelWarn:  "Warn",
-	LoggingLevelEvent: "Event",
-	LoggingLevelInfo:  "Info",
-	LoggingLevelDebug: "Debug",
+var LoggingLevels map[int]LoggingOptions = map[int]LoggingOptions{
+	LoggingLevelAdmin: {
+		Name:   "Admin",
+		Colour: Colours["magenta"],
+	},
+	LoggingLevelError: {
+		Name:   "Error",
+		Colour: Colours["red"],
+	},
+	LoggingLevelWarn: {
+		Name:   "Warn",
+		Colour: Colours["yellow"],
+	},
+	LoggingLevelEvent: {
+		Name:   "Event",
+		Colour: Colours["green"],
+	},
+	LoggingLevelInfo: {
+		Name:   "Info",
+		Colour: Colours["white"],
+	},
+	LoggingLevelDebug: {
+		Name:   "Debug",
+		Colour: Colours["blue"],
+	},
+}
+
+type LoggingOptions struct {
+	Name   string
+	Colour Colour
+}
+
+type Colour struct {
+	Terminal         string `json:"Terminal,omitempty"`
+	Html             string `json:"Html,omitempty"`
+	GraphOpaque      string `json:"GraphOpaque,omitempty"`
+	GraphTransparent string `json:"GraphTransparent,omitempty"`
+}
+
+var Colours map[string]Colour = map[string]Colour{
+	"default": {
+		Terminal:         "\033[0m",
+		Html:             "#000000",
+		GraphOpaque:      "rgba(0, 0, 0, 1)",
+		GraphTransparent: "rgba(0, 0, 0, 0.2)",
+	},
+	"white": {
+		Terminal:         "\033[97m",
+		Html:             "#FFFFFF",
+		GraphOpaque:      "rgba(, , , 1)",
+		GraphTransparent: "rgba(, , , 0.2)",
+	},
+	"magenta": {
+		Terminal:         "\033[35m",
+		Html:             "#C30CC9",
+		GraphOpaque:      "rgba(195, 12, 201, 1)",
+		GraphTransparent: "rgba(195, 12, 201, 0.2)",
+	},
+	"yellow": {
+		Terminal:         "\033[33m",
+		Html:             "#FAF200",
+		GraphOpaque:      "rgba(250, 242, 0, 1)",
+		GraphTransparent: "rgba(250, 242, 0, 0.2)",
+	},
+	"green": {
+		Terminal:         "\033[32m",
+		Html:             "#28F200",
+		GraphOpaque:      "rgba(40, 242, 0, 1)",
+		GraphTransparent: "rgba(40, 242, 0, 0.2)",
+	},
+	"red": {
+		Terminal:         "\033[31m",
+		Html:             "#FF9EA0",
+		GraphOpaque:      "rgba(242, 0, 8, 1)",
+		GraphTransparent: "rgba(242, 0, 8, 0.2)",
+	},
+	"blue": {
+		Terminal:         "\033[34m",
+		Html:             "#25B7FF",
+		GraphOpaque:      "rgba(0, 0, 255, 1)",
+		GraphTransparent: "rgba(0, 0, 255, 0.2)",
+	},
 }
 
 const (
@@ -50,8 +124,8 @@ const (
 )
 
 const (
-	N_TRIVIAL_WORKERS = 100
-	N_IO_WORKERS      = 1000
+	N_TRIVIAL_WORKERS = 50
+	N_IO_WORKERS      = 5
 )
 
 // Command Types
@@ -119,6 +193,7 @@ type Vars struct {
 	LogFunctions       bool
 	LoggingLevel       int
 
+	DashboardMaxDataPackets     int
 	DashboardMaxLogs            int
 	DashboardMaxCommands        int
 	CommandAveragePool          int
@@ -140,11 +215,13 @@ var (
 	SuperAdmins  []string
 	DashboardUrl string
 
-	LogToDiscord                bool
-	LoggingChannelID            string
-	LoggingUsesThreads          bool
-	LoggingVerboseStack         bool
-	LoggingLogFunctions         bool
+	LogToDiscord        bool
+	LoggingChannelID    string
+	LoggingUsesThreads  bool
+	LoggingVerboseStack bool
+	LoggingLogFunctions bool
+
+	DashboardMaxDataPackets     int
 	DashboardMaxLogs            int
 	DashboardMaxCommands        int
 	CommandAveragePool          int
@@ -171,19 +248,19 @@ const (
 	BOT_SUB_FOLDER     string = "Bot/"
 )
 
-func Init() bool {
+func init() {
 	localConfigFile, err := os.ReadFile("config.json")
 
 	if err != nil {
 		fmt.Println(fmt.Printf("Config.Init() - Error loading config.json :: %v", err))
-		return false
+		return
 	}
 
 	var configFileVariables Vars
 	err = json.Unmarshal([]byte(localConfigFile), &configFileVariables)
 	if err != nil {
 		fmt.Println(fmt.Printf("Config.Init() - Error unmarshalling config.json :: %v", err))
-		return false
+		return
 	}
 
 	currentHostName, err := os.Hostname()
@@ -212,6 +289,8 @@ func Init() bool {
 	LoggingVerboseStack = configFileVariables.VerboseStack
 	LoggingLogFunctions = configFileVariables.LogFunctions
 	LoggingLevel = configFileVariables.LoggingLevel
+
+	DashboardMaxDataPackets = configFileVariables.DashboardMaxDataPackets
 	DashboardMaxLogs = configFileVariables.DashboardMaxLogs
 	DashboardMaxCommands = configFileVariables.DashboardMaxCommands
 	CommandAveragePool = configFileVariables.CommandAveragePool
@@ -227,5 +306,4 @@ func Init() bool {
 	DB_IP_ADDRESS = configFileVariables.DB_IP_ADDRESS
 	DB_PORT = configFileVariables.DB_PORT
 
-	return true
 }
