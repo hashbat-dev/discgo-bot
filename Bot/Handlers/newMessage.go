@@ -55,6 +55,9 @@ func SkipMessageCheck(session *discordgo.Session, message *discordgo.MessageCrea
 	if message.Author.ID == session.State.User.ID {
 		return true
 	}
+	if message.Content == "" {
+		return true
+	}
 
 	return false
 }
