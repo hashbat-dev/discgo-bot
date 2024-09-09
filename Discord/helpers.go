@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/bwmarrin/discordgo"
+	embed "github.com/clinet/discordgo-embed"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
@@ -44,4 +45,23 @@ func ReplyToMessageWithImageBuffer(message *discordgo.MessageCreate, replyToQuot
 	}
 
 	return err
+}
+
+func ReplyToInteractionWithEmbed(interaction *discordgo.InteractionCreate, embed *embed.Embed, private bool) {
+	if private {
+		config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Embeds: []*discordgo.MessageEmbed{embed.MessageEmbed},
+				Flags:  discordgo.MessageFlagsEphemeral,
+			},
+		})
+	} else {
+		config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Embeds: []*discordgo.MessageEmbed{embed.MessageEmbed},
+			},
+		})
+	}
 }
