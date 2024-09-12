@@ -23,4 +23,14 @@ func init() {
 	JumpTable["addspeech"] = bang.AddImage{ImageCategory: "speech"}
 	JumpTable["delspeech"] = bang.DelImage{ImageCategory: "speech"}
 	JumpTable["makespeech"] = bang.MakeSpeech{}
+	JumpTable["ttsinfo"] = bang.TTSInfo{}
+	JumpTable["flipleft"] = bang.FlipImage{FlipDirection: "left"}
+	JumpTable["flipright"] = bang.FlipImage{FlipDirection: "right"}
+	JumpTable["flipup"] = bang.FlipImage{FlipDirection: "up"}
+	JumpTable["flipdown"] = bang.FlipImage{FlipDirection: "down"}
+	JumpTable["flipboth"] = bang.FlipImage{FlipDirection: "both"}
+	JumpTable["flipall"] = bang.FlipImage{FlipDirection: "all"}
+	JumpTable["reverse"] = bang.Reverse{}
+	JumpTable["speedup"] = bang.ChangeSpeed{SpeedUp: true}
+	JumpTable["slowdown"] = bang.ChangeSpeed{SpeedUp: false}
 }

@@ -10,7 +10,6 @@ import (
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	"github.com/google/uuid"
 )
 
 type DashCmdAvg struct {
@@ -34,7 +33,7 @@ var DashCmdInfoRows []widgets.TableWidgetRow
 var DashCmdInfoMap map[string]DashCmdInfo = make(map[string]DashCmdInfo)
 var DashCmdAvgMap map[string]DashCmdAvg = make(map[string]DashCmdAvg)
 
-func Command(commandTypeId int, GuildID string, AuthorID string, AuthorUsername string, CommandName string, CorrelationId uuid.UUID, timeStarted time.Time) {
+func Command(commandTypeId int, GuildID string, AuthorID string, AuthorUsername string, CommandName string, CorrelationId string, timeStarted time.Time) {
 
 	// 1. Calculate the time taken straight away and log the Event
 	timeTaken := time.Since(timeStarted)

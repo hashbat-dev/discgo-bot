@@ -6,7 +6,7 @@ import (
 	discord "github.com/dabi-ngin/discgo-bot/Discord"
 )
 
-func SupportInfo(s *discordgo.Session, i *discordgo.InteractionCreate, correlationId string) {
+func SupportInfo(i *discordgo.InteractionCreate, correlationId string) {
 	embed := embed.NewEmbed()
 	embed.SetTitle("Help & Support")
 	embed.SetDescription("For help and support on Discgo Bot please contact us.")

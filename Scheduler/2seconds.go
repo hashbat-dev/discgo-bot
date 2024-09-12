@@ -1,19 +1,17 @@
 package scheduler
 
 import (
+	slash "github.com/dabi-ngin/discgo-bot/Bot/Commands/Slash"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 )
 
 func RunEvery2Seconds() {
+	go sendNextDiscordLogBatch()
+	go slash.ProcessQueue()
 	pollHardwareStats()
-	sendNextDiscordLogBatch()
 	reporting.Logs()
-}
-
-func RunEvery5Seconds() {
-	reporting.Guilds()
 }
 
 func sendNextDiscordLogBatch() {

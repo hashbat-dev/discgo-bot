@@ -36,11 +36,10 @@ func (s MakeSpeech) PermissionRequirement() int {
 }
 
 func (s MakeSpeech) Complexity() int {
-	return config.IO_BOUND_TASK
+	return config.CPU_BOUND_TASK
 }
 
 func (s MakeSpeech) Execute(message *discordgo.MessageCreate, command string) error {
-
 	// 1. Check we have a valid Image and Extension
 	imgUrl := helpers.GetImageFromMessage(message.Message, "")
 	if imgUrl == "" {

@@ -52,11 +52,6 @@ func (s GetImage) Execute(message *discordgo.MessageCreate, command string) erro
 		return err
 	}
 
-	err = config.Session.ChannelMessageDelete(message.ChannelID, message.ID)
-	if err != nil {
-		logger.Error(message.GuildID, err)
-		return err
-	}
-
+	discord.DeleteMessage(message)
 	return nil
 }

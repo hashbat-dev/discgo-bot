@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 	commands "github.com/dabi-ngin/discgo-bot/Bot/Commands"
 	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
-	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 	"github.com/google/uuid"
 )
 
@@ -36,12 +33,15 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 		command := getCommandByName(commandName)
 		if command != nil {
 			// 5. TODO - check user permissions
-			task := &CommandTask{
-				Message:       message,
-				Command:       command,
-				CorrelationId: correlationId,
-			}
-			dispatchTask(task)
+			DispatchTask(&WorkerItem{
+				CommandType: config.CommandTypeBang,
+				Complexity:  command.Complexity(),
+				BangCommand: BangCommandWorker{
+					Message:       message,
+					Command:       command,
+					CorrelationId: correlationId,
+				},
+			})
 		} else {
 			logger.Debug(message.GuildID, "invalid message command attempt :: could not retrieve '%s' from jump table :: correlation-id :: %v", commandName, correlationId)
 		}
@@ -81,9 +81,9 @@ func getCommandByName(commandName string) commands.Command {
 }
 
 // Dispatches a Command to its appropriate channel.
-func dispatchTask(task *CommandTask) {
+func DispatchTask(task *WorkerItem) {
 	// TODO - add touch point to pass off queue info to the dashboard
-	switch task.Command.Complexity() {
+	switch task.Complexity {
 	case config.TRIVIAL_TASK:
 		TRIVIAL_TASKS <- task
 	case config.CPU_BOUND_TASK:
@@ -97,8 +97,6 @@ func dispatchTask(task *CommandTask) {
 
 func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 	var matchedPhrases []triggers.Phrase
-	timeStarted := time.Now()
-
 	for _, trigger := range cache.ActiveGuilds[message.GuildID].Triggers {
 		var regexString string
 		if trigger.WordOnlyMatch {
@@ -113,20 +111,16 @@ func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 		}
 	}
 
-	// Process any matching Triggers
-	var notifyPhrases []string
-	for _, phrase := range matchedPhrases {
-		reporting.Command(config.CommandTypePhrase, message.GuildID, message.Author.ID, message.Author.Username, phrase.Phrase, uuid.New(), timeStarted)
-		if phrase.NotifyOnDetection {
-			notifyPhrases = append(notifyPhrases, phrase.Phrase)
-		}
+	// Dispatch any matching Triggers
+	if len(matchedPhrases) > 0 {
+		DispatchTask(&WorkerItem{
+			CommandType: config.CommandTypePhrase,
+			Complexity:  config.TRIVIAL_TASK,
+			Phrases: PhraseWorker{
+				Message:        message,
+				TriggerPhrases: matchedPhrases,
+			},
+		})
 	}
 
-	if len(notifyPhrases) > 0 {
-		showText := strings.ToUpper(helpers.ConcatStringWithAnd(notifyPhrases)) + " MENTIONED"
-		_, err := config.Session.ChannelMessageSend(message.ChannelID, showText)
-		if err != nil {
-			logger.Error(message.GuildID, err)
-		}
-	}
 }

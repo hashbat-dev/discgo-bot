@@ -1,32 +1,56 @@
 package handlers
 
 import (
-	"time"
-
 	"github.com/bwmarrin/discordgo"
 	slash "github.com/dabi-ngin/discgo-bot/Bot/Commands/Slash"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
-	"github.com/google/uuid"
 )
 
 // ===[Add Slash Commands]=============================================
 var slashCommands = []SlashCommand{
+	//	/support
 	{
 		Command: &discordgo.ApplicationCommand{
 			Name:        "support",
 			Description: "How to get Help & Support for Discgo Bot",
 		},
-		Handler: func(s *discordgo.Session, i *discordgo.InteractionCreate, correlationId string) {
-			slash.SupportInfo(s, i, correlationId)
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.SupportInfo(i, correlationId)
 		},
+		Complexity: config.TRIVIAL_TASK,
+	},
+	//	/tts-play
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name:        "tts-play",
+			Description: "Convert Text to Speech through one of FakeYou.com's thousands of Voice Models",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "voice",
+					Description: "The Voice model. (Can enter /tts-search ID or search term)",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "text",
+					Description: "The Text to convert to speech.",
+					Required:    true,
+				},
+			},
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.TtsPlay(i, correlationId)
+		},
+		Complexity: config.IO_BOUND_TASK,
 	},
 }
 
 type SlashCommand struct {
-	Command *discordgo.ApplicationCommand
-	Handler func(s *discordgo.Session, i *discordgo.InteractionCreate, correlationId string)
+	Command    *discordgo.ApplicationCommand
+	Handler    func(i *discordgo.InteractionCreate, correlationId string)
+	Complexity int
 }
 
 var SlashCommands []*discordgo.ApplicationCommand
@@ -43,17 +67,23 @@ func InitSlashCommands() {
 }
 
 func SlashCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+
+	if i.Type == discordgo.InteractionMessageComponent {
+		return
+	}
+
 	cmdName := i.ApplicationCommandData().Name
 
 	for _, cmd := range slashCommands {
 		if cmd.Command.Name == cmdName {
-			correlationId := uuid.New()
-			timeStarted := time.Now()
-
-			logger.Info(i.GuildID, "Processing slash command [%v] %v", cmdName, correlationId.String())
-			cmd.Handler(s, i, correlationId.String())
-
-			reporting.Command(config.CommandTypeSlash, i.GuildID, i.Member.User.ID, i.Member.User.Username, cmdName, correlationId, timeStarted)
+			DispatchTask(&WorkerItem{
+				CommandType: config.CommandTypeSlash,
+				Complexity:  cmd.Complexity,
+				SlashCommand: SlashCommandWorker{
+					Interaction:  i,
+					SlashCommand: cmd,
+				},
+			})
 			return
 		}
 	}

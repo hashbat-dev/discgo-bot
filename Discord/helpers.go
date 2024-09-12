@@ -24,6 +24,86 @@ func SendUserMessage(message *discordgo.MessageCreate, messageText string) {
 	}
 }
 
+func SendUserMessageReply(message *discordgo.MessageCreate, replyToQuoted bool, messageText string) {
+	replyTo := message.Reference()
+	if replyToQuoted && message.ReferencedMessage != nil {
+		replyTo = message.ReferencedMessage.Reference()
+	}
+	_, err := config.Session.ChannelMessageSendReply(message.ChannelID, messageText, replyTo)
+	if err != nil {
+		logger.Error(message.GuildID, err)
+	}
+}
+
+func GenericErrorEmbed() *embed.Embed {
+	errEmbed := embed.NewEmbed()
+	errEmbed.SetTitle("Error")
+	errEmbed.SetDescription("An Error occured processing your request. Please try again or contact us through /support if this continues.")
+	return errEmbed
+}
+
+func SendGenericErrorFromInteraction(i *discordgo.InteractionCreate) {
+	errEmbed := GenericErrorEmbed()
+	err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Embeds: []*discordgo.MessageEmbed{errEmbed.MessageEmbed},
+			Flags:  discordgo.MessageFlagsEphemeral,
+		},
+	})
+
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+}
+
+func SendEmbedFromInteraction(i *discordgo.InteractionCreate, embedTitle string, embedText string) {
+	errEmbed := embed.NewEmbed()
+	errEmbed.SetTitle(embedTitle)
+	errEmbed.SetDescription(embedText)
+	err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Embeds: []*discordgo.MessageEmbed{errEmbed.MessageEmbed},
+			Flags:  discordgo.MessageFlagsEphemeral,
+		},
+	})
+
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+}
+
+func UpdateInteractionResponse(i *discordgo.InteractionCreate, embedTitle string, embedText string) {
+	newEmbed := embed.NewEmbed()
+	newEmbed.SetTitle(embedTitle)
+	newEmbed.SetDescription(embedText)
+
+	wipeContent := ""
+	embeds := []*discordgo.MessageEmbed{newEmbed.MessageEmbed}
+	_, err := config.Session.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content:    &wipeContent,
+		Components: &[]discordgo.MessageComponent{},
+		Embeds:     &embeds,
+	})
+
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+}
+
+func UpdateInteractionResponseWithGenericError(i *discordgo.InteractionCreate) {
+	errEmbed := GenericErrorEmbed()
+	embeds := []*discordgo.MessageEmbed{errEmbed.MessageEmbed}
+	_, err := config.Session.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Embeds: &embeds,
+	})
+
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+}
+
 func ReplyToMessageWithImageBuffer(message *discordgo.MessageCreate, replyToQuotedMessage bool, imageName string, imageBuffer *bytes.Buffer) error {
 	fileObj := &discordgo.File{
 		Name:   imageName,
@@ -48,8 +128,9 @@ func ReplyToMessageWithImageBuffer(message *discordgo.MessageCreate, replyToQuot
 }
 
 func ReplyToInteractionWithEmbed(interaction *discordgo.InteractionCreate, embed *embed.Embed, private bool) {
+	var err error
 	if private {
-		config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		err = config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: []*discordgo.MessageEmbed{embed.MessageEmbed},
@@ -57,11 +138,22 @@ func ReplyToInteractionWithEmbed(interaction *discordgo.InteractionCreate, embed
 			},
 		})
 	} else {
-		config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
+		err = config.Session.InteractionRespond(interaction.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: []*discordgo.MessageEmbed{embed.MessageEmbed},
 			},
 		})
+	}
+
+	if err != nil {
+		logger.Error(interaction.GuildID, err)
+	}
+}
+
+func DeleteMessage(message *discordgo.MessageCreate) {
+	err := config.Session.ChannelMessageDelete(message.ChannelID, message.ID)
+	if err != nil {
+		logger.Error(message.GuildID, err)
 	}
 }
