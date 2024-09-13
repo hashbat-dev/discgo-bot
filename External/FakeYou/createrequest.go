@@ -22,8 +22,6 @@ type FakeYouRequestStartIn struct {
 
 // Create a new Request with FakeYou, returns the FakeYou JobToken or blank if it failed
 func CreateRequest(guildId string, correlationId string, voiceModel string, requestText string) string {
-
-	// Build the Request object
 	newRequest := FakeYouRequestStartOut{
 		ModelToken:  voiceModel,
 		RequestGuid: correlationId,

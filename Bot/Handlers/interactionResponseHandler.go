@@ -26,10 +26,10 @@ func HandleInteractionResponse(s *discordgo.Session, i *discordgo.InteractionCre
 		objectId := splitObjectId[0]
 		correlationId := splitObjectId[1]
 		if responseObject, exists := discord.InteractionResponseHandlers[objectId]; exists {
-			DispatchTask(&WorkerItem{
+			DispatchTask(&Task{
 				CommandType: config.CommandTypeSlashResponse,
 				Complexity:  responseObject.Complexity,
-				SlashCommandResponse: SlashCommandResponseWorker{
+				SlashResponseDetails: &SlashResponseDetails{
 					Interaction:   i,
 					ObjectID:      objectId,
 					CorrelationID: correlationId,
@@ -49,6 +49,5 @@ func HandleInteractionResponse(s *discordgo.Session, i *discordgo.InteractionCre
 				logger.Error(i.GuildID, err)
 			}
 		}
-
 	}
 }

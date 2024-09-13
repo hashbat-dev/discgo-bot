@@ -19,7 +19,6 @@ import (
 var resultsEmoji discordgo.ComponentEmoji = discordgo.ComponentEmoji{Name: "🎤"}
 
 func TtsPlay(i *discordgo.InteractionCreate, correlationId string) {
-
 	cachedInteraction := cache.ActiveInteractions[correlationId]
 	searchTerm := cachedInteraction.Values.String["voice"]
 	ttsText := cachedInteraction.Values.String["text"]
@@ -99,7 +98,6 @@ func TtsPlay(i *discordgo.InteractionCreate, correlationId string) {
 }
 
 func TtsPlaySelectModel(i *discordgo.InteractionCreate, correlationId string) {
-
 	cachedInteraction := cache.ActiveInteractions[correlationId]
 
 	// 1. Can we get the selected Voice Model?

@@ -33,10 +33,10 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 		command := getCommandByName(commandName)
 		if command != nil {
 			// 5. TODO - check user permissions
-			DispatchTask(&WorkerItem{
+			DispatchTask(&Task{
 				CommandType: config.CommandTypeBang,
 				Complexity:  command.Complexity(),
-				BangCommand: BangCommandWorker{
+				BangDetails: &BangTaskDetails{
 					Message:       message,
 					Command:       command,
 					CorrelationId: correlationId,
@@ -81,7 +81,7 @@ func getCommandByName(commandName string) commands.Command {
 }
 
 // Dispatches a Command to its appropriate channel.
-func DispatchTask(task *WorkerItem) {
+func DispatchTask(task *Task) {
 	// TODO - add touch point to pass off queue info to the dashboard
 	switch task.Complexity {
 	case config.TRIVIAL_TASK:
@@ -113,10 +113,10 @@ func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 
 	// Dispatch any matching Triggers
 	if len(matchedPhrases) > 0 {
-		DispatchTask(&WorkerItem{
+		DispatchTask(&Task{
 			CommandType: config.CommandTypePhrase,
 			Complexity:  config.TRIVIAL_TASK,
-			Phrases: PhraseWorker{
+			PhraseDetails: &PhraseTaskDetails{
 				Message:        message,
 				TriggerPhrases: matchedPhrases,
 			},

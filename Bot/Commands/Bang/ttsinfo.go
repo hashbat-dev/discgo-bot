@@ -23,7 +23,6 @@ func (s TTSInfo) Complexity() int {
 }
 
 func (s TTSInfo) Execute(message *discordgo.MessageCreate, command string) error {
-
 	// 1. Did they reply to a Message?
 	if message.ReferencedMessage == nil {
 		discord.SendUserMessage(message, "Please reply to a Text-to-Speech voice message...")

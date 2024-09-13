@@ -2,3 +2,4 @@
 .vscode/
 *.exe
 config.json
+.projectile

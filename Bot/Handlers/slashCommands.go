@@ -67,7 +67,6 @@ func InitSlashCommands() {
 }
 
 func SlashCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
-
 	if i.Type == discordgo.InteractionMessageComponent {
 		return
 	}
@@ -76,10 +75,10 @@ func SlashCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	for _, cmd := range slashCommands {
 		if cmd.Command.Name == cmdName {
-			DispatchTask(&WorkerItem{
+			DispatchTask(&Task{
 				CommandType: config.CommandTypeSlash,
 				Complexity:  cmd.Complexity,
-				SlashCommand: SlashCommandWorker{
+				SlashDetails: &SlashTaskDetails{
 					Interaction:  i,
 					SlashCommand: cmd,
 				},

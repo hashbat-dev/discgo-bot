@@ -69,5 +69,4 @@ func UpdateModels() {
 			logger.Info("FAKEYOU", "Error deleting orphaned model [%v], processing continues", object.Title)
 		}
 	}
-
 }

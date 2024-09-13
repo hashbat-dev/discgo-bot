@@ -46,7 +46,6 @@ func ParseLoggingText(guildId string, logText string, a ...any) (LogInfo, string
 }
 
 func SendToConsole(logInfo LogInfo, logText string, logLevel int) {
-
 	logType := config.LoggingLevels[logLevel]
 
 	infoLine := fmt.Sprintf("%v | %v", logInfo.DateTime.Format("02/01/06 15:04:05.000"), logInfo.CodeSource)

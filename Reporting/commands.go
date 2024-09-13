@@ -33,21 +33,28 @@ var DashCmdInfoRows []widgets.TableWidgetRow
 var DashCmdInfoMap map[string]DashCmdInfo = make(map[string]DashCmdInfo)
 var DashCmdAvgMap map[string]DashCmdAvg = make(map[string]DashCmdAvg)
 
-func Command(commandTypeId int, GuildID string, AuthorID string, AuthorUsername string, CommandName string, CorrelationId string, timeStarted time.Time) {
-
+func Command(
+	commandTypeId int,
+	guildID string,
+	authorID string,
+	authorUsername string,
+	commandName string,
+	correlationId string,
+	timeStarted time.Time,
+) {
 	// 1. Calculate the time taken straight away and log the Event
 	timeTaken := time.Since(timeStarted)
-	logger.Event(GuildID, fmt.Sprintf("[%v] Command completed successfully after %v [%v]", CorrelationId, timeTaken, CommandName))
-	database.LogCommandUsage(GuildID, AuthorID, commandTypeId, CommandName)
+	logger.Event(guildID, fmt.Sprintf("[%v] Command completed successfully after %v [%v]", correlationId, timeTaken, commandName))
+	database.LogCommandUsage(guildID, authorID, commandTypeId, commandName)
 
 	// Command Log (individual)
 	newCmd := widgets.TableWidgetRow{
 		Values: []widgets.TableWidgetRowValue{
 			{Value: config.CommandTypes[commandTypeId]},
-			{Value: CommandName},
-			{Value: GuildID, TextFormat: widgets.TextFormatString_AbbreviateToEnd},
-			{Value: AuthorID, TextFormat: widgets.TextFormatString_AbbreviateToEnd},
-			{Value: AuthorUsername},
+			{Value: commandName},
+			{Value: guildID, TextFormat: widgets.TextFormatString_AbbreviateToEnd},
+			{Value: authorID, TextFormat: widgets.TextFormatString_AbbreviateToEnd},
+			{Value: authorUsername},
 			{Value: timeStarted, TextFormat: widgets.TextFormatTime_TimeOnly},
 			{Value: timeTaken, TextFormat: widgets.TextFormatDuration_WithMs},
 		},
@@ -62,7 +69,7 @@ func Command(commandTypeId int, GuildID string, AuthorID string, AuthorUsername 
 
 	// Command Info (grouped)
 	// 1. Work out the new averages
-	CmdKey := fmt.Sprintf("%v:%v", commandTypeId, CommandName)
+	CmdKey := fmt.Sprintf("%v:%v", commandTypeId, commandName)
 	if avg, ok := DashCmdAvgMap[CmdKey]; ok {
 		avg.Durations = append(avg.Durations, timeTaken)
 		avg.AvgDuration = helpers.AverageDuration(avg.Durations)
@@ -70,7 +77,7 @@ func Command(commandTypeId int, GuildID string, AuthorID string, AuthorUsername 
 	} else {
 		DashCmdAvgMap[CmdKey] = DashCmdAvg{
 			TypeID:      commandTypeId,
-			Command:     CommandName,
+			Command:     commandName,
 			Durations:   []time.Duration{timeTaken},
 			AvgDuration: timeTaken,
 		}
@@ -86,7 +93,7 @@ func Command(commandTypeId int, GuildID string, AuthorID string, AuthorUsername 
 		DashCmdInfoMap[CmdKey] = DashCmdInfo{
 			TypeID:      commandTypeId,
 			Type:        config.CommandTypes[commandTypeId],
-			Command:     CommandName,
+			Command:     commandName,
 			Count:       1,
 			AvgDuration: DashCmdAvgMap[CmdKey].AvgDuration,
 			LastCall:    time.Now(),
@@ -135,5 +142,5 @@ func Command(commandTypeId int, GuildID string, AuthorID string, AuthorUsername 
 		logger.Error("REPORTING", err)
 	}
 
-	cache.UpdateLastGuildCommand(GuildID)
+	cache.UpdateLastGuildCommand(guildID)
 }

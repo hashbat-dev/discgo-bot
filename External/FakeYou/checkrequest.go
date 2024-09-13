@@ -9,7 +9,6 @@ import (
 
 // Returns [Status, .wav Audio Path, Error]
 func CheckRequest(guildId string, correlationId string, jobToken string) (string, string, error) {
-
 	reqCheck, err := external.GetJsonFromUrl(FakeYouURLCheckRequest + jobToken)
 	if err != nil {
 		logger.ErrorText(guildId, "Interaction Request ID: [%v] ERROR: %v", correlationId, err)

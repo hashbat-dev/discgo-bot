@@ -17,76 +17,75 @@ import (
 	"github.com/google/uuid"
 )
 
-type WorkerItem struct {
+type Task struct {
 	CommandType          int
 	Complexity           int
-	BangCommand          BangCommandWorker
-	SlashCommand         SlashCommandWorker
-	SlashCommandResponse SlashCommandResponseWorker
-	Phrases              PhraseWorker
+	BangDetails          *BangTaskDetails
+	SlashDetails         *SlashTaskDetails
+	SlashResponseDetails *SlashResponseDetails
+	PhraseDetails        *PhraseTaskDetails
 }
 
-type BangCommandWorker struct {
+type BangTaskDetails struct {
 	Message       *discordgo.MessageCreate
 	Command       commands.Command
 	CorrelationId uuid.UUID
 }
 
-type SlashCommandWorker struct {
+type SlashTaskDetails struct {
 	Interaction  *discordgo.InteractionCreate
 	SlashCommand SlashCommand
 }
 
-type SlashCommandResponseWorker struct {
+type SlashResponseDetails struct {
 	Interaction   *discordgo.InteractionCreate
 	ObjectID      string
 	CorrelationID string
 }
 
-type PhraseWorker struct {
+type PhraseTaskDetails struct {
 	Message        *discordgo.MessageCreate
 	TriggerPhrases []triggers.Phrase
 }
 
 var (
-	IO_TASKS      = make(chan *WorkerItem, 100)
-	CPU_TASKS     = make(chan *WorkerItem, 100)
-	TRIVIAL_TASKS = make(chan *WorkerItem, 1000)
+	IO_TASKS      = make(chan *Task, 100)
+	CPU_TASKS     = make(chan *Task, 100)
+	TRIVIAL_TASKS = make(chan *Task, 100)
 )
 
 func init() {
 	for i := 0; i < config.N_TRIVIAL_WORKERS; i++ {
-		go commandWorker(i, TRIVIAL_TASKS)
+		go worker(i, TRIVIAL_TASKS)
 	}
 	for i := 0; i < config.N_IO_WORKERS; i++ {
-		go commandWorker(i, IO_TASKS)
+		go worker(i, IO_TASKS)
 	}
 	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
-		go commandWorker(i, CPU_TASKS)
+		go worker(i, CPU_TASKS)
 	}
 
 }
 
-func commandWorker(id int, ch <-chan *WorkerItem) {
+func worker(id int, ch <-chan *Task) {
 	for {
 		select {
 		case msg, ok := <-ch:
-
 			if !ok {
 				// Channel is closed, exit goroutine
-				logger.Info("WORKER", "commandWorker %d: Channel closed, exiting...", id)
+				logger.Info("WORKER", "worker %d: Channel closed, exiting...", id)
 				return
 			}
 
 			switch msg.CommandType {
 			case config.CommandTypeBang:
-				workerBang(msg.BangCommand)
+				workerBang(msg.BangDetails)
 			case config.CommandTypeSlash:
-				workerSlash(msg.SlashCommand)
+				workerSlash(msg.SlashDetails)
 			case config.CommandTypeSlashResponse:
-				workerSlashResponse(msg.SlashCommandResponse)
+				workerSlashResponse(msg.SlashResponseDetails)
 			case config.CommandTypePhrase:
-				workerPhrase(msg.Phrases)
+				workerPhrase(msg.PhraseDetails)
 			default:
 				logger.ErrorText("WORKER", "Unknown CommandType value [%v]", msg.CommandType)
 			}
@@ -94,39 +93,39 @@ func commandWorker(id int, ch <-chan *WorkerItem) {
 	}
 }
 
-func workerBang(msg BangCommandWorker) {
-	logger.Info(msg.Message.GuildID, "commandWorker :: processing command [%v] correlation-id :: %v", msg.Command.Name(), msg.CorrelationId)
+func workerBang(msg *BangTaskDetails) {
+	logger.Info(msg.Message.GuildID, "worker :: processing command [%v] correlation-id :: %v", msg.Command.Name(), msg.CorrelationId)
 	timeStart := time.Now()
 
 	execErr := msg.Command.Execute(msg.Message, msg.Command.Name())
 	if execErr != nil {
-		logger.ErrorText(msg.Message.GuildID, "commandWorker :: [%v] error :: %v :: correlation-id :: %v", msg.Command.Name(), execErr.Error(), msg.CorrelationId)
+		logger.ErrorText(msg.Message.GuildID, "worker :: [%v] error :: %v :: correlation-id :: %v", msg.Command.Name(), execErr.Error(), msg.CorrelationId)
 		return // Failed to execute, skip loop iteration
 	}
 
 	reporting.Command(config.CommandTypeBang, msg.Message.GuildID, msg.Message.Author.ID, msg.Message.Author.Username, msg.Command.Name(), msg.CorrelationId.String(), timeStart)
 }
 
-func workerSlash(msg SlashCommandWorker) {
-	correlationId := cache.InteractionAdd(msg.Interaction, msg.SlashCommand.Command.Name)
+func workerSlash(msg *SlashTaskDetails) {
+	correlationId := cache.AddInteraction(msg.Interaction, msg.SlashCommand.Command.Name)
 	timeStarted := time.Now()
 	msg.SlashCommand.Handler(msg.Interaction, correlationId)
 	reporting.Command(config.CommandTypeSlash, msg.Interaction.GuildID, msg.Interaction.Member.User.ID, msg.Interaction.Member.User.Username, msg.SlashCommand.Command.Name, correlationId, timeStarted)
 }
 
-func workerSlashResponse(msg SlashCommandResponseWorker) {
+func workerSlashResponse(msg *SlashResponseDetails) {
 	logger.Info(msg.Interaction.GuildID, "Interaction ID: [%v] Processing Response, Object: [%v]", msg.CorrelationID, msg.ObjectID)
 	timeStarted := time.Now()
 
 	// Update the Interaction Cache with the provided options
-	cache.InteractionUpdate(msg.CorrelationID, msg.Interaction)
+	cache.UpdateInteraction(msg.CorrelationID, msg.Interaction)
 
 	// Execute the Command Response
 	discord.InteractionResponseHandlers[msg.ObjectID].Execute(msg.Interaction, msg.CorrelationID)
 	reporting.Command(config.CommandTypeSlash, msg.Interaction.GuildID, msg.Interaction.Member.User.ID, msg.Interaction.Member.User.Username, msg.ObjectID, msg.CorrelationID, timeStarted)
 }
 
-func workerPhrase(msg PhraseWorker) {
+func workerPhrase(msg *PhraseTaskDetails) {
 	var notifyPhrases []string
 	timeStarted := time.Now()
 	for _, phrase := range msg.TriggerPhrases {

@@ -7,7 +7,6 @@ import (
 )
 
 func GetJsonFromUrl(url string) (map[string]interface{}, error) {
-
 	// Make HTTP GET request
 	response, err := http.Get(url)
 	if err != nil {
@@ -29,5 +28,4 @@ func GetJsonFromUrl(url string) (map[string]interface{}, error) {
 	}
 
 	return data, nil
-
 }

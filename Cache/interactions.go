@@ -30,8 +30,7 @@ type InteractionValues struct {
 	Number  map[string]float64
 }
 
-func InteractionAdd(i *discordgo.InteractionCreate, commandName string) string {
-
+func AddInteraction(i *discordgo.InteractionCreate, commandName string) string {
 	// Create the Interaction object
 	correlationId := uuid.New().String()
 
@@ -79,7 +78,7 @@ func InteractionAdd(i *discordgo.InteractionCreate, commandName string) string {
 				ActiveInteractions[correlationId].Values.Number[option.Name] = option.FloatValue()
 				logger.Info(i.GuildID, "Interaction ID: [%v] Obtained Number Value for [%v]: %v", correlationId, option.Name, ActiveInteractions[correlationId].Values.Number[option.Name])
 			default:
-				logger.ErrorText(i.GuildID, "InteractionAdd encountered an unknown data type [%v]", option.Type.String())
+				logger.ErrorText(i.GuildID, "AddInteraction encountered an unknown data type [%v]", option.Type.String())
 			}
 		}
 	}
@@ -87,8 +86,7 @@ func InteractionAdd(i *discordgo.InteractionCreate, commandName string) string {
 	return correlationId
 }
 
-func InteractionUpdate(correlationId string, i *discordgo.InteractionCreate) {
-
+func UpdateInteraction(correlationId string, i *discordgo.InteractionCreate) {
 	// Check we have the associated Interaction in the Cache
 	if _, exists := ActiveInteractions[correlationId]; !exists {
 		logger.ErrorText(i.GuildID, "Interaction Update could not find the associated CorrelationId [%v]", correlationId)
@@ -126,7 +124,7 @@ func InteractionUpdate(correlationId string, i *discordgo.InteractionCreate) {
 					ActiveInteractions[correlationId].Values.Number[option.Name] = option.FloatValue()
 					logger.Info(i.GuildID, "Interaction ID: [%v] Obtained Number Value for [%v]: %v", correlationId, option.Name, ActiveInteractions[correlationId].Values.Number[option.Name])
 				default:
-					logger.ErrorText(i.GuildID, "InteractionUpdate encountered an unknown CommandData data type: [%v]", option.Type.String())
+					logger.ErrorText(i.GuildID, "UpdateInteraction encountered an unknown CommandData data type: [%v]", option.Type.String())
 				}
 			}
 		}
@@ -210,7 +208,7 @@ func InteractionUpdate(correlationId string, i *discordgo.InteractionCreate) {
 		}
 
 	default:
-		logger.ErrorText(i.GuildID, "InteractionUpdate encountered an unknown data type: [%v]", i.Type.String())
+		logger.ErrorText(i.GuildID, "UpdateInteraction encountered an unknown data type: [%v]", i.Type.String())
 	}
 }
 
