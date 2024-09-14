@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 	commands "github.com/dabi-ngin/discgo-bot/Bot/Commands"
 	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
+	database "github.com/dabi-ngin/discgo-bot/Database"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 	"github.com/google/uuid"
 )
 
@@ -97,7 +96,6 @@ func dispatchTask(task *CommandTask) {
 
 func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 	var matchedPhrases []triggers.Phrase
-	timeStarted := time.Now()
 
 	for _, trigger := range cache.ActiveGuilds[message.GuildID].Triggers {
 		var regexString string
@@ -116,7 +114,7 @@ func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 	// Process any matching Triggers
 	var notifyPhrases []string
 	for _, phrase := range matchedPhrases {
-		reporting.Command(config.CommandTypePhrase, message.GuildID, message.Author.ID, message.Author.Username, phrase.Phrase, uuid.New(), timeStarted)
+		database.LogCommandUsage(message.GuildID, message.Author.ID, config.CommandTypePhrase, phrase.Phrase)
 		if phrase.NotifyOnDetection {
 			notifyPhrases = append(notifyPhrases, phrase.Phrase)
 		}
