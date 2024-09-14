@@ -10,14 +10,14 @@ var startTime time.Time
 var timerName string
 
 func Debug(guildId string, logText string, a ...any) {
-	if config.LoggingLevel <= config.LoggingLevelDebug {
+	if config.ServiceSettings.LOGGINGLEVEL <= config.LoggingLevelDebug {
 		infoLine, formattedLogText := ParseLoggingText(guildId, logText, a...)
 		SendLogs(infoLine, formattedLogText, config.LoggingLevelDebug, true)
 	}
 }
 
 func Debug_IgnoreDiscord(guildId string, logText string, a ...any) {
-	if config.LoggingLevel <= config.LoggingLevelDebug {
+	if config.ServiceSettings.LOGGINGLEVEL <= config.LoggingLevelDebug {
 		infoLine, formattedLogText := ParseLoggingText(guildId, logText, a...)
 		SendLogs(infoLine, formattedLogText, config.LoggingLevelDebug, false)
 	}

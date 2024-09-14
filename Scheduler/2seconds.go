@@ -43,11 +43,10 @@ func sendNextDiscordLogBatch() {
 }
 
 func sendLogsToDiscordChannel(logs string) {
-	_, err := config.Session.ChannelMessageSend(config.LoggingChannelID, logs)
+	_, err := config.Session.ChannelMessageSend(config.ServiceSettings.LOGGINGCHANNELID, logs)
 	if err != nil {
 		logger.Error("", err)
 	}
-
 }
 
 func pollHardwareStats() {

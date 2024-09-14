@@ -194,7 +194,7 @@ func ProcessQueue() {
 			value.LoadingSpinner = incrementLoadingSpinner(value.LoadingSpinner)
 
 			// 1. Has the Request exceed the Maximum update attempts?
-			if value.UpdateCount > config.MaxFakeYouRequestChecks {
+			if value.UpdateCount > config.ServiceSettings.MAXFAKEYOUREQUESTCHECKS {
 				sendText := fmt.Sprintf("Text-to-Speech request hit the Maximum number of attempts (%v), please try again later.", value.UpdateCount)
 				discord.UpdateInteractionResponse(&value.Interaction, RequestEmbedTitle, sendText)
 				cache.InteractionComplete(value.CorrelationId)
@@ -225,7 +225,7 @@ func ProcessQueue() {
 			status, audioPath, err := fakeyou.CheckRequest(value.Interaction.GuildID, value.CorrelationId, value.FakeYouJobToken)
 			if err != nil {
 				value.ErrorCount++
-				if value.ErrorCount >= config.MaxFakeYouRequestErrors {
+				if value.ErrorCount >= config.ServiceSettings.MAXFAKEYOUREQUESTERRORS {
 					// Too many errors, provide error and complete the request
 					discord.UpdateInteractionResponseWithGenericError(&value.Interaction)
 					cache.InteractionComplete(value.CorrelationId)

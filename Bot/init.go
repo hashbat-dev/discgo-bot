@@ -11,7 +11,6 @@ import (
 )
 
 func Init() {
-
 	// 1. Database Init
 	if !database.Init() {
 		logger.Error("", errors.New("Failed to initialise database"))
@@ -43,8 +42,8 @@ func Init() {
 	}
 
 	initText := "Bot initalisation successful"
-	if config.DashboardUrl != "" {
-		initText += ", Dashboard open at: " + config.DashboardUrl
+	if config.ServiceSettings.DASHBOARDURL != "" {
+		initText += ", Dashboard open at: " + config.ServiceSettings.DASHBOARDURL
 	}
 	logger.Info("", initText)
 
@@ -53,11 +52,10 @@ func Init() {
 		logger.Error("", errors.New("Failed to register commands"))
 		return
 	}
-
 }
 
 func sessionInit() bool {
-	session, err := discordgo.New("Bot " + config.BotToken)
+	session, err := discordgo.New("Bot " + config.ServiceSettings.BOTTOKEN)
 	if err != nil {
 		logger.Error("", err)
 		return false
