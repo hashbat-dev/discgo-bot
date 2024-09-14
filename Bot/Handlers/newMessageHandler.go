@@ -11,6 +11,7 @@ import (
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 	"github.com/google/uuid"
 )
 
@@ -82,7 +83,7 @@ func getCommandByName(commandName string) commands.Command {
 
 // Dispatches a Command to its appropriate channel.
 func DispatchTask(task *Task) {
-	// TODO - add touch point to pass off queue info to the dashboard
+	reporting.WorkerQueued(task.Complexity)
 	switch task.Complexity {
 	case config.TRIVIAL_TASK:
 		TRIVIAL_TASKS <- task

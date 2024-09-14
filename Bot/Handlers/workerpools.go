@@ -49,25 +49,31 @@ type PhraseTaskDetails struct {
 }
 
 var (
-	IO_TASKS      = make(chan *Task, 100)
-	CPU_TASKS     = make(chan *Task, 100)
-	TRIVIAL_TASKS = make(chan *Task, 100)
+	MAX_QUEUE_IO_TASKS      = 100
+	MAX_QUEUE_CPU_TASKS     = 100
+	MAX_QUEUE_TRIVIAL_TASKS = 1000
+	IO_TASKS                = make(chan *Task, MAX_QUEUE_IO_TASKS)
+	CPU_TASKS               = make(chan *Task, MAX_QUEUE_CPU_TASKS)
+	TRIVIAL_TASKS           = make(chan *Task, MAX_QUEUE_TRIVIAL_TASKS)
 )
 
 func init() {
+	reporting.CreateWorkerChannel(config.IO_BOUND_TASK, "IO Bound", MAX_QUEUE_IO_TASKS, config.N_IO_WORKERS)
+	reporting.CreateWorkerChannel(config.CPU_BOUND_TASK, "CPU Bound", MAX_QUEUE_CPU_TASKS, runtime.GOMAXPROCS(0))
+	reporting.CreateWorkerChannel(config.TRIVIAL_TASK, "Trivial", MAX_QUEUE_TRIVIAL_TASKS, config.N_TRIVIAL_WORKERS)
 	for i := 0; i < config.N_TRIVIAL_WORKERS; i++ {
-		go worker(i, TRIVIAL_TASKS)
+		go worker(i, config.TRIVIAL_TASK, TRIVIAL_TASKS)
 	}
 	for i := 0; i < config.N_IO_WORKERS; i++ {
-		go worker(i, IO_TASKS)
+		go worker(i, config.IO_BOUND_TASK, IO_TASKS)
 	}
 	for i := 0; i < runtime.GOMAXPROCS(0); i++ {
-		go worker(i, CPU_TASKS)
+		go worker(i, config.CPU_BOUND_TASK, CPU_TASKS)
 	}
 
 }
 
-func worker(id int, ch <-chan *Task) {
+func worker(id int, taskId int, ch <-chan *Task) {
 	for {
 		select {
 		case msg, ok := <-ch:
@@ -77,6 +83,7 @@ func worker(id int, ch <-chan *Task) {
 				return
 			}
 
+			reporting.WorkerProcessingStart(taskId)
 			switch msg.CommandType {
 			case config.CommandTypeBang:
 				workerBang(msg.BangDetails)
@@ -89,6 +96,8 @@ func worker(id int, ch <-chan *Task) {
 			default:
 				logger.ErrorText("WORKER", "Unknown CommandType value [%v]", msg.CommandType)
 			}
+
+			reporting.WorkerProcessingFinish(taskId)
 		}
 	}
 }
