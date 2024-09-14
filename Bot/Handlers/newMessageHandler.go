@@ -10,8 +10,6 @@ import (
 	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 	"github.com/google/uuid"
 )
@@ -35,12 +33,15 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 		command := getCommandByName(commandName)
 		if command != nil {
 			// 5. TODO - check user permissions
-			task := &CommandTask{
-				Message:       message,
-				Command:       command,
-				CorrelationId: correlationId,
-			}
-			dispatchTask(task)
+			DispatchTask(&Task{
+				CommandType: config.CommandTypeBang,
+				Complexity:  command.Complexity(),
+				BangDetails: &BangTaskDetails{
+					Message:       message,
+					Command:       command,
+					CorrelationId: correlationId,
+				},
+			})
 		} else {
 			logger.Debug(message.GuildID, "invalid message command attempt :: could not retrieve '%s' from jump table :: correlation-id :: %v", commandName, correlationId)
 		}
@@ -80,9 +81,9 @@ func getCommandByName(commandName string) commands.Command {
 }
 
 // Dispatches a Command to its appropriate channel.
-func dispatchTask(task *CommandTask) {
+func DispatchTask(task *Task) {
 	// TODO - add touch point to pass off queue info to the dashboard
-	switch task.Command.Complexity() {
+	switch task.Complexity {
 	case config.TRIVIAL_TASK:
 		TRIVIAL_TASKS <- task
 	case config.CPU_BOUND_TASK:
@@ -96,7 +97,6 @@ func dispatchTask(task *CommandTask) {
 
 func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 	var matchedPhrases []triggers.Phrase
-
 	for _, trigger := range cache.ActiveGuilds[message.GuildID].Triggers {
 		var regexString string
 		if trigger.WordOnlyMatch {
@@ -111,20 +111,16 @@ func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 		}
 	}
 
-	// Process any matching Triggers
-	var notifyPhrases []string
-	for _, phrase := range matchedPhrases {
-		database.LogCommandUsage(message.GuildID, message.Author.ID, config.CommandTypePhrase, phrase.Phrase)
-		if phrase.NotifyOnDetection {
-			notifyPhrases = append(notifyPhrases, phrase.Phrase)
-		}
+	// Dispatch any matching Triggers
+	if len(matchedPhrases) > 0 {
+		DispatchTask(&Task{
+			CommandType: config.CommandTypePhrase,
+			Complexity:  config.TRIVIAL_TASK,
+			PhraseDetails: &PhraseTaskDetails{
+				Message:        message,
+				TriggerPhrases: matchedPhrases,
+			},
+		})
 	}
 
-	if len(notifyPhrases) > 0 {
-		showText := strings.ToUpper(helpers.ConcatStringWithAnd(notifyPhrases)) + " MENTIONED"
-		_, err := config.Session.ChannelMessageSend(message.ChannelID, showText)
-		if err != nil {
-			logger.Error(message.GuildID, err)
-		}
-	}
 }

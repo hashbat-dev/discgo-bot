@@ -21,6 +21,8 @@ RUN go get github.com/shirou/gopsutil/cpu
 RUN go get github.com/shirou/gopsutil/mem
 RUN go get github.com/google/uuid
 RUN go get github.com/nfnt/resize
+RUN go get golang.org/x/text/cases
+RUN go get golang.org/x/text/language
 COPY . .
 
 RUN set CGO_CFLAGS=-IC:\libwebp\include

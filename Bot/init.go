@@ -53,6 +53,7 @@ func Init() {
 		logger.Error("", errors.New("Failed to register commands"))
 		return
 	}
+
 }
 
 func sessionInit() bool {
@@ -83,8 +84,9 @@ func sessionOpen() bool {
 }
 
 func addHandlers() bool {
-	config.Session.AddHandler(handlers.HandleNewMessage) // New Messages
-	config.Session.AddHandler(handlers.HandleNewGuild)   //	Added to a new Server
+	config.Session.AddHandler(handlers.HandleNewMessage)          //   New Messages
+	config.Session.AddHandler(handlers.HandleNewGuild)            //	Server connected to the bot
+	config.Session.AddHandler(handlers.HandleInteractionResponse) //	Responses from Interaction objects
 	return true
 }
 

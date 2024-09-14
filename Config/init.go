@@ -8,6 +8,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+var InitComplete bool = false
+
 // These can be swapped around on the go, but pls don't lol. If any are added make sure to also update the map
 const (
 	LoggingLevelAdmin = iota
@@ -135,13 +137,17 @@ const ( // A) Populate A + B!
 	CommandTypeDefault = iota
 	CommandTypeBang
 	CommandTypePhrase
+	CommandTypeSlash
+	CommandTypeSlashResponse
 )
 
 // B) Populate A + B!
 var CommandTypes map[int]string = map[int]string{
-	CommandTypeDefault: "Default",
-	CommandTypeBang:    "Bang",
-	CommandTypePhrase:  "Phrase",
+	CommandTypeDefault:       "Default",
+	CommandTypeBang:          "Bang",
+	CommandTypePhrase:        "Phrase",
+	CommandTypeSlash:         "Slash",
+	CommandTypeSlashResponse: "Slash Response",
 }
 
 // ------------------------------------------------
@@ -207,6 +213,9 @@ type Vars struct {
 	DB_PASSWORD   string
 	DB_IP_ADDRESS string
 	DB_PORT       string
+
+	MaxFakeYouRequestChecks int
+	MaxFakeYouRequestErrors int
 }
 
 var (
@@ -240,9 +249,13 @@ var (
 	DB_PASSWORD   string
 	DB_IP_ADDRESS string
 	DB_PORT       string
+
+	MaxFakeYouRequestChecks int
+	MaxFakeYouRequestErrors int
 )
 
 const (
+	MAX_SELECT_LENGTH  int    = 25
 	MAX_MESSAGE_LENGTH int    = 2000
 	ROOT_FOLDER        string = "discgo-bot/"
 	BOT_SUB_FOLDER     string = "Bot/"
@@ -306,4 +319,6 @@ func init() {
 	DB_IP_ADDRESS = configFileVariables.DB_IP_ADDRESS
 	DB_PORT = configFileVariables.DB_PORT
 
+	MaxFakeYouRequestChecks = configFileVariables.MaxFakeYouRequestChecks
+	MaxFakeYouRequestErrors = configFileVariables.MaxFakeYouRequestErrors
 }

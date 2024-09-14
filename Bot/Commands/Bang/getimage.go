@@ -52,5 +52,6 @@ func (s GetImage) Execute(message *discordgo.MessageCreate, command string) erro
 		return err
 	}
 
+	discord.DeleteMessage(message)
 	return nil
 }

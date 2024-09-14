@@ -44,7 +44,6 @@ func resourcesHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetData(w http.ResponseWriter, r *http.Request) {
-
 	// What is being requested?
 	requestedWidget := ""
 	query := r.URL.Query()

@@ -48,13 +48,24 @@ func GetImageUrlFromTenor(guildId string, tenorLink string) (string, error) {
 
 	// Step 4: Find the GIF on the page
 	gifUrl := ""
-	doc.Find("img").Each(func(index int, img *goquery.Selection) {
-		src, exists := img.Attr("src")
-		if exists && strings.Contains(src, tenorId) {
-			gifUrl = src
-			return
-		}
-	})
+
+	// => Attempt 1: Does the link take us to the full website?
+	selection := doc.Find("#single-gif-container").Find("div.Gif").Find("img")
+	href, exists := selection.Attr("src")
+	if exists {
+		gifUrl = href
+	}
+
+	// => Attempt 2: Does the link take us to the image on a lightbox?
+	if gifUrl == "" {
+		doc.Find("img").Each(func(index int, img *goquery.Selection) {
+			src, exists := img.Attr("src")
+			if exists && strings.Contains(src, tenorId) {
+				gifUrl = src
+				return
+			}
+		})
+	}
 
 	if gifUrl == "" {
 		err = errors.New("could not find gif on tenor page")

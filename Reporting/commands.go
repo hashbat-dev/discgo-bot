@@ -4,15 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
-	commands "github.com/dabi-ngin/discgo-bot/Bot/Commands"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	widgets "github.com/dabi-ngin/discgo-bot/Dashboard/Widgets"
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	"github.com/google/uuid"
 )
 
 type DashCmdAvg struct {
@@ -36,22 +33,28 @@ var DashCmdInfoRows []widgets.TableWidgetRow
 var DashCmdInfoMap map[string]DashCmdInfo = make(map[string]DashCmdInfo)
 var DashCmdAvgMap map[string]DashCmdAvg = make(map[string]DashCmdAvg)
 
-func Command(commandTypeId int, Message *discordgo.MessageCreate, Command commands.Command, CorrelationId uuid.UUID, timeStarted time.Time) {
-
+func Command(
+	commandTypeId int,
+	guildID string,
+	authorID string,
+	authorUsername string,
+	commandName string,
+	correlationId string,
+	timeStarted time.Time,
+) {
 	// 1. Calculate the time taken straight away and log the Event
 	timeTaken := time.Since(timeStarted)
-	commandName := Command.Name()
-	logger.Event(Message.GuildID, fmt.Sprintf("[%v] Command completed successfully after %v [%v]", CorrelationId, timeTaken, commandName))
-	database.LogCommandUsage(Message.GuildID, Message.Author.ID, commandTypeId, commandName)
+	logger.Event(guildID, fmt.Sprintf("[%v] Command completed successfully after %v [%v]", correlationId, timeTaken, commandName))
+	database.LogCommandUsage(guildID, authorID, commandTypeId, commandName)
 
 	// Command Log (individual)
 	newCmd := widgets.TableWidgetRow{
 		Values: []widgets.TableWidgetRowValue{
 			{Value: config.CommandTypes[commandTypeId]},
 			{Value: commandName},
-			{Value: Message.GuildID, TextFormat: widgets.TextFormatString_AbbreviateToEnd},
-			{Value: Message.Author.ID, TextFormat: widgets.TextFormatString_AbbreviateToEnd},
-			{Value: Message.Author.Username},
+			{Value: guildID, TextFormat: widgets.TextFormatString_AbbreviateToEnd},
+			{Value: authorID, TextFormat: widgets.TextFormatString_AbbreviateToEnd},
+			{Value: authorUsername},
 			{Value: timeStarted, TextFormat: widgets.TextFormatTime_TimeOnly},
 			{Value: timeTaken, TextFormat: widgets.TextFormatDuration_WithMs},
 		},
@@ -139,5 +142,5 @@ func Command(commandTypeId int, Message *discordgo.MessageCreate, Command comman
 		logger.Error("REPORTING", err)
 	}
 
-	cache.UpdateLastGuildCommand(Message.GuildID)
+	cache.UpdateLastGuildCommand(guildID)
 }
