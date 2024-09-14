@@ -60,5 +60,6 @@ func (s DelImage) Execute(message *discordgo.MessageCreate, command string) erro
 	}
 
 	discord.SendUserMessageReply(message, true, "Image successfully Deleted")
+	discord.DeleteMessage(message)
 	return nil
 }
