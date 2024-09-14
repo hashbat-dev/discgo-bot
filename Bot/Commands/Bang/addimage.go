@@ -38,12 +38,13 @@ func (s AddImage) Execute(message *discordgo.MessageCreate, command string) erro
 		return errors.New("no image found")
 	}
 
-	err := database.AddImg(message, helpers.RemoveStartingXCharacters(command, 3), imgUrl)
+	err := database.AddImg(message, s.ImageCategory, imgUrl)
 	if err != nil {
 		discord.SendUserMessageReply(message, true, "Error adding Image")
 		return err
 	}
 
 	discord.SendUserMessageReply(message, true, "Image successfully added")
+	discord.DeleteMessage(message)
 	return err
 }
