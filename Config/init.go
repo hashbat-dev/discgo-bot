@@ -8,8 +8,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var InitComplete bool = false
-
 // These can be swapped around on the go, but pls don't lol. If any are added make sure to also update the map
 const (
 	LoggingLevelAdmin = iota
@@ -137,7 +135,6 @@ const ( // A) Populate A + B!
 	CommandTypeDefault = iota
 	CommandTypeBang
 	CommandTypePhrase
-	CommandTypeSlash
 )
 
 // B) Populate A + B!
@@ -145,7 +142,6 @@ var CommandTypes map[int]string = map[int]string{
 	CommandTypeDefault: "Default",
 	CommandTypeBang:    "Bang",
 	CommandTypePhrase:  "Phrase",
-	CommandTypeSlash:   "Slash",
 }
 
 // ------------------------------------------------
