@@ -8,7 +8,7 @@ import (
 
 // Remind is used to remind us to fix things that are temporary, surely no workplace could possible operate like this. Right?
 func Remind(logText string) {
-	if config.LoggingLevel <= config.LoggingLevelInfo {
+	if config.ServiceSettings.LOGGINGLEVEL <= config.LoggingLevelInfo {
 		fmt.Printf("%v%v %v%v\n", config.Colours["magenta"].Terminal, "[REMINDER]", logText, config.Colours["default"].Terminal)
 	}
 }

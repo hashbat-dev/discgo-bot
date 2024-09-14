@@ -26,7 +26,7 @@ type LogInfo struct {
 func SendLogs(infoLine LogInfo, logText string, logLevel int, sendToDiscord bool) {
 	SendToConsole(infoLine, logText, logLevel)
 	SendLogsToDashboard(infoLine, logText, logLevel)
-	if !config.LogToDiscord || !sendToDiscord {
+	if !config.ServiceSettings.LOGTODISCORD || !sendToDiscord {
 		return
 	}
 	SendLogToDiscord(infoLine, logText, logLevel)
@@ -52,8 +52,8 @@ func SendToConsole(logInfo LogInfo, logText string, logLevel int) {
 	if logInfo.GuildID != "" {
 		infoLine += " | " + logInfo.GuildID
 	}
-	if config.IsDev {
-		infoLine += " | " + config.HostName
+	if config.ServiceSettings.ISDEV {
+		infoLine += " | " + config.ServiceSettings.HOSTNAME
 	}
 
 	fmt.Printf("%v[%v] %v :: %v %v \n", logType.Colour.Terminal, strings.ToUpper(logType.Name), infoLine, logText, config.Colours["default"].Terminal)
@@ -99,7 +99,7 @@ func ParseStackTrace(stack string) string {
 			lastIndex = strings.LastIndex(line, ")")
 		}
 
-		if !isFileLine && !config.LoggingLogFunctions {
+		if !isFileLine && !config.ServiceSettings.LOGFUNCTIONS {
 			continue
 		}
 
@@ -109,7 +109,7 @@ func ParseStackTrace(stack string) string {
 			if isFirst {
 				isFirst = false
 			} else {
-				if !config.LoggingVerboseStack {
+				if !config.ServiceSettings.LOGFUNCTIONS {
 					break
 				}
 				retVal += " <= "
@@ -118,7 +118,7 @@ func ParseStackTrace(stack string) string {
 
 			retVal += line[botIndex+botIndexLength : lastIndex+1]
 
-			if appended && !config.LoggingVerboseStack {
+			if appended && !config.ServiceSettings.VERBOSESTACK {
 				break
 			}
 

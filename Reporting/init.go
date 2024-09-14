@@ -12,7 +12,6 @@ var GuildColumns []widgets.TableWidgetColumn
 var LogColumns []widgets.TableWidgetColumn
 
 func init() {
-
 	DashCmdsColumns = []widgets.TableWidgetColumn{
 		{Name: "Type"},
 		{Name: "Name"},
@@ -50,11 +49,11 @@ func init() {
 	err := widgets.SaveInfoWidget(&widgets.InfoWidget{
 		Name: "Config Items",
 		Items: []widgets.InfoWidgetItem{
-			{Name: "HostName", Value: config.HostName, Description: "The name of the machine the instance is running on"},
-			{Name: "DashboardMaxLogs", Value: config.DashboardMaxLogs, Description: "The Max number of Logs the reporter will store"},
-			{Name: "DashboardMaxCommands", Value: config.DashboardMaxCommands, Description: "The Max number of Commands the reporter will store"},
-			{Name: "HardwareStatIntervalSeconds", Value: config.HardwareStatIntervalSeconds, Description: "How often in seconds the reporter will poll Hardware statistics"},
-			{Name: "HardwareStatMaxIntervals", Value: config.HardwareStatMaxIntervals, Description: "The maximum number of intervals recording for hardware reporting statistics"},
+			{Name: "HostName", Value: config.ServiceSettings.HOSTNAME, Description: "The name of the machine the instance is running on"},
+			{Name: "DashboardMaxLogs", Value: config.ServiceSettings.DASHBOARDMAXLOGS, Description: "The Max number of Logs the reporter will store"},
+			{Name: "DashboardMaxCommands", Value: config.ServiceSettings.DASHBOARDMAXCOMMANDS, Description: "The Max number of Commands the reporter will store"},
+			{Name: "HardwareStatIntervalSeconds", Value: config.ServiceSettings.HARDWARESTATINTERVALSECONDS, Description: "How often in seconds the reporter will poll Hardware statistics"},
+			{Name: "HardwareStatMaxIntervals", Value: config.ServiceSettings.HARDWARESTATMAXINTERVALS, Description: "The maximum number of intervals recording for hardware reporting statistics"},
 		},
 	})
 	if err != nil {
@@ -64,5 +63,4 @@ func init() {
 	// Run retrieval Widgets once on Init so the Maps are available to the Dashboard
 	Guilds()
 	Logs()
-
 }

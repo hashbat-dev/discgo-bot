@@ -1,11 +1,14 @@
 package config
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/joho/godotenv"
 )
 
 var InitComplete bool = false
@@ -151,7 +154,6 @@ var CommandTypes map[int]string = map[int]string{
 }
 
 // ------------------------------------------------
-
 // Process Pools
 // Used to dispatch BangCommands in the newMessage Handler
 // ------------------------------------------------
@@ -189,24 +191,26 @@ type ProcessPool struct {
 }
 
 type Vars struct {
-	IsDev       bool
-	SuperAdmins []string
+	ISDEV       bool
+	SUPERADMINS []string
 
-	LogToDiscord       bool
-	LoggingChannelID   string
-	LoggingUsesThreads bool
-	VerboseStack       bool
-	LogFunctions       bool
-	LoggingLevel       int
+	LOGTODISCORD       bool
+	LOGGINGCHANNELID   string
+	LOGGINGUSESTHREADS bool
+	VERBOSESTACK       bool
+	LOGFUNCTIONS       bool
+	LOGGINGLEVEL       int
 
-	DashboardMaxDataPackets     int
-	DashboardMaxLogs            int
-	DashboardMaxCommands        int
-	CommandAveragePool          int
-	HardwareStatIntervalSeconds int
-	HardwareStatMaxIntervals    int
+	DASHBOARDMAXDATAPACKETS     int
+	DASHBOARDMAXLOGS            int
+	DASHBOARDMAXCOMMANDS        int
+	DASHBOARDURL                string
+	COMMANDAVERAGEPOOL          int
+	HARDWARESTATINTERVALSECONDS int
+	HARDWARESTATMAXINTERVALS    int
+	HOSTNAME                    string
 
-	BotToken string
+	BOTTOKEN string
 
 	DB_NAME       string
 	DB_USER       string
@@ -214,44 +218,17 @@ type Vars struct {
 	DB_IP_ADDRESS string
 	DB_PORT       string
 
-	MaxFakeYouRequestChecks int
-	MaxFakeYouRequestErrors int
+	MAXFAKEYOUREQUESTCHECKS int
+	MAXFAKEYOUREQUESTERRORS int
 }
 
+var ServiceSettings Vars
+
 var (
-	IsDev        bool
-	HostName     string
-	SuperAdmins  []string
-	DashboardUrl string
-
-	LogToDiscord        bool
-	LoggingChannelID    string
-	LoggingUsesThreads  bool
-	LoggingVerboseStack bool
-	LoggingLogFunctions bool
-
-	DashboardMaxDataPackets     int
-	DashboardMaxLogs            int
-	DashboardMaxCommands        int
-	CommandAveragePool          int
-	HardwareStatIntervalSeconds int
-	HardwareStatMaxIntervals    int
-
-	LoggingLevel int
-
-	BotToken string
-	Session  *discordgo.Session
-
+	Logginglevel         string
+	Bottoken             string
+	Session              *discordgo.Session
 	ValidImageExtensions []string
-
-	DB_NAME       string
-	DB_USER       string
-	DB_PASSWORD   string
-	DB_IP_ADDRESS string
-	DB_PORT       string
-
-	MaxFakeYouRequestChecks int
-	MaxFakeYouRequestErrors int
 )
 
 const (
@@ -262,25 +239,24 @@ const (
 )
 
 func init() {
-	localConfigFile, err := os.ReadFile("config.json")
-
-	if err != nil {
-		fmt.Println(fmt.Printf("Config.Init() - Error loading config.json :: %v", err))
-		return
+	enverr := godotenv.Load(".env")
+	if enverr != nil {
+		// we can't run the bot without env vars, panic is appropriate
+		panic("unable to load environment variables")
 	}
 
-	var configFileVariables Vars
-	err = json.Unmarshal([]byte(localConfigFile), &configFileVariables)
-	if err != nil {
-		fmt.Println(fmt.Printf("Config.Init() - Error unmarshalling config.json :: %v", err))
-		return
+	envVarsErr := parseEnvVariables()
+	if envVarsErr != nil {
+		errorMsg := fmt.Sprintf("unable to parse environment variables :: %s", envVarsErr.Error())
+		panic(errorMsg)
 	}
+	fmt.Println(ServiceSettings)
 
 	currentHostName, err := os.Hostname()
 	if err != nil {
-		HostName = "Unknown"
+		ServiceSettings.HOSTNAME = "Unknown"
 	} else {
-		HostName = currentHostName
+		ServiceSettings.HOSTNAME = currentHostName
 	}
 
 	ValidImageExtensions = []string{
@@ -289,36 +265,158 @@ func init() {
 		".jpg",
 		".webp",
 	}
+}
 
-	IsDev = configFileVariables.IsDev
-	if IsDev {
-		DashboardUrl = "http://localhost:3333/"
+func parseEnvVariables() error {
+	// setting a base convError value we'll reuse across each attempted conversion.
+	// shouldn't need to worry about shadowing variables as this will return out at first instance of nil
+	var convErr error
+	isdev := os.Getenv("ISDEV")
+	if isdev == "" {
+		return errors.New("could not find value for ISDEV in environment variables")
+	}
+	ServiceSettings.ISDEV, convErr = strconv.ParseBool(isdev)
+	if convErr != nil {
+		return convErr
 	}
 
-	SuperAdmins = configFileVariables.SuperAdmins
+	if ServiceSettings.ISDEV {
+		ServiceSettings.DASHBOARDURL = "http://localhost:3333/"
+	}
 
-	LoggingChannelID = configFileVariables.LoggingChannelID
-	LoggingUsesThreads = configFileVariables.LoggingUsesThreads
-	LoggingVerboseStack = configFileVariables.VerboseStack
-	LoggingLogFunctions = configFileVariables.LogFunctions
-	LoggingLevel = configFileVariables.LoggingLevel
+	superadminstr := os.Getenv("SUPERADMINS")
+	if superadminstr == "" {
+		return errors.New("could not find value for SUPERADMINS in environment variables")
+	}
+	ServiceSettings.SUPERADMINS = strings.Split(superadminstr, ",")
+	if !(len(ServiceSettings.SUPERADMINS) > 0) {
+		return errors.New("could not set any values for SUPERADMINS")
+	}
 
-	DashboardMaxDataPackets = configFileVariables.DashboardMaxDataPackets
-	DashboardMaxLogs = configFileVariables.DashboardMaxLogs
-	DashboardMaxCommands = configFileVariables.DashboardMaxCommands
-	CommandAveragePool = configFileVariables.CommandAveragePool
-	HardwareStatIntervalSeconds = configFileVariables.HardwareStatIntervalSeconds
-	HardwareStatMaxIntervals = configFileVariables.HardwareStatMaxIntervals
-	LogToDiscord = configFileVariables.LogToDiscord
+	ServiceSettings.LOGGINGCHANNELID = os.Getenv("LOGGINGCHANNELID")
+	if ServiceSettings.LOGGINGCHANNELID == "" {
+		return errors.New("could not find value for LOGGINGCHANNELID in environment variables")
+	}
 
-	BotToken = configFileVariables.BotToken
+	loggingusesthreads := os.Getenv("LOGGINGUSESTHREADS")
+	if loggingusesthreads == "" {
+		return errors.New("could not find value for LOGGINGUSESTHREADS in environment variables")
+	}
+	ServiceSettings.LOGGINGUSESTHREADS, convErr = strconv.ParseBool(loggingusesthreads)
+	if convErr != nil {
+		return convErr
+	}
 
-	DB_NAME = configFileVariables.DB_NAME
-	DB_USER = configFileVariables.DB_USER
-	DB_PASSWORD = configFileVariables.DB_PASSWORD
-	DB_IP_ADDRESS = configFileVariables.DB_IP_ADDRESS
-	DB_PORT = configFileVariables.DB_PORT
+	verbosestack := os.Getenv("VERBOSESTACK")
+	if verbosestack == "" {
+		return errors.New("could not find value for VERBOSESTACK in environment variables")
+	}
+	ServiceSettings.VERBOSESTACK, convErr = strconv.ParseBool(verbosestack)
+	if convErr != nil {
+		return convErr
+	}
 
-	MaxFakeYouRequestChecks = configFileVariables.MaxFakeYouRequestChecks
-	MaxFakeYouRequestErrors = configFileVariables.MaxFakeYouRequestErrors
+	logfunctions := os.Getenv("LOGFUNCTIONS")
+	if logfunctions == "" {
+		return errors.New("could not find value for LOGFUNCTIONS in environment variables")
+	}
+	ServiceSettings.LOGFUNCTIONS, convErr = strconv.ParseBool(logfunctions)
+	if convErr != nil {
+		return convErr
+	}
+
+	dashboardmaxlogs := os.Getenv("DASHBOARDMAXLOGS")
+	if dashboardmaxlogs == "" {
+		return errors.New("could not find value for DASHBOARDMAXLOGS in environment variables")
+	}
+	ServiceSettings.DASHBOARDMAXLOGS, convErr = strconv.Atoi(dashboardmaxlogs)
+	if convErr != nil {
+		return convErr
+	}
+
+	dashboardmaxcommands := os.Getenv("DASHBOARDMAXCOMMANDS")
+	if dashboardmaxcommands == "" {
+		return errors.New("could not find value for DASHBOARDMAXCOMMANDS in environment variables")
+	}
+	ServiceSettings.DASHBOARDMAXCOMMANDS, convErr = strconv.Atoi(dashboardmaxcommands)
+	if convErr != nil {
+		return convErr
+	}
+
+	commandaveragepool := os.Getenv("COMMANDAVERAGEPOOL")
+	if commandaveragepool == "" {
+		return errors.New("could not find value for COMMANDAVERAGEPOOL in environment variables")
+	}
+	ServiceSettings.COMMANDAVERAGEPOOL, convErr = strconv.Atoi(commandaveragepool)
+	if convErr != nil {
+		return convErr
+	}
+
+	hardwarestatintervalseconds := os.Getenv("HARDWARESTATINTERVALSECONDS")
+	if hardwarestatintervalseconds == "" {
+		return errors.New("could not find value for HARDWARESTATINTERVALSECONDS in environment variables")
+	}
+	ServiceSettings.HARDWARESTATINTERVALSECONDS, convErr = strconv.Atoi(hardwarestatintervalseconds)
+	if convErr != nil {
+		return convErr
+	}
+
+	hardwarestatmaxintervals := os.Getenv("HARDWARESTATMAXINTERVALS")
+	if hardwarestatmaxintervals == "" {
+		return errors.New("could not find value for HARDWARESTATMAXINTERVALS in environment variables")
+	}
+	ServiceSettings.HARDWARESTATMAXINTERVALS, convErr = strconv.Atoi(hardwarestatmaxintervals)
+	if convErr != nil {
+		return convErr
+	}
+
+	ServiceSettings.BOTTOKEN = os.Getenv("BOTTOKEN")
+	if ServiceSettings.BOTTOKEN == "" {
+		return errors.New("could not find value for BOTTOKEN in environment variables")
+	}
+
+	ServiceSettings.DB_NAME = os.Getenv("DB_NAME")
+	if ServiceSettings.DB_NAME == "" {
+		return errors.New("could not find value for DB_NAME in environment variables")
+	}
+
+	ServiceSettings.DB_USER = os.Getenv("DB_USER")
+	if ServiceSettings.DB_USER == "" {
+		return errors.New("could not find value for DB_USER in environment variables")
+	}
+
+	ServiceSettings.DB_PASSWORD = os.Getenv("DB_PASSWORD")
+	if ServiceSettings.DB_PASSWORD == "" {
+		return errors.New("could not find value for DB_PASSWORD in environment variables")
+	}
+
+	ServiceSettings.DB_IP_ADDRESS = os.Getenv("DB_IP_ADDRESS")
+	if ServiceSettings.DB_IP_ADDRESS == "" {
+		return errors.New("could not find value for DB_IP_ADDRESS in environment variables")
+	}
+
+	ServiceSettings.DB_PORT = os.Getenv("DB_PORT")
+	if ServiceSettings.DB_PORT == "" {
+		return errors.New("could not find value for DB_PORT in environment variables")
+	}
+
+	maxfakeyourequestchecks := os.Getenv("MAXFAKEYOUREQUESTCHECKS")
+	if maxfakeyourequestchecks == "" {
+		return errors.New("could not find value for MAXFAKEYOUREQUESTCHECKS in environment variables")
+	}
+	ServiceSettings.MAXFAKEYOUREQUESTCHECKS, convErr = strconv.Atoi(maxfakeyourequestchecks)
+	if convErr != nil {
+		return convErr
+	}
+
+	maxfakeyourequesterrors := os.Getenv("MAXFAKEYOUREQUESTERRORS")
+	if maxfakeyourequesterrors == "" {
+		return errors.New("could not find value for MAXFAKEYOUREQUESTERRORS in environment variables")
+	}
+	ServiceSettings.MAXFAKEYOUREQUESTERRORS, convErr = strconv.Atoi(maxfakeyourequesterrors)
+	if convErr != nil {
+		return convErr
+	}
+
+	return nil
 }

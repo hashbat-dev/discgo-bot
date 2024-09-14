@@ -61,7 +61,7 @@ func Command(
 	}
 	newDashCmds := append([]widgets.TableWidgetRow{newCmd}, DashCmdRows...)
 
-	if len(newDashCmds) > config.DashboardMaxCommands {
+	if len(newDashCmds) > config.ServiceSettings.DASHBOARDMAXCOMMANDS {
 		newDashCmds = newDashCmds[1:]
 	}
 

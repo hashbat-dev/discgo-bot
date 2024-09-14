@@ -17,7 +17,7 @@ var ramMaxValue int = -1
 func Hardware() {
 
 	// CPU -----------------------------------------------------------------------------
-	cpuPercentage, err := cpu.Percent(time.Second*time.Duration(config.HardwareStatIntervalSeconds), false)
+	cpuPercentage, err := cpu.Percent(time.Second*time.Duration(config.ServiceSettings.HARDWARESTATINTERVALSECONDS), false)
 	if err != nil {
 		logger.Error("REPORTING", err)
 	} else {
@@ -25,7 +25,7 @@ func Hardware() {
 		cpuValuesCache = append(cpuValuesCache, cpuPercentage[0])
 
 		// Are we over the interval count?
-		if len(cpuValuesCache) > config.HardwareStatMaxIntervals {
+		if len(cpuValuesCache) > config.ServiceSettings.HARDWARESTATMAXINTERVALS {
 			cpuValuesCache = cpuValuesCache[1:]
 		}
 	}
@@ -64,7 +64,7 @@ func Hardware() {
 		ramValuesCache = append(ramValuesCache, float64(availableMb))
 
 		// Are we over the interval count?
-		if len(ramValuesCache) > config.HardwareStatMaxIntervals {
+		if len(ramValuesCache) > config.ServiceSettings.HARDWARESTATMAXINTERVALS {
 			ramValuesCache = ramValuesCache[1:]
 		}
 	}
