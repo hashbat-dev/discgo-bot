@@ -6,6 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	database "github.com/dabi-ngin/discgo-bot/Database"
+	discord "github.com/dabi-ngin/discgo-bot/Discord"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 )
 
@@ -52,5 +53,12 @@ func (s DelImage) Execute(message *discordgo.MessageCreate, command string) erro
 		return errors.New("unable to get guild link")
 	}
 
-	return database.DeleteGuildLink(imgGuildLink)
+	err = database.DeleteGuildLink(imgGuildLink)
+	if err != nil {
+		discord.SendUserMessageReply(message, true, "Unable to Delete Image")
+		return err
+	}
+
+	discord.SendUserMessageReply(message, true, "Image successfully Deleted")
+	return nil
 }
