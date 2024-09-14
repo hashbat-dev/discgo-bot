@@ -56,7 +56,7 @@ func commandWorker(id int, ch <-chan *CommandTask) {
 				continue // Failed to execute, skip loop iteration
 			}
 
-			reporting.Command(config.CommandTypeBang, msg.Message, msg.Command, msg.CorrelationId, timeStart)
+			reporting.Command(config.CommandTypeBang, msg.Message.GuildID, msg.Message.Author.ID, msg.Message.Author.Username, msg.Command.Name(), msg.CorrelationId, timeStart)
 		}
 	}
 }
