@@ -43,11 +43,13 @@ func (s MakeSpeech) Execute(message *discordgo.MessageCreate, command string) er
 	// 1. Check we have a valid Image and Extension
 	imgUrl := helpers.GetImageFromMessage(message.Message, "")
 	if imgUrl == "" {
+		discord.SendUserMessageReply(message, false, "Invalid image")
 		return errors.New("no image found")
 	}
 
 	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension == "" {
+		discord.SendUserMessageReply(message, false, "Invalid image")
 		return errors.New("invalid extension")
 	}
 
@@ -65,6 +67,7 @@ func (s MakeSpeech) Execute(message *discordgo.MessageCreate, command string) er
 	// 3. Get the image as an io.Reader object
 	imageReader, newHeight, err := imgwork.DownloadImageToReader(message.GuildID, imgUrl, isAnimated, 300)
 	if err != nil {
+		discord.SendUserMessageReply(message, false, "Error creating Image")
 		return err
 	}
 
@@ -72,11 +75,19 @@ func (s MakeSpeech) Execute(message *discordgo.MessageCreate, command string) er
 	var newImageBuffer bytes.Buffer
 	err = addSpeechBubbleToImage(message.GuildID, imageReader, &newImageBuffer, newHeight, isAnimated, imgExtension)
 	if err != nil {
+		discord.SendUserMessageReply(message, false, "Error creating Image")
 		return err
 	}
 
 	// 5. Send the new Image back to the User
-	return discord.ReplyToMessageWithImageBuffer(message, true, outputImageName, &newImageBuffer)
+	err = discord.ReplyToMessageWithImageBuffer(message, true, outputImageName, &newImageBuffer)
+	if err != nil {
+		logger.Error(message.GuildID, err)
+		return err
+	}
+
+	discord.DeleteMessage(message)
+	return nil
 }
 
 func addSpeechBubbleToImage(guildId string, imageReader io.Reader, newImgBuffer *bytes.Buffer, imageHeight int, isAnimated bool, imgExtension string) error {
