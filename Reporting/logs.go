@@ -32,8 +32,9 @@ func Logs() {
 			Name:  "Recent Logs",
 			Width: widgets.WidthThreeQuarters,
 		},
-		Columns: LogColumns,
-		Rows:    newRows,
+		Columns:   LogColumns,
+		Rows:      newRows,
+		RefreshMs: 500,
 	})
 	if err != nil {
 		logger.Error("REPORTING", err)

@@ -127,7 +127,8 @@ const (
 
 const (
 	N_TRIVIAL_WORKERS = 50
-	N_IO_WORKERS      = 5
+	N_IO_WORKERS      = 10
+	N_CPU_WORKERS     = 10
 )
 
 // Command Types
