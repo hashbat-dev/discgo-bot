@@ -241,8 +241,7 @@ const (
 func init() {
 	enverr := godotenv.Load(".env")
 	if enverr != nil {
-		// we can't run the bot without env vars, panic is appropriate
-		panic("unable to load environment variables")
+		fmt.Println("no .env file found, checking if environment variables already set")
 	}
 
 	envVarsErr := parseEnvVariables()
