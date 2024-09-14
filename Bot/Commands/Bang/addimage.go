@@ -6,6 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	database "github.com/dabi-ngin/discgo-bot/Database"
+	discord "github.com/dabi-ngin/discgo-bot/Discord"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 )
 
@@ -38,5 +39,11 @@ func (s AddImage) Execute(message *discordgo.MessageCreate, command string) erro
 	}
 
 	err := database.AddImg(message, helpers.RemoveStartingXCharacters(command, 3), imgUrl)
+	if err != nil {
+		discord.SendUserMessageReply(message, true, "Error adding Image")
+		return err
+	}
+
+	discord.SendUserMessageReply(message, true, "Image successfully added")
 	return err
 }
