@@ -23,5 +23,6 @@ func AddToActiveGuildCache(guild *discordgo.GuildCreate, dbId int, triggers []tr
 func UpdateLastGuildCommand(guildId string) {
 	guildInfo := ActiveGuilds[guildId]
 	guildInfo.LastCommand = time.Now()
+	guildInfo.CommandCount++
 	ActiveGuilds[guildId] = guildInfo
 }
