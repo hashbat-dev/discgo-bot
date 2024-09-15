@@ -19,7 +19,6 @@ import (
 )
 
 func DownloadImageToReader(guildId string, imageUrl string, isAnimated bool, resizeToWidth int) (io.Reader, int, error) {
-
 	// 1. Download the source image
 	var err error
 	var downloadedStaticImg *image.Image
@@ -43,6 +42,7 @@ func DownloadImageToReader(guildId string, imageUrl string, isAnimated bool, res
 
 	var newHeight int = 0
 	var imageReader io.Reader
+	// TODO - pull out calls to resize here entirely, this function should *only* download the file and return a reader with the data.
 	if resizeToWidth > 0 {
 		// Resizing is needed
 		if isAnimated {
