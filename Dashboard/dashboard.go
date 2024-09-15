@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
 
@@ -31,6 +32,7 @@ func Run() {
 }
 
 func webHandler(w http.ResponseWriter, r *http.Request) {
+	checkForDashboardMessage(r)
 	switch r.URL.Path {
 	case "/getData":
 		handleGetData(w, r)
@@ -41,6 +43,22 @@ func webHandler(w http.ResponseWriter, r *http.Request) {
 
 func resourcesHandler(w http.ResponseWriter, r *http.Request) {
 	handleFileRequest(w, r)
+}
+
+func checkForDashboardMessage(r *http.Request) {
+	if config.ServiceSettings.DASHBOARDURL == "" {
+		config.ServiceSettings.DASHBOARDURL = fmt.Sprintf("http://%v/", r.Host)
+		TrySendDashboardInitMessage()
+	}
+}
+
+func TrySendDashboardInitMessage() {
+	if config.Session != nil && config.ServiceSettings.LOGGINGCHANNELID != "" {
+		_, err := config.Session.ChannelMessageSend(config.ServiceSettings.LOGGINGCHANNELID, fmt.Sprintf("Dashboard Live: %v", config.ServiceSettings.DASHBOARDURL))
+		if err != nil {
+			logger.Error("DASHBOARD", err)
+		}
+	}
 }
 
 func handleGetData(w http.ResponseWriter, r *http.Request) {

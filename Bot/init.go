@@ -6,6 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	handlers "github.com/dabi-ngin/discgo-bot/Bot/Handlers"
 	config "github.com/dabi-ngin/discgo-bot/Config"
+	dashboard "github.com/dabi-ngin/discgo-bot/Dashboard"
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
@@ -46,6 +47,10 @@ func Init() {
 		initSuffix = ", Dashboard open at: " + config.ServiceSettings.DASHBOARDURL
 	}
 	logger.Info("", "Bot intialisation successful%s", initSuffix)
+
+	if !config.ServiceSettings.ISDEV {
+		dashboard.TrySendDashboardInitMessage()
+	}
 
 	// 6. Register Discord /commands
 	if !registerCommands() {
