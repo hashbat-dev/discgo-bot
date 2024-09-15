@@ -56,7 +56,7 @@ func (s FlipImage) Execute(message *discordgo.MessageCreate, command string) err
 	isAnimated := imgExtension == ".gif"
 
 	// 2. Get the image as an io.Reader object
-	imageReader, _, err := imgwork.DownloadImageToReader(message.GuildID, imgUrl, isAnimated, 0)
+	imageReader, err := imgwork.DownloadImageToReader(message.GuildID, imgUrl, isAnimated)
 	if err != nil {
 		return err
 	}
