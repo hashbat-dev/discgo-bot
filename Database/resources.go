@@ -24,5 +24,4 @@ func GetRandomResource(guildId string, resourceTypeId int) (string, error) {
 	}
 
 	return dbRes.String, nil
-
 }
