@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/bwmarrin/discordgo"
 	slash "github.com/dabi-ngin/discgo-bot/Bot/Commands/Slash"
@@ -16,7 +17,7 @@ var slashCommands = []SlashCommand{
 	{
 		Command: &discordgo.ApplicationCommand{
 			Name:        "support",
-			Description: "How to get Help & Support for Discgo Bot",
+			Description: "Get Support for Discgo Bot and its features",
 		},
 		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
 			slash.SupportInfo(i, correlationId)
@@ -32,7 +33,7 @@ var slashCommands = []SlashCommand{
 				{
 					Type:        discordgo.ApplicationCommandOptionString,
 					Name:        "voice",
-					Description: "The Voice model. (Can enter /tts-search ID or search term)",
+					Description: "The Voice model to use, you can choose from a list of results once submitted.",
 					Required:    true,
 				},
 				{
@@ -47,6 +48,17 @@ var slashCommands = []SlashCommand{
 			slash.TtsPlay(i, correlationId)
 		},
 		Complexity: config.IO_BOUND_TASK,
+	},
+	//	/help
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name:        "help",
+			Description: "View all the Bot's commands and their descriptions",
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.SendHelp(i, correlationId)
+		},
+		Complexity: config.TRIVIAL_TASK,
 	},
 }
 
@@ -63,6 +75,8 @@ func InitSlashCommands() {
 	for _, cmd := range slashCommands {
 		SlashCommands[cmd.Command.Name] = cmd
 	}
+
+	writeSlashHelpText()
 
 	config.Session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		SlashCommandHandler(s, i)
@@ -168,4 +182,31 @@ func RefreshSlashCommands(guildId string) {
 			logger.Debug(guildId, "Successfully registered command: %v", cmd.Command.Name)
 		}
 	}
+}
+
+func writeSlashHelpText() {
+	// 1. Sort the slice Alphabetically
+	slashCmds := slashCommands
+	sort.Slice(slashCmds, func(i, j int) bool {
+		return slashCmds[i].Command.Name < slashCmds[j].Command.Name
+	})
+
+	// 2. Generate the Help Text
+	text := ""
+	for i, cmd := range slashCmds {
+		cmdText := "* **/" + cmd.Command.Name + "**: " + cmd.Command.Description
+		if len(cmd.Command.Options) > 0 {
+			cmdText += " It accepts these parameters:"
+		}
+		for _, opt := range cmd.Command.Options {
+			cmdText += "\n * **" + opt.Name + "**: " + opt.Description
+		}
+		if i > 0 {
+			text += "\n"
+		}
+		text += cmdText
+	}
+
+	// 3. Set it in the Config
+	config.UserSlashHelpText = text
 }

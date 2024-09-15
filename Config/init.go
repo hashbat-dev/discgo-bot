@@ -229,6 +229,8 @@ var (
 	Bottoken             string
 	Session              *discordgo.Session
 	ValidImageExtensions []string
+	UserBangHelpText     string
+	UserSlashHelpText    string
 )
 
 const (
