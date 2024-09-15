@@ -82,7 +82,7 @@ func getCommandByName(commandName string) commands.Command {
 	if !ok {
 		return nil
 	}
-	return cmd
+	return cmd.Command
 }
 
 // Dispatches a Command to its appropriate channel.
