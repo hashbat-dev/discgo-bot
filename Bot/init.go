@@ -61,7 +61,7 @@ func Init() {
 	}
 
 	// 7. Reset Global Discord /commands
-	handlers.DeleteAllCommands("")
+	handlers.RefreshSlashCommands("")
 
 	// -------------------
 	file, err := os.Open("87673673-6626-49a9-b9b2-944b1ba90e1d.wav") // replace with your file name
