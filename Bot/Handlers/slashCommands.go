@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 	slash "github.com/dabi-ngin/discgo-bot/Bot/Commands/Slash"
 	config "github.com/dabi-ngin/discgo-bot/Config"
@@ -53,12 +55,12 @@ type SlashCommand struct {
 	Complexity int
 }
 
-var SlashCommands []*discordgo.ApplicationCommand
+var SlashCommands map[string]SlashCommand = make(map[string]SlashCommand)
 
 func InitSlashCommands() {
 	// Handle adding Slash Commands (these are added below this function)
 	for _, cmd := range slashCommands {
-		SlashCommands = append(SlashCommands, cmd.Command)
+		SlashCommands[cmd.Command.Name] = cmd
 	}
 
 	config.Session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -72,26 +74,39 @@ func SlashCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	cmdName := i.ApplicationCommandData().Name
-
-	for _, cmd := range slashCommands {
-		if cmd.Command.Name == cmdName {
-			DispatchTask(&Task{
-				CommandType: config.CommandTypeSlash,
-				Complexity:  cmd.Complexity,
-				SlashDetails: &SlashTaskDetails{
-					Interaction:  i,
-					SlashCommand: cmd,
-				},
-			})
-			return
-		}
+	if cmd, exists := SlashCommands[i.ApplicationCommandData().Name]; exists {
+		DispatchTask(&Task{
+			CommandType: config.CommandTypeSlash,
+			Complexity:  cmd.Complexity,
+			SlashDetails: &SlashTaskDetails{
+				Interaction:  i,
+				SlashCommand: cmd,
+			},
+		})
+		return
 	}
 
 	logger.ErrorText(i.GuildID, "No Handler found for Slash Command: %v", cmdName)
 }
 
+func DeleteAllCommands(guildId string) {
+	// Fetch all registered commands assigned from the Bot -> the Guild
+	registeredCommands, err := config.Session.ApplicationCommands(config.Session.State.User.ID, guildId)
+	if err != nil {
+		logger.Error(guildId, err)
+		return
+	}
+
+	for _, cmd := range registeredCommands {
+		err := config.Session.ApplicationCommandDelete(config.Session.State.User.ID, guildId, cmd.ID)
+		if err != nil {
+			logger.ErrorText(guildId, "Error deleting Command: %s, Error: %e", cmd.Name, err)
+		}
+	}
+}
+
 func RefreshSlashCommands(guildId string) {
-	if SlashCommands == nil {
+	if len(SlashCommands) == 0 {
 		InitSlashCommands()
 	}
 
@@ -102,21 +117,66 @@ func RefreshSlashCommands(guildId string) {
 		return
 	}
 
-	// Delete each command
+	// Check Existing Commands
+	var validated map[string]interface{} = make(map[string]interface{})
 	for _, cmd := range registeredCommands {
-		err := config.Session.ApplicationCommandDelete(config.Session.State.User.ID, guildId, cmd.ID)
-		if err != nil {
-			logger.ErrorText(guildId, "Error deleting Command: %v, Error: %v", cmd.Name, err)
+		delete := false
+		if local, exists := SlashCommands[cmd.Name]; exists {
+			// Slash Command already registered, are the options the same?
+			var liveOpts map[string]interface{} = make(map[string]interface{})
+			for _, opt := range cmd.Options {
+				liveOpts[fmt.Sprintf("%s|%s", opt.Name, opt.Type.String())] = struct{}{}
+			}
+			var currOpts map[string]interface{} = make(map[string]interface{})
+			for _, opt := range local.Command.Options {
+				currOpts[fmt.Sprintf("%s|%s", opt.Name, opt.Type.String())] = struct{}{}
+			}
+
+			// Different option lengths?
+			if len(liveOpts) != len(currOpts) {
+				delete = true
+			}
+
+			// Matching options?
+			if !delete {
+				for item := range liveOpts {
+					if _, found := currOpts[item]; !found {
+						delete = true
+					}
+				}
+			}
+
+			if !delete {
+				validated[cmd.Name] = struct{}{}
+			}
+		} else {
+			// Slash Command exists externally but not in our map, delete it
+			delete = true
+		}
+
+		if delete {
+			err := config.Session.ApplicationCommandDelete(config.Session.State.User.ID, guildId, cmd.ID)
+			if err != nil {
+				logger.ErrorText(guildId, "Error deleting Command: %s, Error: %e", cmd.Name, err)
+			}
+		} else {
+			validated[cmd.Name] = struct{}{}
 		}
 	}
 
 	// Register the Commands again
 	for _, cmd := range SlashCommands {
-		_, err := config.Session.ApplicationCommandCreate(config.Session.State.User.ID, guildId, cmd)
+		if _, validated := validated[cmd.Command.Name]; validated {
+			// Already registered
+			logger.Debug(guildId, "Command already registered: %v", cmd.Command.Name)
+			continue
+		}
+
+		_, err := config.Session.ApplicationCommandCreate(config.Session.State.User.ID, guildId, cmd.Command)
 		if err != nil {
-			logger.ErrorText(guildId, "Error registering Command: %v, Error: %v", cmd.Name, err)
+			logger.ErrorText(guildId, "Error registering Command: %v, Error: %v", cmd.Command.Name, err)
 		} else {
-			logger.Debug(guildId, "Successfully registered command: %v", cmd.Name)
+			logger.Debug(guildId, "Successfully registered command: %v", cmd.Command.Name)
 		}
 	}
 }

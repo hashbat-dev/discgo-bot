@@ -275,8 +275,10 @@ func ProcessQueue() {
 				Reader: wavReader,
 			}
 
+			displayText := fmt.Sprintf("-# '%v' by <@%v>, reply with **!ttsinfo** for details", value.RequestModelName, value.Interaction.Member.User.ID)
 			message, err := config.Session.ChannelMessageSendComplex(value.Interaction.ChannelID, &discordgo.MessageSend{
-				Files: []*discordgo.File{fileObj},
+				Content: displayText,
+				Files:   []*discordgo.File{fileObj},
 			})
 
 			if err != nil {
