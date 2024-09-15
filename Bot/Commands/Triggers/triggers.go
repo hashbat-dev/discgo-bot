@@ -1,10 +1,14 @@
 package triggers
 
-import "time"
+import (
+	"time"
+)
 
 type Phrase struct {
 	ID                int
 	Phrase            string
+	IsSpecial         bool
+	IsGlobal          bool
 	NotifyOnDetection bool
 	WordOnlyMatch     bool
 }
@@ -15,4 +19,12 @@ type PhraseLink struct {
 	GuildID       string
 	AddedByUserID string
 	AddedDateTime time.Time
+}
+
+var GlobalPhrases []Phrase = []Phrase{
+	{
+		Phrase:    "jason statham",
+		IsSpecial: true,
+		IsGlobal:  true,
+	},
 }

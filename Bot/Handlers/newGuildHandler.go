@@ -20,7 +20,7 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 		logger.Error(newGuild.ID, err)
 	}
 
-	var triggers []triggers.Phrase
+	var triggerList []triggers.Phrase
 
 	if dbId > 0 {
 		// => Guild already exists, update the Member Count
@@ -38,8 +38,11 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 		}
 
 		for _, phrase := range phraseLinks {
-			triggers = append(triggers, phrase.Phrase)
+			triggerList = append(triggerList, phrase.Phrase)
 		}
+
+		// => Add Global Phrases
+		triggerList = append(triggerList, triggers.GlobalPhrases...)
 
 		logger.Event(newGuild.ID, "Existing Guild connected: %v", newGuild.Name)
 	} else {
@@ -59,6 +62,6 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 	}
 
 	// 3. Add to the Active Cache
-	cache.AddToActiveGuildCache(newGuild, dbId, triggers)
+	cache.AddToActiveGuildCache(newGuild, dbId, triggerList)
 	reporting.Guilds()
 }
