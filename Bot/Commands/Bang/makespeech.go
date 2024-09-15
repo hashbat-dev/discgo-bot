@@ -209,7 +209,7 @@ func addSpeechBubbleToImage(guildId string, imageReader io.Reader, newImgBuffer 
 		}
 	}
 
-	logger.Info(guildId, fmt.Sprintf("addSpeechBubbleToImage completed (%v) after %v", imgExtension, time.Since(start)))
+	logger.Info(guildId, "addSpeechBubbleToImage completed (%s) after %v", imgExtension, time.Since(start))
 	return nil
 }
 

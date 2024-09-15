@@ -74,32 +74,23 @@ func init() {
 }
 
 func worker(id int, taskId int, ch <-chan *Task) {
-	for {
-		select {
-		case msg, ok := <-ch:
-			if !ok {
-				// Channel is closed, exit goroutine
-				logger.Info("WORKER", "worker %d: Channel closed, exiting...", id)
-				return
-			}
-
-			reporting.WorkerProcessingStart(taskId)
-			switch msg.CommandType {
-			case config.CommandTypeBang:
-				workerBang(msg.BangDetails)
-			case config.CommandTypeSlash:
-				workerSlash(msg.SlashDetails)
-			case config.CommandTypeSlashResponse:
-				workerSlashResponse(msg.SlashResponseDetails)
-			case config.CommandTypePhrase:
-				workerPhrase(msg.PhraseDetails)
-			default:
-				logger.ErrorText("WORKER", "Unknown CommandType value [%v]", msg.CommandType)
-			}
-
-			reporting.WorkerProcessingFinish(taskId)
+	for task := range ch {
+		reporting.WorkerProcessingStart(taskId)
+		switch task.CommandType {
+		case config.CommandTypeBang:
+			workerBang(task.BangDetails)
+		case config.CommandTypeSlash:
+			workerSlash(task.SlashDetails)
+		case config.CommandTypeSlashResponse:
+			workerSlashResponse(task.SlashResponseDetails)
+		case config.CommandTypePhrase:
+			workerPhrase(task.PhraseDetails)
+		default:
+			logger.ErrorText("WORKER", "Unknown CommandType value [%v]", task.CommandType)
 		}
+		reporting.WorkerProcessingFinish(taskId)
 	}
+	logger.Info("WORKER", "worker %d: Channel closed, exiting...", id)
 }
 
 func workerBang(msg *BangTaskDetails) {

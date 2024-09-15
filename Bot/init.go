@@ -41,11 +41,11 @@ func Init() {
 		return
 	}
 
-	initText := "Bot initalisation successful"
+	var initSuffix string
 	if config.ServiceSettings.DASHBOARDURL != "" {
-		initText += ", Dashboard open at: " + config.ServiceSettings.DASHBOARDURL
+		initSuffix = ", Dashboard open at: " + config.ServiceSettings.DASHBOARDURL
 	}
-	logger.Info("", initText)
+	logger.Info("", "Bot intialisation successful%s", initSuffix)
 
 	// 6. Register Discord /commands
 	if !registerCommands() {

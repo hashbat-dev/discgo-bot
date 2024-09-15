@@ -51,9 +51,8 @@ type GraphWidgetDataset struct {
 
 // Writes JSON data for a GraphWidget object
 func SaveGraphWidget(widget GraphWidget) error {
-
 	// No Labels?
-	if widget.Options.ChartLabels == nil || len(widget.Options.ChartLabels) == 0 {
+	if len(widget.Options.ChartLabels) == 0 {
 		maxDataset := 0
 		for _, dataset := range widget.Options.Datasets {
 			switch data := dataset.Data.(type) {

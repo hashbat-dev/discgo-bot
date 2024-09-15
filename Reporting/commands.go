@@ -44,7 +44,8 @@ func Command(
 ) {
 	// 1. Calculate the time taken straight away and log the Event
 	timeTaken := time.Since(timeStarted)
-	logger.Event(guildID, fmt.Sprintf("[%v] Command completed successfully after %v [%v]", correlationId, timeTaken, commandName))
+
+	logger.Event(guildID, "[%s] Command completed successfully after %s [%s]", correlationId, timeTaken.String(), commandName)
 	database.LogCommandUsage(guildID, authorID, commandTypeId, commandName)
 
 	// Command Log (individual)
