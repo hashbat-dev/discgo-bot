@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/bwmarrin/discordgo"
 	slash "github.com/dabi-ngin/discgo-bot/Bot/Commands/Slash"
+	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
@@ -68,6 +69,10 @@ func InitSlashCommands() {
 
 func SlashCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if i.Type == discordgo.InteractionMessageComponent {
+		return
+	}
+
+	if !config.ServiceSettings.ISDEV != cache.ActiveGuilds[i.GuildID].IsDev {
 		return
 	}
 

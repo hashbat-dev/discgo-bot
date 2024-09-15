@@ -118,7 +118,7 @@ func returnWidgetData(w http.ResponseWriter, widget string) {
 		}
 	} else {
 		// Requested Widget not found
-		logger.Error("DASHBOARD", fmt.Errorf("requested widget '%v' not found", widget))
+		logger.Debug("DASHBOARD", fmt.Sprintf("requested widget '%v' not found", widget))
 		http.Error(w, "Widget not found", http.StatusNotFound)
 	}
 }

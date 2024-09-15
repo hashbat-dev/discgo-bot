@@ -15,7 +15,7 @@ import (
 // Calls whenever a new Guild connects to the bot. This also runs for all active Guilds on startup.
 func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate) {
 	// 1. Do we have any existing records for the Guild?
-	dbId, err := database.Guild_DoesGuildExist(newGuild.ID)
+	dbId, isDev, err := database.Guild_DoesGuildExist(newGuild.ID)
 	if err != nil && !strings.Contains(err.Error(), "no rows") {
 		logger.Error(newGuild.ID, err)
 	}
@@ -62,6 +62,6 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 	}
 
 	// 3. Add to the Active Cache
-	cache.AddToActiveGuildCache(newGuild, dbId, triggerList)
+	cache.AddToActiveGuildCache(newGuild, dbId, isDev, triggerList)
 	reporting.Guilds()
 }
