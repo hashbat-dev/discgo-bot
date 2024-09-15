@@ -53,7 +53,7 @@ func checkForDashboardMessage(r *http.Request) {
 }
 
 func TrySendDashboardInitMessage() {
-	if config.Session != nil && config.ServiceSettings.LOGGINGCHANNELID != "" {
+	if config.Session != nil && strings.TrimSpace(config.ServiceSettings.LOGGINGCHANNELID) != "" {
 		_, err := config.Session.ChannelMessageSend(config.ServiceSettings.LOGGINGCHANNELID, fmt.Sprintf("Dashboard Live: %v", config.ServiceSettings.DASHBOARDURL))
 		if err != nil {
 			logger.Error("DASHBOARD", err)
