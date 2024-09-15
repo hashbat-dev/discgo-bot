@@ -58,10 +58,7 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 		}
 	}
 
-	// 3. Make sure the Commands are up to date on this Guild
-	RefreshSlashCommands(newGuild.ID)
-
-	// 4. Add to the Active Cache
+	// 3. Add to the Active Cache
 	cache.AddToActiveGuildCache(newGuild, dbId, triggers)
 	reporting.Guilds()
 }
