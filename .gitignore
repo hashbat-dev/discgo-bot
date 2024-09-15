@@ -4,3 +4,4 @@
 config.json
 .projectile
 .env
+__debug*
