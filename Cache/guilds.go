@@ -10,10 +10,11 @@ import (
 
 var ActiveGuilds map[string]Guild = make(map[string]Guild)
 
-func AddToActiveGuildCache(guild *discordgo.GuildCreate, dbId int, triggers []triggers.Phrase) {
+func AddToActiveGuildCache(guild *discordgo.GuildCreate, dbId int, isDev bool, triggers []triggers.Phrase) {
 	ActiveGuilds[guild.ID] = Guild{
 		DbID:        dbId,
 		DiscordID:   guild.ID,
+		IsDev:       isDev,
 		Name:        guild.Name,
 		LastCommand: helpers.GetNullDateTime(),
 		Triggers:    triggers,

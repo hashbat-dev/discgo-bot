@@ -62,6 +62,10 @@ func skipMessageCheck(session *discordgo.Session, message *discordgo.MessageCrea
 		return true
 	}
 
+	if config.ServiceSettings.ISDEV != cache.ActiveGuilds[message.GuildID].IsDev {
+		return true
+	}
+
 	return false
 }
 

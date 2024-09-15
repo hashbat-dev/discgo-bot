@@ -8,18 +8,23 @@ import (
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
 
-func Guild_DoesGuildExist(GuildID string) (int, error) {
+func Guild_DoesGuildExist(GuildID string) (int, bool, error) {
 
 	var ID sql.NullInt32
-	err := Db.QueryRow("SELECT ID FROM Guilds WHERE GuildID = ?", GuildID).Scan(&ID)
+	var IsDev sql.NullBool
+	err := Db.QueryRow("SELECT ID, IsDevServer FROM Guilds WHERE GuildID = ?", GuildID).Scan(&ID, &IsDev)
 	if err != nil {
-		return 0, err
+		return 0, false, err
 	}
 
 	if !ID.Valid {
-		return 0, nil
+		return 0, false, nil
 	} else {
-		return int(ID.Int32), nil
+		isDev := false
+		if IsDev.Valid {
+			isDev = IsDev.Bool
+		}
+		return int(ID.Int32), isDev, nil
 	}
 
 }

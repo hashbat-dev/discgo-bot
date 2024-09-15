@@ -11,6 +11,7 @@ type Guild struct {
 	DiscordID    string
 	Name         string
 	CommandCount int
+	IsDev        bool
 	LastCommand  time.Time
 	Triggers     []triggers.Phrase
 }
