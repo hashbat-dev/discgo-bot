@@ -74,7 +74,7 @@ func SlashCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	if !config.ServiceSettings.ISDEV != cache.ActiveGuilds[i.GuildID].IsDev {
+	if config.ServiceSettings.ISDEV != cache.ActiveGuilds[i.GuildID].IsDev {
 		return
 	}
 
@@ -92,22 +92,6 @@ func SlashCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	logger.ErrorText(i.GuildID, "No Handler found for Slash Command: %v", cmdName)
-}
-
-func DeleteAllCommands(guildId string) {
-	// Fetch all registered commands assigned from the Bot -> the Guild
-	registeredCommands, err := config.Session.ApplicationCommands(config.Session.State.User.ID, guildId)
-	if err != nil {
-		logger.Error(guildId, err)
-		return
-	}
-
-	for _, cmd := range registeredCommands {
-		err := config.Session.ApplicationCommandDelete(config.Session.State.User.ID, guildId, cmd.ID)
-		if err != nil {
-			logger.ErrorText(guildId, "Error deleting Command: %s, Error: %e", cmd.Name, err)
-		}
-	}
 }
 
 func RefreshSlashCommands(guildId string) {

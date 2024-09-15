@@ -61,10 +61,7 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 		}
 	}
 
-	// 3. Register Commands with the Guild
-	RefreshSlashCommands(newGuild.ID)
-
-	// 4. Add to the Active Cache
+	// 3. Add to the Active Cache
 	cache.AddToActiveGuildCache(newGuild, dbId, isDev, triggerList)
 	reporting.Guilds()
 }
