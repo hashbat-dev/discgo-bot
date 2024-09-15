@@ -8,7 +8,6 @@ import (
 )
 
 func GetRandomResource(guildId string, resourceTypeId int) (string, error) {
-
 	query := `SELECT Resource FROM ResourceStorage WHERE ResourceTypeID = ?	ORDER BY RAND() LIMIT 1;`
 	var dbRes sql.NullString
 
