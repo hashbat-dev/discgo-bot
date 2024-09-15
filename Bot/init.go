@@ -52,6 +52,10 @@ func Init() {
 		logger.Error("", errors.New("Failed to register commands"))
 		return
 	}
+
+	// 7. Reset Global Discord /commands
+	handlers.RefreshSlashCommands("")
+
 }
 
 func sessionInit() bool {
