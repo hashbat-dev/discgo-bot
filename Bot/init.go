@@ -2,7 +2,6 @@ package bot
 
 import (
 	"errors"
-	"os"
 
 	"github.com/bwmarrin/discordgo"
 	handlers "github.com/dabi-ngin/discgo-bot/Bot/Handlers"
@@ -10,7 +9,6 @@ import (
 	dashboard "github.com/dabi-ngin/discgo-bot/Dashboard"
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	"github.com/google/uuid"
 )
 
 func Init() {
@@ -63,29 +61,6 @@ func Init() {
 	// 7. Reset Global Discord /commands
 	handlers.RefreshSlashCommands("")
 
-	// -------------------
-	file, err := os.Open("87673673-6626-49a9-b9b2-944b1ba90e1d.wav") // replace with your file name
-	if err != nil {
-		logger.Error("TEST", err)
-		return
-	}
-	defer file.Close()
-
-	// Create discordgo.File object
-	fileObj := &discordgo.File{
-		Name:   uuid.New().String() + ".wav",
-		Reader: file,
-	}
-	// Send the message with embed and file
-	outputText := "-# 'Senator' by <@192015008039698432>, reply with **!ttsinfo** for details"
-	_, err = config.Session.ChannelMessageSendComplex("1269346890147827774", &discordgo.MessageSend{
-		Content: outputText,
-		Files:   []*discordgo.File{fileObj},
-	})
-	if err != nil {
-		logger.Error("TEST", err)
-	}
-	// -------------------
 }
 
 func sessionInit() bool {
