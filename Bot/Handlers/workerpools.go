@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"runtime"
 	"strings"
 	"time"
@@ -10,6 +11,7 @@ import (
 	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
+	database "github.com/dabi-ngin/discgo-bot/Database"
 	discord "github.com/dabi-ngin/discgo-bot/Discord"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
@@ -137,7 +139,12 @@ func workerSlashResponse(msg *SlashResponseDetails) {
 func workerPhrase(msg *PhraseTaskDetails) {
 	var notifyPhrases []string
 	timeStarted := time.Now()
+
+	// Process all generic Trigger Phrases first
 	for _, phrase := range msg.TriggerPhrases {
+		if phrase.IsSpecial {
+			continue
+		}
 		reporting.Command(config.CommandTypePhrase, msg.Message.GuildID, msg.Message.Author.ID, msg.Message.Author.Username, phrase.Phrase, uuid.New().String(), timeStarted)
 		if phrase.NotifyOnDetection {
 			notifyPhrases = append(notifyPhrases, phrase.Phrase)
@@ -149,6 +156,23 @@ func workerPhrase(msg *PhraseTaskDetails) {
 		_, err := config.Session.ChannelMessageSend(msg.Message.ChannelID, showText)
 		if err != nil {
 			logger.Error(msg.Message.GuildID, err)
+		}
+	}
+
+	// Now process any Special ones
+	for _, phrase := range msg.TriggerPhrases {
+		if !phrase.IsSpecial {
+			continue
+		}
+		switch phrase.Phrase {
+		case "jason statham":
+			webm, err := database.GetRandomResource(msg.Message.GuildID, 1)
+			if err != nil {
+				continue
+			}
+			discord.SendUserMessageReply(msg.Message, false, fmt.Sprintf("[%s](%s)", "Jason Statham?", webm))
+		default:
+			logger.ErrorText(msg.Message.GuildID, "Unhandled Special Phrase [%v]", phrase.Phrase)
 		}
 	}
 }
