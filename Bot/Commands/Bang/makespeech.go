@@ -40,16 +40,18 @@ func (s MakeSpeech) Complexity() int {
 }
 
 func (s MakeSpeech) Execute(message *discordgo.MessageCreate, command string) error {
+	progressMessage := discord.SendUserMessageReply(message, false, "Make Speech: Finding image...")
+
 	// 1. Check we have a valid Image and Extension
 	imgUrl := helpers.GetImageFromMessage(message.Message, "")
 	if imgUrl == "" {
-		discord.SendUserMessageReply(message, false, "Invalid image")
+		discord.EditMessage(progressMessage, "Make Speech: Invalid image")
 		return errors.New("no image found")
 	}
 
 	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension == "" {
-		discord.SendUserMessageReply(message, false, "Invalid image")
+		discord.EditMessage(progressMessage, "Make Speech: Invalid image")
 		return errors.New("invalid extension")
 	}
 
@@ -65,6 +67,7 @@ func (s MakeSpeech) Execute(message *discordgo.MessageCreate, command string) er
 	}
 
 	// 3. Get the image as an io.Reader object
+	discord.EditMessage(progressMessage, "Make Speech: Downloading Image...")
 	imageReader, downloadErr := imgwork.DownloadImageToReader(message.GuildID, imgUrl, isAnimated)
 	if downloadErr != nil {
 		discord.SendUserMessageReply(message, false, "Error creating Image")
@@ -73,6 +76,7 @@ func (s MakeSpeech) Execute(message *discordgo.MessageCreate, command string) er
 
 	// 4. Write the new Image to a Bytes Buffer
 	var newImageBuffer bytes.Buffer
+	discord.EditMessage(progressMessage, "Make Speech: Adding Speech Bubble...")
 	addBubbleErr := addSpeechBubbleToImage(message.GuildID, imageReader, &newImageBuffer, isAnimated, imgExtension)
 	if addBubbleErr != nil {
 		discord.SendUserMessageReply(message, false, "Error creating Image")
@@ -86,6 +90,7 @@ func (s MakeSpeech) Execute(message *discordgo.MessageCreate, command string) er
 		return replyErr
 	}
 
+	discord.DeleteMessageObject(progressMessage)
 	discord.DeleteMessage(message)
 	return nil
 }
