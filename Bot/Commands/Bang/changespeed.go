@@ -41,39 +41,52 @@ func (s ChangeSpeed) Complexity() int {
 }
 
 func (s ChangeSpeed) Execute(message *discordgo.MessageCreate, command string) error {
+	commandMessage := "Speed Up"
+	if !s.SpeedUp {
+		commandMessage = "Slow Down"
+	}
+	progressMessage := discord.SendUserMessageReply(message, false, commandMessage+": Finding GIF...")
+
 	// 1. Check we have a valid Image and Extension
 	imgUrl := helpers.GetImageFromMessage(message.Message, "")
 	if imgUrl == "" {
+		discord.EditMessage(progressMessage, commandMessage+": Invalid image")
 		return errors.New("no image found")
 	}
 
 	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension == "" {
+		discord.EditMessage(progressMessage, commandMessage+": Invalid image")
 		return errors.New("invalid extension")
 	}
 
 	// 2. Check the image is a GIF
 	if imgExtension != ".gif" {
+		discord.EditMessage(progressMessage, commandMessage+": Image isn't a GIF")
 		discord.SendUserMessageReply(message, false, "Can only reverse .gifs")
 		return errors.New("image provided is not a gif")
 	}
 
 	// 3. Get the image as an io.Reader object
+	discord.EditMessage(progressMessage, commandMessage+": Downloading GIF...")
 	imageReader, err := imgwork.DownloadImageToReader(message.GuildID, imgUrl, true)
 	if err != nil {
+		discord.EditMessage(progressMessage, commandMessage+": Error downloading Image")
 		return err
 	}
 
 	// 4. Change the GIF Speed
 	var newImageBuffer bytes.Buffer
+	discord.EditMessage(progressMessage, commandMessage+": Changing Speed...")
 	err = changeSpeedGif(message.GuildID, imageReader, &newImageBuffer, s.SpeedUp)
 	if err != nil {
-		discord.SendUserMessageReply(message, false, "Error changing GIF speed")
+		discord.EditMessage(progressMessage, commandMessage+": Error changing GIF Speed")
 		return err
 	}
 
 	// 5. Return the reversed Image
 	outputImageName := uuid.New().String() + ".gif"
+	discord.DeleteMessageObject(progressMessage)
 	discord.DeleteMessage(message)
 	return discord.ReplyToMessageWithImageBuffer(message, true, outputImageName, &newImageBuffer)
 }

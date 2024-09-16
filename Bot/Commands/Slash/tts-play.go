@@ -57,7 +57,7 @@ func TtsPlay(i *discordgo.InteractionCreate, correlationId string) {
 		resultList = append(resultList, discordgo.SelectMenuOption{
 			Label: result.Title,
 			Value: result.ModelToken,
-			Emoji: resultsEmoji,
+			Emoji: &resultsEmoji,
 		})
 	}
 
