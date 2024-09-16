@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
@@ -87,6 +88,7 @@ func returnWidgetOverview(w http.ResponseWriter) {
 		response = append(response, map[string]interface{}{
 			"Widget":    order.CacheKey,
 			"RefreshMs": order.RefreshMs,
+			"SessionID": config.ServiceSettings.SESSIONID,
 		})
 	}
 
@@ -149,7 +151,12 @@ func handleFileRequest(w http.ResponseWriter, r *http.Request) {
 	http.ServeContent(w, r, fileInfo.Name(), fileInfo.ModTime(), file)
 }
 
+var saveJsonMutex sync.Mutex
+
 func SaveJsonData(name string, jsonData []byte, width string, refreshMs int) error {
+	saveJsonMutex.Lock()
+	defer saveJsonMutex.Unlock()
+
 	// Save the JSON Data into the map
 	var data map[string]interface{}
 	if err := json.Unmarshal(jsonData, &data); err != nil {

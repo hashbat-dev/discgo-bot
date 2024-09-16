@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"time"
 
+	config "github.com/dabi-ngin/discgo-bot/Config"
 	dashboard "github.com/dabi-ngin/discgo-bot/Dashboard"
 	"github.com/google/uuid"
 )
 
 type InfoWidget struct {
 	ID        string
+	SessionID string
 	Name      string
 	Timestamp time.Time
 	Type      string
@@ -36,6 +38,7 @@ func SaveInfoWidget(widget *InfoWidget) error {
 	}
 
 	widget.ID = uuid.New().String()
+	widget.SessionID = config.ServiceSettings.SESSIONID
 	widget.Timestamp = time.Now()
 	widget.Type = "info"
 	jsonData, err := json.Marshal(widget)
