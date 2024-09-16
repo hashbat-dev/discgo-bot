@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 )
@@ -93,9 +94,10 @@ func formatTimeColumn(value time.Time, format int) string {
 
 func formatDurationColumn(value time.Duration, format int) string {
 	switch format {
-	case TextFormatDuration_WithMs:
-		return value.String()
 	default:
-		return value.String()
+		// TextFormatDuration_WithMs is the default
+		seconds := int64(value.Seconds())
+		milliseconds := int64(value.Milliseconds()) - (seconds * 1000)
+		return fmt.Sprintf("%ds %dms", seconds, milliseconds)
 	}
 }
