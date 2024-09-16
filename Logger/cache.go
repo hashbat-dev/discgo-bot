@@ -40,7 +40,7 @@ func SendLogsToDashboard(logInfo LogInfo, logText string, logLevel int) {
 	NewLogsForDashboard := append([]DashboardLog{newLog}, LogsForDashboard...)
 
 	if len(NewLogsForDashboard) > config.ServiceSettings.DASHBOARDMAXLOGS {
-		NewLogsForDashboard = NewLogsForDashboard[1:]
+		NewLogsForDashboard = NewLogsForDashboard[:len(NewLogsForDashboard)-1]
 	}
 
 	LogsForDashboard = NewLogsForDashboard
