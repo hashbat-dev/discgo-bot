@@ -93,6 +93,36 @@ function loadWidgetStructure() {
     }).catch(error => {
         console.error(`Error fetching widget data: ${error}`);
     });
+
+    loadPageElements();
+}
+
+function loadPageElements() {
+    $('#WidgetContainer').sortable({
+        placeholder: "DragDropPlaceholder",
+        helper: 'clone',
+        scroll: false,
+        start: function(event, ui) {
+            ui.helper.addClass('DragDropCursor');
+            ui.item.addClass('DragDropHide');
+            
+            var item = ui.item;
+            var width = item.outerWidth();
+            var height = item.outerHeight();
+            
+            $('.DragDropPlaceholder').css({
+                width: (width-8) + 'px',
+                height: (height-8) + 'px'
+            });
+        },
+        stop: function(event, ui) {
+            ui.item.removeClass('DragDropHide');
+            $('.DragDropPlaceholder').css({
+                width: '',
+                height: ''
+            });
+        }
+    });
 }
 
 // Shared Functions ---------------------------------------------------------
