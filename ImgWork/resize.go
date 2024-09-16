@@ -16,10 +16,13 @@ import (
 // Resize image takes an image.Image object, and a width and height, and passes modifies the passed in ResizeImage
 // to give us the intended dimensions. Image is then encoded as .png format and returned as a single-use io.Reader.
 // Note: This operation is destructive to image aspect ratios, so should only be used on things we do not mind being distorted.
-func ResizeImage(guildId string, img image.Image, width uint, height uint) (io.Reader, error) {
+func ResizeImage(guildId string, img image.Image, width uint) (io.Reader, error) {
 	// Resize the image using the resize package
-	resizedImg := resize.Resize(width, height, img, resize.Lanczos3)
-
+	bounds := img.Bounds()
+	originalWidth := bounds.Dx()
+	originalHeight := bounds.Dy()
+	newHeight := uint(float64(originalHeight) * (float64(width) / float64(originalWidth)))
+	resizedImg := resize.Resize(width, newHeight, img, resize.Bilinear)
 	// Create a bytes buffer to write the PNG image to
 	var buf bytes.Buffer
 	err := png.Encode(&buf, resizedImg)
@@ -28,7 +31,7 @@ func ResizeImage(guildId string, img image.Image, width uint, height uint) (io.R
 		return nil, err
 	}
 
-	logger.Debug(guildId, "Resized static image to %dx%d", height, width)
+	logger.Debug(guildId, "Resized static image to %dx%d", newHeight, width)
 	return &buf, nil
 }
 

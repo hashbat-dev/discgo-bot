@@ -98,30 +98,37 @@ func addSpeechBubbleToImage(
 	imgExtension string,
 ) error {
 	start := time.Now()
-	// 1. Get our Speech Bubble overlay template
-	// 1A. Get the filepath to the most appropriate overlay speech bubble image.
-	//	   We used smaller speech bubbles for smaller heights to not obscure the image.
-	rootDir, err := filepath.Abs(filepath.Dir("."))
-	if err != nil {
-		logger.Error(guildId, err)
-		return err
+	// setup values
+	var gifImage *gif.GIF
+	var imageHeight int
+	var inputImage image.Image
+	var decodeErr error
+
+	// Get the image height
+	if isAnimated {
+		gifImage, decodeErr = gif.DecodeAll(imageReader)
+		if decodeErr != nil {
+			return decodeErr
+		}
+		imageHeight = gifImage.Config.Height
+	} else {
+		if imgExtension == ".png" || imgExtension == ".jpg" {
+			// .jpg images are resized to a .png before this function is called
+			inputImage, decodeErr = png.Decode(imageReader)
+		} else if imgExtension == ".webp" {
+			inputImage, decodeErr = webp.Decode(imageReader)
+		}
+		if decodeErr != nil {
+			return decodeErr
+		}
+		imageHeight = inputImage.Bounds().Max.Y
 	}
 
-	overlayPath := "Resources/SpeechTemplates/M.png"
-	templateFilePath := filepath.Join(rootDir, overlayPath)
-
-	// 2. Open the Speech Bubble overlay template
-	overlayFile, err := os.Open(templateFilePath)
-	if err != nil {
-		logger.Error(guildId, err)
-		return err
-	}
-	defer overlayFile.Close()
-
-	overlayImage, overlayDecodeErr := png.Decode(overlayFile)
-	if overlayDecodeErr != nil {
-		logger.Error(guildId, overlayDecodeErr)
-		return overlayDecodeErr
+	// Get corresponding overlay image
+	overlayImage, overlayErr := getOverlayImage(imageHeight)
+	if overlayErr != nil {
+		logger.Error(guildId, overlayErr)
+		return overlayErr
 	}
 
 	// Define the Transparent colour, GIFs are wacky so we can't always add a new
@@ -129,16 +136,11 @@ func addSpeechBubbleToImage(
 	transparentColor := color.RGBA{49, 51, 56, 0}
 	if isAnimated {
 		// GIFs ----------------
-		// Decode the file
-		gifImage, gifDecodeErr := gif.DecodeAll(imageReader)
-		if gifDecodeErr != nil {
-			logger.Error(guildId, gifDecodeErr)
-			return gifDecodeErr
-		}
-
-		resizedOverlayReader, resizeErr := imgwork.ResizeImage(guildId, overlayImage, uint(gifImage.Config.Width), uint(gifImage.Config.Height))
+		// Resize our overlay based on gif dimensions
+		resizedOverlayReader, resizeErr := imgwork.ResizeImage(guildId, overlayImage, uint(gifImage.Config.Width))
 		if resizeErr != nil {
 			logger.Error(guildId, resizeErr)
+			return resizeErr
 		}
 		resizedOverlay, overlayDecodeErr := png.Decode(resizedOverlayReader)
 		if overlayDecodeErr != nil {
@@ -164,29 +166,16 @@ func addSpeechBubbleToImage(
 		gifImage.BackgroundIndex = byte(backgroundIndex)
 
 		// Encode the modified GIF to a buffer
-		err = gif.EncodeAll(newImgBuffer, gifImage)
-		if err != nil {
-			logger.Error(guildId, err)
-			return err
+		encodeErr := gif.EncodeAll(newImgBuffer, gifImage)
+		if encodeErr != nil {
+			logger.Error(guildId, encodeErr)
+			return encodeErr
 		}
 
 	} else {
 		// Static Images --------
 		// Read and decode the input PNG image
-		var inputImage image.Image
-		var decodeErr error
-		if imgExtension == ".png" || imgExtension == ".jpg" {
-			// .jpg images are resized to a .png before this function is called
-			inputImage, decodeErr = png.Decode(imageReader)
-		} else if imgExtension == ".webp" {
-			inputImage, decodeErr = webp.Decode(imageReader)
-		}
-		if decodeErr != nil {
-			logger.Error(guildId, decodeErr)
-			return decodeErr
-		}
-
-		resizedOverlayReader, resizeErr := imgwork.ResizeImage(guildId, overlayImage, uint(inputImage.Bounds().Dx()), uint(inputImage.Bounds().Dy()))
+		resizedOverlayReader, resizeErr := imgwork.ResizeImage(guildId, overlayImage, uint(inputImage.Bounds().Dx()))
 		if resizeErr != nil {
 			logger.Error(guildId, resizeErr)
 			return resizeErr
@@ -212,11 +201,11 @@ func addSpeechBubbleToImage(
 		}
 
 		// Encode the modified PNG to buffer
-		err = png.Encode(newImgBuffer, outputImg)
-		if err != nil {
-			err = fmt.Errorf("error encoding modified PNG: %w", err)
-			logger.Error(guildId, err)
-			return err
+		encodeErr := png.Encode(newImgBuffer, outputImg)
+		if encodeErr != nil {
+			encodeErr = fmt.Errorf("error encoding modified PNG: %w", encodeErr)
+			logger.Error(guildId, encodeErr)
+			return encodeErr
 		}
 	}
 
@@ -248,4 +237,34 @@ func colourDistance(c1, c2 color.Color) float64 {
 	db := float64(b1>>8) - float64(b2>>8)
 
 	return math.Sqrt(dr*dr + dg*dg + db*db)
+}
+
+// determines which image file to use for the operation based on the height of the input image
+func getOverlayImage(height int) (image.Image, error) {
+	rootDir, fpErr := filepath.Abs(filepath.Dir("."))
+	if fpErr != nil {
+		return nil, fpErr
+	}
+	overlayPath := "Resources/SpeechTemplates/"
+	if height < 100 {
+		overlayPath += "S"
+	} else if height < 200 {
+		overlayPath += "M"
+	} else {
+		overlayPath += "L"
+	}
+	overlayPath += ".png"
+
+	templateFilePath := filepath.Join(rootDir, overlayPath)
+	overlayFile, fopenErr := os.Open(templateFilePath)
+	if fopenErr != nil {
+		return nil, fopenErr
+	}
+	defer overlayFile.Close()
+
+	overlayImage, overlayDecodeErr := png.Decode(overlayFile)
+	if overlayDecodeErr != nil {
+		return nil, overlayDecodeErr
+	}
+	return overlayImage, nil
 }
