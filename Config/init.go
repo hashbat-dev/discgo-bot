@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
 
@@ -191,6 +192,7 @@ type ProcessPool struct {
 }
 
 type Vars struct {
+	SESSIONID   string
 	ISDEV       bool
 	SUPERADMINS []string
 
@@ -266,6 +268,8 @@ func init() {
 		".jpg",
 		".webp",
 	}
+
+	ServiceSettings.SESSIONID = uuid.New().String()
 }
 
 func parseEnvVariables() error {

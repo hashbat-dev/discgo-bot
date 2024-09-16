@@ -6,6 +6,7 @@ import (
 	"math"
 	"time"
 
+	config "github.com/dabi-ngin/discgo-bot/Config"
 	dashboard "github.com/dabi-ngin/discgo-bot/Dashboard"
 	"github.com/google/uuid"
 )
@@ -85,6 +86,7 @@ func SaveGraphWidget(widget GraphWidget) error {
 
 	saveJson := map[string]interface{}{
 		"ID":        uuid.New(),
+		"SessionID": config.ServiceSettings.SESSIONID,
 		"Name":      widget.Options.Name,
 		"Options":   widget.Options,
 		"Timestamp": time.Now(),

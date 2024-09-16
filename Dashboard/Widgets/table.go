@@ -11,6 +11,7 @@ import (
 
 type TableWidget struct {
 	ID        string
+	SessionID string
 	Timestamp time.Time
 	Type      string
 	Options   TableWidgetOptions
@@ -59,6 +60,7 @@ func SaveTableWidget(widget *TableWidget) error {
 	}
 
 	widget.ID = uuid.New().String()
+	widget.SessionID = config.ServiceSettings.SESSIONID
 	widget.Timestamp = time.Now()
 	widget.Type = "table"
 	jsonData, err := json.Marshal(widget)
