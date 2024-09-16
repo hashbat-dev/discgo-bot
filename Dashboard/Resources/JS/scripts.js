@@ -33,7 +33,7 @@ function resetPage() {
 
     // Clear Chart Instances
     chartInstances.clear();
-    
+
     // Delete the Widgets
     while (widgetContainer.firstChild) {
         widgetContainer.removeChild(widgetContainer.firstChild);
@@ -138,6 +138,11 @@ async function updateWidget(widget, widgetDiv) {
             connectedIconAMBER.style.display = 'none';
             connectedIconON.style.display = 'none';
             connectedIconOFF.title = 'Update failed at: ' + getCurrentTime();
+            return
+        }
+
+        if (data.SessionID != sessionId) {
+            resetPage();
             return
         }
 
