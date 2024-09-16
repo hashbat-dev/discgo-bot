@@ -24,12 +24,22 @@ func SendUserMessage(message *discordgo.MessageCreate, messageText string) {
 	}
 }
 
-func SendUserMessageReply(message *discordgo.MessageCreate, replyToQuoted bool, messageText string) {
+func SendUserMessageReply(message *discordgo.MessageCreate, replyToQuoted bool, messageText string) *discordgo.Message {
 	replyTo := message.Reference()
 	if replyToQuoted && message.ReferencedMessage != nil {
 		replyTo = message.ReferencedMessage.Reference()
 	}
-	_, err := config.Session.ChannelMessageSendReply(message.ChannelID, messageText, replyTo)
+	msg, err := config.Session.ChannelMessageSendReply(message.ChannelID, messageText, replyTo)
+	if err != nil {
+		logger.Error(message.GuildID, err)
+		return nil
+	}
+
+	return msg
+}
+
+func EditMessage(message *discordgo.Message, messageText string) {
+	_, err := config.Session.ChannelMessageEdit(message.ChannelID, message.ID, messageText)
 	if err != nil {
 		logger.Error(message.GuildID, err)
 	}
@@ -152,6 +162,13 @@ func ReplyToInteractionWithEmbed(interaction *discordgo.InteractionCreate, embed
 }
 
 func DeleteMessage(message *discordgo.MessageCreate) {
+	err := config.Session.ChannelMessageDelete(message.ChannelID, message.ID)
+	if err != nil {
+		logger.Error(message.GuildID, err)
+	}
+}
+
+func DeleteMessageObject(message *discordgo.Message) {
 	err := config.Session.ChannelMessageDelete(message.ChannelID, message.ID)
 	if err != nil {
 		logger.Error(message.GuildID, err)

@@ -42,20 +42,25 @@ func (s FlipImage) Complexity() int {
 }
 
 func (s FlipImage) Execute(message *discordgo.MessageCreate, command string) error {
+	progressMessage := discord.SendUserMessageReply(message, false, "Flip Image: Finding image...")
+
 	// 1. Check we have a valid Image and Extension
 	imgUrl := helpers.GetImageFromMessage(message.Message, "")
 	if imgUrl == "" {
+		discord.EditMessage(progressMessage, "Flip Image: Invalid image")
 		return errors.New("no image found")
 	}
 
 	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension == "" {
+		discord.EditMessage(progressMessage, "Flip Image: Invalid image")
 		return errors.New("invalid extension")
 	}
 
 	isAnimated := imgExtension == ".gif"
 
 	// 2. Get the image as an io.Reader object
+	discord.EditMessage(progressMessage, "Flip Image: Downloading image...")
 	imageReader, err := imgwork.DownloadImageToReader(message.GuildID, imgUrl, isAnimated)
 	if err != nil {
 		return err
@@ -90,12 +95,14 @@ func (s FlipImage) Execute(message *discordgo.MessageCreate, command string) err
 		flipDirections = append(flipDirections, "down")
 	default:
 		err = fmt.Errorf("Unknown Flip Direction [%v]", s.FlipDirection)
+		discord.EditMessage(progressMessage, "Flip Image: Bot Error")
 		logger.Error(message.GuildID, err)
 		return err
 	}
 
 	// 5. Perform the Flips and write back each Image individually
 	for _, flip := range flipDirections {
+		discord.EditMessage(progressMessage, "Flip Image: Flipping "+flip+"...")
 		outputImageName := uuid.New().String()
 		if imgExtension == ".gif" {
 			outputImageName += ".gif"
@@ -121,12 +128,12 @@ func (s FlipImage) Execute(message *discordgo.MessageCreate, command string) err
 	}
 
 	// 6. Delete the calling Message
+	discord.DeleteMessageObject(progressMessage)
 	discord.DeleteMessage(message)
 	return nil
 }
 
 func flipImageGif(guildId string, imageReader bytes.Buffer, flipDirection string) (bytes.Buffer, error) {
-
 	timeStarted := time.Now()
 	imageReaderGifObject, err := gif.DecodeAll(&imageReader)
 	if err != nil {
