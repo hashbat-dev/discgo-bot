@@ -1,6 +1,8 @@
 let connectedIconOn = 'Resources/Img/link_on.svg';
 let connectedIconOff = 'Resources/Img/link_off.svg';
 let connectedIconAmber = 'Resources/Img/link_amber.svg';
+let setIntervalIds = [];
+let sessionId = '';
 
 // Page Load init --------------------------------------------------
 window.onload = function() {
@@ -19,10 +21,46 @@ function assignEventListeners() {
     });
 }
 
+function resetPage() {
+    sessionId = '';
+    const widgetContainer = document.getElementById('WidgetContainer');
+
+    // Unset the Widget update functions
+    for (const id of setIntervalIds) {
+        clearInterval(id);
+    }
+    setIntervalIds.length = 0;
+
+    // Clear Chart Instances
+    chartInstances.clear();
+
+    // Delete the Widgets
+    while (widgetContainer.firstChild) {
+        widgetContainer.removeChild(widgetContainer.firstChild);
+    }
+}
+
 // Widgets ------------------------------------------------------------------
 function loadWidgetStructure() {    
     // Get information on what Widgets we have
     fetchData('').then(widgets => {
+
+        if (!widgets) {
+            return
+        }
+
+        // Check the SessionID hasn't changed, if it has we need to Wipe the Page as the Bot has restarted
+        if (widgets && widgets.length > 0) {
+            inboundSessionId = widgets[0].SessionID;
+            if (sessionId == '') {
+                sessionId = inboundSessionId;
+            } else {
+                if (sessionId != inboundSessionId) {
+                    resetPage();
+                    return
+                }
+            }
+        }
 
         const writeUpdates = document.getElementById('WriteUpdates');
         if (!writeUpdates.checked) {
@@ -49,11 +87,41 @@ function loadWidgetStructure() {
                 updateWidget(widgetName, newWidgetDiv);
                 
                 // Use the specific refresh interval from RefreshMs
-                setInterval(() => updateWidget(widgetName, newWidgetDiv), refreshMs);
+                setIntervalIds.push(setInterval(() => updateWidget(widgetName, newWidgetDiv), refreshMs));
             }
         });
     }).catch(error => {
         console.error(`Error fetching widget data: ${error}`);
+    });
+
+    loadPageElements();
+}
+
+function loadPageElements() {
+    $('#WidgetContainer').sortable({
+        placeholder: "DragDropPlaceholder",
+        helper: 'clone',
+        scroll: false,
+        start: function(event, ui) {
+            ui.helper.addClass('DragDropCursor');
+            ui.item.addClass('DragDropHide');
+            
+            var item = ui.item;
+            var width = item.outerWidth();
+            var height = item.outerHeight();
+            
+            $('.DragDropPlaceholder').css({
+                width: (width-8) + 'px',
+                height: (height-8) + 'px'
+            });
+        },
+        stop: function(event, ui) {
+            ui.item.removeClass('DragDropHide');
+            $('.DragDropPlaceholder').css({
+                width: '',
+                height: ''
+            });
+        }
     });
 }
 
@@ -72,7 +140,8 @@ async function fetchData(widget) {
         // 2. Fetch the JSON data 
         const response = await fetch(dataUrl);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            console.error(new Error(`HTTP error! status: ${response.status}`));
+            return false;
         }
 
         // 3. Parse the JSON data and save it as an Object
@@ -81,6 +150,7 @@ async function fetchData(widget) {
 
     } catch (error) {
         console.error(`Error fetching data: ${error}`);
+        return false;
     }
 }
 
@@ -88,6 +158,23 @@ async function updateWidget(widget, widgetDiv) {
     try {
     
         const data = await fetchData(widget);
+
+        if (data == false) {
+            const connectedIconOFF = widgetDiv.querySelector('.ConnectedOFF');
+            const connectedIconAMBER = widgetDiv.querySelector('.ConnectedAMBER');
+            const connectedIconON = widgetDiv.querySelector('.ConnectedON');
+
+            connectedIconOFF.style.display = 'block';
+            connectedIconAMBER.style.display = 'none';
+            connectedIconON.style.display = 'none';
+            connectedIconOFF.title = 'Update failed at: ' + getCurrentTime();
+            return
+        }
+
+        if (data.SessionID != sessionId) {
+            resetPage();
+            return
+        }
 
         // Has the Widget had its first time setup?
         if (widgetDiv.getAttribute('widgetInit') == 'false') {
@@ -132,13 +219,18 @@ async function updateWidget(widget, widgetDiv) {
 // Update Widgets -----------------------------------------------------------
 async function updateTable(data, widgetDiv) {
     const loadingBlock = widgetDiv.querySelector('.Loading');
-    const connectedIcon = widgetDiv.querySelector('.ConnectedIcon');
+    const connectedIconOFF = widgetDiv.querySelector('.ConnectedOFF');
+    const connectedIconAMBER = widgetDiv.querySelector('.ConnectedAMBER');
+    const connectedIconON = widgetDiv.querySelector('.ConnectedON');
 
     // Are updates disabled?
     const updateToggle = widgetDiv.querySelector('.updateToggle');
     if (!updateToggle.checked) {
-        connectedIcon.src = connectedIconAmber;
-        connectedIcon.title = 'Updates manually disabled at: ' + getCurrentTime();
+        connectedIconOFF.style.display = 'none';
+        connectedIconAMBER.style.display = 'block';
+        connectedIconON.style.display = 'none';
+
+        connectedIconAMBER.title = 'Updates manually disabled at: ' + getCurrentTime();
         return
     }
 
@@ -204,13 +296,19 @@ async function updateTable(data, widgetDiv) {
             });
         }
 
-        connectedIcon.src = connectedIconOn;
-        connectedIcon.title = 'Last update: ' + getCurrentTime();
+        connectedIconOFF.style.display = 'none';
+        connectedIconAMBER.style.display = 'none';
+        connectedIconON.style.display = 'block';
+
+        connectedIconON.title = 'Last update: ' + getCurrentTime();
         loadingBlock.style.display = 'none';
     } catch (error) {
         loadingBlock.style.display = 'none';
-        connectedIcon.src = connectedIconOff;
-        connectedIcon.title = 'Error obtaining data at: ' + getCurrentTime() + ", check console for information";
+        
+        connectedIconOFF.style.display = 'block';
+        connectedIconAMBER.style.display = 'none';
+        connectedIconON.style.display = 'none';
+        connectedIconOFF.title = 'Error obtaining data at: ' + getCurrentTime() + ", check console for information";
         console.error(`updateTable Error: `, error);
         console.error(data);
         console.error(widgetDiv);
@@ -219,13 +317,17 @@ async function updateTable(data, widgetDiv) {
 
 async function updateGraph(data, widgetDiv) {
     const loadingBlock = widgetDiv.querySelector('.Loading');
-    const connectedIcon = widgetDiv.querySelector('.ConnectedIcon');
+    const connectedIconOFF = widgetDiv.querySelector('.ConnectedOFF');
+    const connectedIconAMBER = widgetDiv.querySelector('.ConnectedAMBER');
+    const connectedIconON = widgetDiv.querySelector('.ConnectedON');
 
     // Are updates disabled?
     const updateToggle = widgetDiv.querySelector('.updateToggle');
     if (!updateToggle.checked) {
-        connectedIcon.src = connectedIconAmber;
-        connectedIcon.title = 'Updates manually disabled at: ' + getCurrentTime();
+        connectedIconOFF.style.display = 'none';
+        connectedIconAMBER.style.display = 'block';
+        connectedIconON.style.display = 'none';
+        connectedIconAMBER.title = 'Updates manually disabled at: ' + getCurrentTime();
         return;
     }
 
@@ -338,14 +440,18 @@ async function updateGraph(data, widgetDiv) {
             chartInstances.set(chartId, newChart);
         }
 
-        connectedIcon.src = connectedIconOn;
-        connectedIcon.title = 'Last update: ' + getCurrentTime();
+        connectedIconOFF.style.display = 'none';
+        connectedIconAMBER.style.display = 'none';
+        connectedIconON.style.display = 'block';
+        connectedIconON.title = 'Last update: ' + getCurrentTime();
         loadingBlock.style.display = 'none';
     }
     catch (error) {
         loadingBlock.style.display = 'none';
-        connectedIcon.src = connectedIconOff;
-        connectedIcon.title = 'Error obtaining data at: ' + getCurrentTime() + ", check console for information";
+        connectedIconOFF.style.display = 'block';
+        connectedIconAMBER.style.display = 'none';
+        connectedIconON.style.display = 'none';
+        connectedIconOFF.title = 'Error obtaining data at: ' + getCurrentTime() + ", check console for information";
         console.error(`updateGraph Error:\nError: ${error}\nData:`, data, `\nWidget Div:`, widgetDiv);
     }
 }
@@ -367,13 +473,25 @@ async function initTableWidget(data, widgetDiv) {
         });
         widgetHeader.appendChild(widgetHeading);
 
-        // => Connected Icon
-        const widgetConnIcon = Object.assign(document.createElement('img'), {
+        // => Connected Icons
+        const widgetConnIconOff = Object.assign(document.createElement('img'), {
             src: connectedIconOff,
             title: 'Not yet connected',
-            className: 'ConnectedIcon'
+            className: 'ConnectedIcon ConnectedOFF'
         });
-        widgetHeader.appendChild(widgetConnIcon);
+        widgetHeader.appendChild(widgetConnIconOff);
+        const widgetConnIconAmber = Object.assign(document.createElement('img'), {
+            src: connectedIconAmber,
+            title: 'Updated stopped',
+            className: 'ConnectedIcon ConnectedAMBER'
+        });
+        widgetHeader.appendChild(widgetConnIconAmber);
+        const widgetConnIconOn = Object.assign(document.createElement('img'), {
+            src: connectedIconOn,
+            title: 'Connected',
+            className: 'ConnectedIcon ConnectedON'
+        });
+        widgetHeader.appendChild(widgetConnIconOn);
 
         // => Update Switch 
         // =>   => (Container)
@@ -472,12 +590,24 @@ async function initGraphWidget(data, widgetDiv) {
         widgetHeader.appendChild(widgetHeading);
 
         // => Connected Icon
-        const widgetConnIcon = Object.assign(document.createElement('img'), {
+        const widgetConnIconOff = Object.assign(document.createElement('img'), {
             src: connectedIconOff,
             title: 'Not yet connected',
-            className: 'ConnectedIcon'
+            className: 'ConnectedIcon ConnectedOFF'
         });
-        widgetHeader.appendChild(widgetConnIcon);
+        widgetHeader.appendChild(widgetConnIconOff);
+        const widgetConnIconAmber = Object.assign(document.createElement('img'), {
+            src: connectedIconAmber,
+            title: 'Updated stopped',
+            className: 'ConnectedIcon ConnectedAMBER'
+        });
+        widgetHeader.appendChild(widgetConnIconAmber);
+        const widgetConnIconOn = Object.assign(document.createElement('img'), {
+            src: connectedIconOn,
+            title: 'Connected',
+            className: 'ConnectedIcon ConnectedON'
+        });
+        widgetHeader.appendChild(widgetConnIconOn);
 
         // => Update Switch 
         // =>   => (Container)

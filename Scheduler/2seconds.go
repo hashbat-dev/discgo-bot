@@ -10,8 +10,8 @@ import (
 func RunEvery2Seconds() {
 	go sendNextDiscordLogBatch()
 	go slash.ProcessQueue()
-	pollHardwareStats()
-	reporting.Logs()
+	go pollHardwareStats()
+	go reporting.Logs()
 }
 
 func sendNextDiscordLogBatch() {
