@@ -4,3 +4,5 @@
 config.json
 .projectile
 .env
+__debug*
+.DS_Store

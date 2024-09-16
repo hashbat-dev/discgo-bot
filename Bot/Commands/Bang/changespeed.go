@@ -59,7 +59,7 @@ func (s ChangeSpeed) Execute(message *discordgo.MessageCreate, command string) e
 	}
 
 	// 3. Get the image as an io.Reader object
-	imageReader, _, err := imgwork.DownloadImageToReader(message.GuildID, imgUrl, true, 0)
+	imageReader, err := imgwork.DownloadImageToReader(message.GuildID, imgUrl, true)
 	if err != nil {
 		return err
 	}
