@@ -32,24 +32,29 @@ func (s Reverse) Complexity() int {
 }
 
 func (s Reverse) Execute(message *discordgo.MessageCreate, command string) error {
+	progressMessage := discord.SendUserMessageReply(message, false, "Reverse: Finding GIF...")
+
 	// 1. Check we have a valid Image and Extension
 	imgUrl := helpers.GetImageFromMessage(message.Message, "")
 	if imgUrl == "" {
+		discord.EditMessage(progressMessage, "Reverse: Invalid image")
 		return errors.New("no image found")
 	}
 
 	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension == "" {
+		discord.EditMessage(progressMessage, "Reverse: Invalid image")
 		return errors.New("invalid extension")
 	}
 
 	// 2. Check the image is a GIF
 	if imgExtension != ".gif" {
-		discord.SendUserMessageReply(message, false, "Can only reverse .gifs")
+		discord.EditMessage(progressMessage, "Reverse: Image was not a GIF")
 		return errors.New("image provided is not a gif")
 	}
 
 	// 3. Get the image as an io.Reader object
+	discord.EditMessage(progressMessage, "Reverse: Downloading GIF...")
 	imageReader, _, err := imgwork.DownloadImageToReader(message.GuildID, imgUrl, true, 0)
 	if err != nil {
 		return err
@@ -57,6 +62,7 @@ func (s Reverse) Execute(message *discordgo.MessageCreate, command string) error
 
 	// 4. Reverse the GIF
 	var newImageBuffer bytes.Buffer
+	discord.EditMessage(progressMessage, "Reverse: Reversing GIF...")
 	err = reverseGif(message.GuildID, imageReader, &newImageBuffer)
 	if err != nil {
 		discord.SendUserMessageReply(message, false, "Error reversing GIF")
@@ -65,6 +71,7 @@ func (s Reverse) Execute(message *discordgo.MessageCreate, command string) error
 
 	// 5. Return the reversed Image
 	outputImageName := uuid.New().String() + ".gif"
+	discord.DeleteMessageObject(progressMessage)
 	discord.DeleteMessage(message)
 	return discord.ReplyToMessageWithImageBuffer(message, true, outputImageName, &newImageBuffer)
 }
