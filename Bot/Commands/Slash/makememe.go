@@ -129,7 +129,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	var imgSource int // 0: Inbound URL, 1: TempFile, 2: Imgur
 	if strings.Contains(cachedInteraction.Values.String["imgUrl"], "?") {
 		discord.UpdateInteractionResponse(i, "Creating Meme", "Getting image...")
-		if !config.ServiceSettings.ISDEV {
+		if config.ServiceSettings.ISDEV {
 			// Temp file route
 			tempFileReader, err := imgwork.DownloadImageToReader(i.GuildID, cachedInteraction.Values.String["imgUrl"], cachedInteraction.Values.String["imgExtension"] == ".gif")
 			if err != nil {
