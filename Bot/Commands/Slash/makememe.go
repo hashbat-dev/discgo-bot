@@ -17,6 +17,7 @@ import (
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 	imgwork "github.com/dabi-ngin/discgo-bot/ImgWork"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	tempfiles "github.com/dabi-ngin/discgo-bot/TempFiles"
 )
 
 var (
@@ -123,21 +124,54 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	//	  We need a clean URL without any Query strings, Discord Proxy URLs do not work.
 	//	  If we DON'T have a clean URL we'll upload it to Imgur and get use that URL.
 	var deleteHash string
+	var sendImgUrl string
+	var sendImgExt string
+	var imgSource int // 0: Inbound URL, 1: TempFile, 2: Imgur
 	if strings.Contains(cachedInteraction.Values.String["imgUrl"], "?") {
 		discord.UpdateInteractionResponse(i, "Creating Meme", "Getting image...")
-		imgurUrl, imgurDeleteHash, err := getImgurLink(i.GuildID, i.Member.User.ID, cachedInteraction.Values.String["imgUrl"], cachedInteraction.Values.String["imgExtension"])
-		if err != nil {
-			if strings.Contains(err.Error(), "413") {
-				discord.UpdateInteractionResponse(i, "Error", "File size too large.")
-			} else {
-				discord.UpdateInteractionResponse(i, "Error", "Error getting image.")
+		if !config.ServiceSettings.ISDEV {
+			// Temp file route
+			tempFileReader, err := imgwork.DownloadImageToReader(i.GuildID, cachedInteraction.Values.String["imgUrl"], cachedInteraction.Values.String["imgExtension"] == ".gif")
+			if err != nil {
+				discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.")
+				cache.InteractionComplete(correlationId)
+				return
 			}
-			cache.InteractionComplete(correlationId)
-			return
+			tempFile := tempfiles.AddFile(tempFileReader, cachedInteraction.Values.String["imgExtension"])
+			if tempFile == "" {
+				discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.")
+				cache.InteractionComplete(correlationId)
+				return
+			}
+			imgSource = 1
+			sendImgUrl = tempFile
+			sendImgExt = cachedInteraction.Values.String["imgExtension"]
+		} else {
+			// Imgur route
+			imgurUrl, imgurDeleteHash, err := getImgurLink(i.GuildID, i.Member.User.ID, cachedInteraction.Values.String["imgUrl"], cachedInteraction.Values.String["imgExtension"])
+			if err != nil {
+				if strings.Contains(err.Error(), "413") {
+					discord.UpdateInteractionResponse(i, "Error", "File size too large.")
+				} else {
+					discord.UpdateInteractionResponse(i, "Error", "Error getting image.")
+				}
+				cache.InteractionComplete(correlationId)
+				return
+			}
+			imgSource = 2
+			deleteHash = imgurDeleteHash
+			sendImgUrl = imgurUrl
+			sendImgExt = imgwork.GetExtensionFromURL(imgurUrl)
 		}
-		deleteHash = imgurDeleteHash
-		cachedInteraction.Values.String["imgExtension"] = imgwork.GetExtensionFromURL(imgurUrl)
-		cachedInteraction.Values.String["imgUrl"] = imgurUrl
+	} else {
+		sendImgUrl = cachedInteraction.Values.String["imgUrl"]
+		sendImgExt = cachedInteraction.Values.String["imgExtension"]
+	}
+
+	if sendImgUrl == "" || sendImgExt == "" {
+		discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 3. Generate the Request URL
@@ -158,8 +192,8 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 
 	if captionText != "" {
 		// Top Caption
-		url += encodeTextForUrl(captionText) + cachedInteraction.Values.String["imgExtension"]
-		url += "?layout=top&font=notosans&background=" + cachedInteraction.Values.String["imgUrl"]
+		url += encodeTextForUrl(captionText) + sendImgExt
+		url += "?layout=top&font=notosans&background=" + sendImgUrl
 	} else {
 		// In Image Caption
 		if topText == "" && bottomText == "" {
@@ -179,7 +213,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 		} else {
 			url += encodeTextForUrl(bottomText)
 		}
-		url += cachedInteraction.Values.String["imgExtension"] + "?font=impact&background=" + cachedInteraction.Values.String["imgUrl"]
+		url += sendImgExt + "?font=impact&background=" + sendImgUrl
 	}
 
 	// 4. Get the Meme
@@ -200,20 +234,28 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 		return
 	}
 
-	// 5. Send via Discord and Clean-up
+	// 5. Send via Discord
 	err = config.Session.InteractionResponseDelete(i.Interaction)
 	if err != nil {
 		logger.Error(i.GuildID, err)
 	}
-	_, err = discord.SendMessageWithImageBuffer(i.ChannelID, i.GuildID, cachedInteraction.Values.String["imgExtension"], &buffer)
+	_, err = discord.SendMessageWithImageBuffer(i.ChannelID, i.GuildID, sendImgExt, &buffer)
 	if err != nil {
 		logger.Error(i.GuildID, err)
 	}
-	if deleteHash != "" {
-		err = imgur.DeleteImgurEntry(i.GuildID, deleteHash)
-		if err != nil {
-			logger.Debug(i.GuildID, "Unable to delete temp Imgur image")
+
+	// 6. Cleanup
+	switch imgSource {
+	case 1: // => Temp File
+		tempfiles.DeleteFile(i.GuildID, sendImgUrl)
+	case 2: // => Imgur
+		if deleteHash != "" {
+			err = imgur.DeleteImgurEntry(i.GuildID, deleteHash)
+			if err != nil {
+				logger.Debug(i.GuildID, "Unable to delete temp Imgur image")
+			}
 		}
+	default:
 	}
 	cache.InteractionComplete(correlationId)
 }

@@ -241,6 +241,7 @@ const (
 	MAX_MESSAGE_LENGTH int    = 2000
 	ROOT_FOLDER        string = "discgo-bot/"
 	BOT_SUB_FOLDER     string = "Bot/"
+	TEMP_FOLDER        string = "temp/"
 )
 
 func init() {
