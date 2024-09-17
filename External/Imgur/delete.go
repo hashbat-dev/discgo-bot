@@ -11,7 +11,6 @@ import (
 )
 
 func DeleteImgurEntry(guildId string, deleteHash string) error {
-
 	// 1. Send the Delete Request
 	url := BaseUrl + deleteHash
 	method := "DELETE"

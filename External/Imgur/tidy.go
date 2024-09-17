@@ -8,7 +8,6 @@ import (
 )
 
 func TidySubmissions() {
-
 	allDatabaseEntries, err := database.GetAllImgurLogs("IMGUR")
 	if err != nil {
 		return
