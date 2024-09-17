@@ -133,9 +133,12 @@ func returnWidgetData(w http.ResponseWriter, widget string) {
 }
 
 func handleFileRequest(w http.ResponseWriter, r *http.Request) {
-	fileRoot := "Dashboard/"
+	fileRoot := ""
 	filePath := r.URL.Path[1:]
 
+	if !strings.Contains(strings.ToLower(r.URL.Path), "/temp/") {
+		fileRoot = "Dashboard/"
+	}
 	if filePath == "" {
 		filePath = fileRoot + "Pages/dashboard.html"
 	} else {
