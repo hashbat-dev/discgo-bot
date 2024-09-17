@@ -60,7 +60,7 @@ var slashCommands = []SlashCommand{
 		},
 		Complexity: config.TRIVIAL_TASK,
 	},
-	//	/make-meme
+	//	-> Create Meme
 	{
 		Command: &discordgo.ApplicationCommand{
 			Name: "Create Meme",
