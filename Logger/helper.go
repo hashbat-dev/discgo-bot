@@ -84,12 +84,9 @@ func ParseStackTrace(stack string) string {
 			continue
 		}
 
-		botIndex := strings.Index(line, config.BOT_SUB_FOLDER)
-		botIndexLength := len(config.BOT_SUB_FOLDER)
-		if botIndex == -1 {
-			botIndex = strings.Index(line, config.ROOT_FOLDER)
-			botIndexLength = len(config.ROOT_FOLDER)
-		}
+		botIndex := strings.Index(line, config.ROOT_FOLDER)
+		botIndexLength := len(config.ROOT_FOLDER)
+
 		lastIndex := 0
 
 		isFileLine := strings.Contains(line, " +")
@@ -125,7 +122,7 @@ func ParseStackTrace(stack string) string {
 		}
 	}
 
-	return RemoveTextInParentheses(retVal)
+	return "./" + RemoveTextInParentheses(retVal)
 }
 
 func RemoveTextInParentheses(input string) string {
