@@ -247,7 +247,8 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	// 6. Cleanup
 	switch imgSource {
 	case 1: // => Temp File
-		tempfiles.DeleteFile(i.GuildID, sendImgUrl)
+		// This is being commented out for Debugging, think we're deleting it too quickly.
+		// tempfiles.DeleteFile(i.GuildID, sendImgUrl)
 	case 2: // => Imgur
 		if deleteHash != "" {
 			err = imgur.DeleteImgurEntry(i.GuildID, deleteHash)
