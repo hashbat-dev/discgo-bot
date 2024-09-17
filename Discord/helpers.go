@@ -7,6 +7,7 @@ import (
 	embed "github.com/clinet/discordgo-embed"
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	"github.com/google/uuid"
 )
 
 func SendUserError(message *discordgo.MessageCreate, errorText string) {
@@ -135,6 +136,25 @@ func ReplyToMessageWithImageBuffer(message *discordgo.MessageCreate, replyToQuot
 	}
 
 	return err
+}
+
+func SendMessageWithImageBuffer(channelId string, guildId string, imgExtension string, imageBuffer *bytes.Buffer) (string, error) {
+	imageName := uuid.New().String() + imgExtension
+	fileObj := &discordgo.File{
+		Name:   imageName,
+		Reader: imageBuffer,
+	}
+
+	msg, err := config.Session.ChannelMessageSendComplex(channelId, &discordgo.MessageSend{
+		Files: []*discordgo.File{fileObj},
+	})
+
+	if err != nil {
+		logger.Error(guildId, err)
+		return "", err
+	}
+
+	return msg.ID, err
 }
 
 func ReplyToInteractionWithEmbed(interaction *discordgo.InteractionCreate, embed *embed.Embed, private bool) {

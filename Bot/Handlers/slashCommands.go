@@ -60,6 +60,17 @@ var slashCommands = []SlashCommand{
 		},
 		Complexity: config.TRIVIAL_TASK,
 	},
+	//	-> Create Meme
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name: "Create Meme",
+			Type: discordgo.MessageApplicationCommand,
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.MakeMemeInit(i, correlationId)
+		},
+		Complexity: config.TRIVIAL_TASK,
+	},
 }
 
 type SlashCommand struct {
@@ -84,7 +95,11 @@ func InitSlashCommands() {
 }
 
 func SlashCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	logger.Debug(i.GuildID, "SlashCommandHandler")
 	if i.Type == discordgo.InteractionMessageComponent {
+		return
+	}
+	if i.Type == discordgo.InteractionModalSubmit {
 		return
 	}
 
@@ -123,7 +138,7 @@ func RefreshSlashCommands(guildId string) {
 	// Check Existing Commands
 	var validated map[string]interface{} = make(map[string]interface{})
 	for _, cmd := range registeredCommands {
-		delete := false
+		deleteCmd := false
 		if local, exists := SlashCommands[cmd.Name]; exists {
 			// Slash Command already registered, are the options the same?
 			var liveOpts map[string]interface{} = make(map[string]interface{})
@@ -137,27 +152,26 @@ func RefreshSlashCommands(guildId string) {
 
 			// Different option lengths?
 			if len(liveOpts) != len(currOpts) {
-				delete = true
+				deleteCmd = true
 			}
 
 			// Matching options?
-			if !delete {
+			if !deleteCmd {
 				for item := range liveOpts {
 					if _, found := currOpts[item]; !found {
-						delete = true
+						deleteCmd = true
 					}
 				}
 			}
 
-			if !delete {
+			if !deleteCmd {
 				validated[cmd.Name] = struct{}{}
 			}
 		} else {
 			// Slash Command exists externally but not in our map, delete it
-			delete = true
+			deleteCmd = true
 		}
-
-		if delete {
+		if deleteCmd {
 			err := config.Session.ApplicationCommandDelete(config.Session.State.User.ID, guildId, cmd.ID)
 			if err != nil {
 				logger.ErrorText(guildId, "Error deleting Command: %s, Error: %e", cmd.Name, err)

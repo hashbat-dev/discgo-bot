@@ -129,9 +129,27 @@ func UpdateInteraction(correlationId string, i *discordgo.InteractionCreate) {
 			}
 		}
 
-	// Message Component (selects/buttons etc.)
-	case discordgo.InteractionMessageComponent:
+	case discordgo.InteractionModalSubmit:
+		// Modal Submissions
+		data := i.ModalSubmitData()
 
+		// Loop through the components (ActionRow contains InputText components)
+		for _, actionRow := range data.Components {
+			if row, ok := actionRow.(*discordgo.ActionsRow); ok {
+				for _, comp := range row.Components {
+					if input, ok := comp.(*discordgo.TextInput); ok {
+						objectId := input.CustomID
+						if strings.Contains(objectId, "|") {
+							objectId = strings.Split(objectId, "|")[0]
+						}
+						ActiveInteractions[correlationId].Values.String[objectId] = input.Value
+						logger.Info(i.GuildID, "Interaction ID: [%s] Obtained String Value for [%s]: %s", correlationId, objectId, ActiveInteractions[correlationId].Values.String[objectId])
+					}
+				}
+			}
+		}
+	case discordgo.InteractionMessageComponent:
+		// Message Component (selects/buttons etc.)
 		switch data := i.Interaction.Data.(type) {
 		case *discordgo.MessageComponentInteractionData:
 

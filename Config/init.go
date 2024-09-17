@@ -222,6 +222,7 @@ type Vars struct {
 
 	MAXFAKEYOUREQUESTCHECKS int
 	MAXFAKEYOUREQUESTERRORS int
+	IMGURCLIENTID           string
 }
 
 var ServiceSettings Vars
@@ -421,6 +422,11 @@ func parseEnvVariables() error {
 	ServiceSettings.MAXFAKEYOUREQUESTERRORS, convErr = strconv.Atoi(maxfakeyourequesterrors)
 	if convErr != nil {
 		return convErr
+	}
+
+	ServiceSettings.IMGURCLIENTID = os.Getenv("IMGURCLIENTID")
+	if ServiceSettings.IMGURCLIENTID == "" {
+		return errors.New("could not find value for IMGURCLIENTID in environment variables")
 	}
 
 	return nil
