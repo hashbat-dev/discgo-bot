@@ -27,11 +27,17 @@ func GetImageFromMessage(message *discordgo.Message, requiredExtension string) s
 	// A. Are there any Embeds?
 	imgLink := ""
 	if len(message.Embeds) > 0 {
-		// If the Image is a GIF from Tenor then the Thumbnail will be
-		// a PNG, this check avoids getting the wrong image.
-		if message.Embeds[0].Type != "gif" && message.Embeds[0].Type != "gifv" {
-			imgLink = message.Embeds[0].Thumbnail.ProxyURL
+		for _, embed := range message.Embeds {
+			if embed.Type == "video" {
+				continue
+			}
+			// If the Image is a GIF from Tenor then the Thumbnail will be
+			// a PNG, this check avoids getting the wrong image.
+			if embed.Type != "gif" && embed.Type != "gifv" {
+				imgLink = message.Embeds[0].Thumbnail.ProxyURL
+			}
 		}
+
 	}
 
 	// B. Are there any Attachments?
