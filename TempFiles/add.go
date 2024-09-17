@@ -44,7 +44,7 @@ func AddFile(file io.Reader, fileExtension string) string {
 	}
 
 	// Return the full URL
-	return fmt.Sprintf("%s/temp/%s", config.ServiceSettings.DASHBOARDURL, url.PathEscape(fileName))
+	return fmt.Sprintf("%stemp/%s", config.ServiceSettings.DASHBOARDURL, url.PathEscape(fileName))
 }
 
 func DeleteFile(guildId string, inFile string) {
