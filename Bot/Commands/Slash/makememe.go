@@ -123,9 +123,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	// 2. Is the URL we have Accessible by MemeGen?
 	//	  We need a clean URL without any Query strings, Discord Proxy URLs do not work.
 	//	  If we DON'T have a clean URL we'll upload it to Imgur and get use that URL.
-	var deleteHash string
-	var sendImgUrl string
-	var sendImgExt string
+	var sendImgUrl, sendImgExt, deleteHash string
 	var imgSource int // 0: Inbound URL, 1: TempFile, 2: Imgur
 	if strings.Contains(cachedInteraction.Values.String["imgUrl"], "?") {
 		discord.UpdateInteractionResponse(i, "Creating Meme", "Getting image...")
@@ -248,7 +246,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	switch imgSource {
 	case 1: // => Temp File
 		// This is being commented out for Debugging, think we're deleting it too quickly.
-		// tempfiles.DeleteFile(i.GuildID, sendImgUrl)
+		tempfiles.DeleteFile(i.GuildID, sendImgUrl)
 	case 2: // => Imgur
 		if deleteHash != "" {
 			err = imgur.DeleteImgurEntry(i.GuildID, deleteHash)

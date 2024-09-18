@@ -10,6 +10,11 @@ import (
 )
 
 func DeleteFile(guildId string, inFile string) {
+	// Skip due to TempFileGrace being enabled?
+	if config.ServiceSettings.TEMPFILEGRACE {
+		return
+	}
+
 	var fileName string
 
 	// Check if we have a full filepath or not

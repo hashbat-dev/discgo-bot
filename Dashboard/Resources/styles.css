@@ -303,3 +303,25 @@ body {
   .DragDropHide {
     display: none;
   }
+
+  /*
+    MOBILE VIEW ADJUSTMENTS
+    ====================================================
+  */
+  .WidgetWidth100 { width: 100%; }
+  .WidgetWidth75 { width: 75%; }
+  .WidgetWidth50 { width: 50%; }
+  .WidgetWidth25 { width: 25%; }
+  
+  @media all and (max-width: 960px) {
+    .WidgetWidth100 { width: 100%; }
+    .WidgetWidth75 { width: 100%; }
+    .WidgetWidth50 { width: 50%; }
+    .WidgetWidth25 { width: 50%; }
+  }  
+  @media all and (max-width: 620px) {
+    .WidgetWidth100 { width: 100%; }
+    .WidgetWidth75 { width: 100%; }
+    .WidgetWidth50 { width: 100%; }
+    .WidgetWidth25 { width: 100%; }
+  }
