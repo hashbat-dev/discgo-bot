@@ -223,6 +223,9 @@ type Vars struct {
 	MAXFAKEYOUREQUESTCHECKS int
 	MAXFAKEYOUREQUESTERRORS int
 	IMGURCLIENTID           string
+
+	TEMPFILEEXPIRYMINS int
+	TEMPFILEGRACE      bool
 }
 
 var ServiceSettings Vars
@@ -428,6 +431,24 @@ func parseEnvVariables() error {
 	ServiceSettings.IMGURCLIENTID = os.Getenv("IMGURCLIENTID")
 	if ServiceSettings.IMGURCLIENTID == "" {
 		return errors.New("could not find value for IMGURCLIENTID in environment variables")
+	}
+
+	tempFileExpiryMins := os.Getenv("TEMPFILEEXPIRYMINS")
+	if tempFileExpiryMins == "" {
+		return errors.New("could not find value for TEMPFILEEXPIRYMINS in environment variables")
+	}
+	ServiceSettings.TEMPFILEEXPIRYMINS, convErr = strconv.Atoi(tempFileExpiryMins)
+	if convErr != nil {
+		return convErr
+	}
+
+	tempFileGrace := os.Getenv("TEMPFILEGRACE")
+	if tempFileGrace == "" {
+		return errors.New("could not find value for TEMPFILEGRACE in environment variables")
+	}
+	ServiceSettings.TEMPFILEGRACE, convErr = strconv.ParseBool(tempFileGrace)
+	if convErr != nil {
+		return convErr
 	}
 
 	return nil

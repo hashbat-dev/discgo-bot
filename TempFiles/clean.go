@@ -9,11 +9,8 @@ import (
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
 
-const (
-	expiryPeriod = 5 * time.Minute
-)
-
-func CleanUpTempFiles() error {
+func DeleteAllExpired() {
+	expiryPeriod := time.Duration(config.ServiceSettings.TEMPFILEEXPIRYMINS) * time.Minute
 	now := time.Now()
 	deletedCount := 0
 	err := filepath.Walk(config.TEMP_FOLDER, func(path string, info os.FileInfo, err error) error {
@@ -40,6 +37,5 @@ func CleanUpTempFiles() error {
 		logger.Error("TEMPFILES", err)
 	}
 
-	logger.Info("TEMPFILES", "CleanUpTimeFiles() completes, deleted %v files", deletedCount)
-	return nil
+	logger.Debug("TEMPFILES", "CleanUpTimeFiles() completes, deleted %v files", deletedCount)
 }

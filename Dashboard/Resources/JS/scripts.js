@@ -102,6 +102,7 @@ function loadPageElements() {
         placeholder: "DragDropPlaceholder",
         helper: 'clone',
         scroll: false,
+        handle: '.DragHandle',
         start: function(event, ui) {
             ui.helper.addClass('DragDropCursor');
             ui.item.addClass('DragDropHide');
@@ -181,7 +182,23 @@ async function updateWidget(widget, widgetDiv) {
             if (data.Type != 'info') {
                 widgetDiv.classList.add('Widget')
                 if (data.Options.Width != null && data.Options.Width != '') {
-                    widgetDiv.style.width = data.Options.Width;
+                    switch(data.Options.Width) {
+                        case '100%':
+                            widgetDiv.classList.add('WidgetWidth100');
+                            break;
+                        case '75%':
+                            widgetDiv.classList.add('WidgetWidth75');
+                            break;
+                        case '50%':
+                            widgetDiv.classList.add('WidgetWidth50');
+                            break;
+                        case '25%':
+                            widgetDiv.classList.add('WidgetWidth25');
+                            break;
+                        default:
+                            widgetDiv.style.width = data.Options.Width;
+                    }
+                    
                 }
             }
   
@@ -510,6 +527,12 @@ async function initTableWidget(data, widgetDiv) {
         });
         switchSwitchWrap.appendChild(switchSwitchWrapInput)
         
+        // => Drag Handle
+        const widgetDragHandle = Object.assign(document.createElement('div'), {
+            className: 'DragHandle'
+        });
+        widgetHeader.appendChild(widgetDragHandle);
+        
         const switchSwitchWrapSpan = document.createElement('span');
         switchSwitchWrapSpan.classList.add('slider', 'round');
         switchSwitchWrap.appendChild(switchSwitchWrapSpan);
@@ -626,6 +649,12 @@ async function initGraphWidget(data, widgetDiv) {
         });
         switchSwitchWrap.appendChild(switchSwitchWrapInput)
         
+        // => Drag Handle
+        const widgetDragHandle = Object.assign(document.createElement('div'), {
+            className: 'DragHandle'
+        });
+        widgetHeader.appendChild(widgetDragHandle);
+
         const switchSwitchWrapSpan = document.createElement('span');
         switchSwitchWrapSpan.classList.add('slider', 'round');
         switchSwitchWrap.appendChild(switchSwitchWrapSpan);
