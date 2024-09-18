@@ -102,6 +102,7 @@ function loadPageElements() {
         placeholder: "DragDropPlaceholder",
         helper: 'clone',
         scroll: false,
+        handle: '.DragHandle',
         start: function(event, ui) {
             ui.helper.addClass('DragDropCursor');
             ui.item.addClass('DragDropHide');
@@ -526,6 +527,12 @@ async function initTableWidget(data, widgetDiv) {
         });
         switchSwitchWrap.appendChild(switchSwitchWrapInput)
         
+        // => Drag Handle
+        const widgetDragHandle = Object.assign(document.createElement('div'), {
+            className: 'DragHandle'
+        });
+        widgetHeader.appendChild(widgetDragHandle);
+        
         const switchSwitchWrapSpan = document.createElement('span');
         switchSwitchWrapSpan.classList.add('slider', 'round');
         switchSwitchWrap.appendChild(switchSwitchWrapSpan);
@@ -642,6 +649,12 @@ async function initGraphWidget(data, widgetDiv) {
         });
         switchSwitchWrap.appendChild(switchSwitchWrapInput)
         
+        // => Drag Handle
+        const widgetDragHandle = Object.assign(document.createElement('div'), {
+            className: 'DragHandle'
+        });
+        widgetHeader.appendChild(widgetDragHandle);
+
         const switchSwitchWrapSpan = document.createElement('span');
         switchSwitchWrapSpan.classList.add('slider', 'round');
         switchSwitchWrap.appendChild(switchSwitchWrapSpan);

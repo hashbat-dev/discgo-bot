@@ -37,5 +37,5 @@ func DeleteAllExpired() {
 		logger.Error("TEMPFILES", err)
 	}
 
-	logger.Info("TEMPFILES", "CleanUpTimeFiles() completes, deleted %v files", deletedCount)
+	logger.Debug("TEMPFILES", "CleanUpTimeFiles() completes, deleted %v files", deletedCount)
 }
