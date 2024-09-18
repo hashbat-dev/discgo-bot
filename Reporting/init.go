@@ -1,6 +1,8 @@
 package reporting
 
 import (
+	"sort"
+
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	widgets "github.com/dabi-ngin/discgo-bot/Dashboard/Widgets"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
@@ -10,6 +12,7 @@ var DashCmdsColumns []widgets.TableWidgetColumn
 var DashCmdsInfosColumns []widgets.TableWidgetColumn
 var GuildColumns []widgets.TableWidgetColumn
 var LogColumns []widgets.TableWidgetColumn
+var LogFilters []widgets.TableWidgetFilter
 
 func init() {
 	DashCmdsColumns = []widgets.TableWidgetColumn{
@@ -44,6 +47,22 @@ func init() {
 		{Name: "Guild ID"},
 		{Name: "Source"},
 		{Name: "Log Text"},
+	}
+
+	var logLevels []int
+	for key := range config.LoggingLevels {
+		logLevels = append(logLevels, key)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(logLevels)))
+	var typeValues []string
+	for _, key := range logLevels {
+		typeValues = append(typeValues, config.LoggingLevels[key].Name)
+	}
+
+	LogFilters = []widgets.TableWidgetFilter{
+		{Name: "Guild ID", FilterType: widgets.TableWidgetType_SelectRegular, ColumnNames: []string{"Guild ID"}, FullMatchOnly: true},
+		{Name: "Types", FilterType: widgets.TableWidgetType_SelectCheckbox, ColumnNames: []string{"Type"}, Values: typeValues, FullMatchOnly: true},
+		{Name: "Search", FilterType: widgets.TableWidgetType_FreeText, ColumnNames: []string{"Time", "Guild ID", "Source", "Log Text"}},
 	}
 
 	err := widgets.SaveInfoWidget(&widgets.InfoWidget{

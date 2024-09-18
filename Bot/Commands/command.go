@@ -41,6 +41,7 @@ func init() {
 	JumpTable["speedup"] = CommandJumpEntry{bang.ChangeSpeed{SpeedUp: true}, "Reply to an Animated GIF to speed the GIF up"}
 	JumpTable["slowdown"] = CommandJumpEntry{bang.ChangeSpeed{SpeedUp: false}, "Reply to an Animated GIF to slow the GIF down"}
 	JumpTable["wide"] = CommandJumpEntry{bang.Wide{}, "Reply to a static image or Animated GIF to Stretch it wide mode"}
+	JumpTable["deepfry"] = CommandJumpEntry{bang.DeepFry{}, "Reply to an image of gif to Deepfry it"}
 
 	// Write the Help text
 	writeBangHelpText()

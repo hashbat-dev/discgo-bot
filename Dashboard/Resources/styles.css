@@ -8,6 +8,7 @@
     --vertical-padding: 15px;
     --table-row-even: #323232;
     --table-row-odd: #3d3d3d;
+    --filter-background: #525252;
     --font-normal: Arial, Helvetica, sans-serif;
     --font-terminal: 'Courier New', Courier, monospace;
     --font-heading: 'Gill Sans', sans-serif;
@@ -17,6 +18,8 @@
     --log-colour-warn: #FFFF66;
     --log-colour-event: #66FF66;
     --log-colour-info: #FFFFFF;
+
+    --header-height: 38px;
 }
 * {
     margin: 0;
@@ -122,7 +125,10 @@ body {
 .Widget .WidgetHeader {
   float: left;
   width: 100%;
+  height: var(--header-height);
   background-color: var(--background-light-shade);
+  z-index: 1000;
+  position: inherit;
 }
 .Widget .WidgetHeader  h2 {
     float: left;
@@ -137,17 +143,19 @@ body {
    height: 21px;
    cursor: help;
 } 
-
-.Widget .WidgetFilter {
+.Widget .DragHandle {
     float: right;
-    margin: 6px 10px 6px 0;
-    height: 23px;
-    width: 100px;
-    background-color: var(--background-dark-shade);
-    border: 0;
-    padding: 0 5px;
-    border-radius: 5px;
-    color: var(--font-color-faded);
+    height: calc(var(--header-height) - 2px);
+    width: var(--header-height);
+    background-color: rgba(255,255,255,0.05);
+    background-image: url('Img/drag.svg');
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    border-radius: 0 5px 0 0;
+    margin-left: 5px;
+}
+.Widget .DragHandle:hover {
+    cursor: grab;
 }
 
 .ChartContainer {
@@ -179,6 +187,80 @@ body {
   max-height: 400px;
   overflow-y: auto;
 }
+/* Filters */
+.Widget .WidgetFilter {
+  float: right;
+  margin: 0 3px;
+  height: var(--header-height);
+}
+.Widget select, .Widget input[type=text], .Widget .SelectCheckbox {
+  margin-top: 5px;
+  border-radius: 3px;
+  color: #FFF;
+  border: 0;
+}
+.Widget select, .Widget input[type=text] {
+  width: 100%;
+  height: calc(var(--header-height) - 14px);
+  padding: 0 5px;
+  background-color: var(--filter-background);
+}
+.Widget .SelectCheckbox {
+  float: left;
+  width: 100%;
+}
+
+.Widget .SelectCheckbox .SelectCheckboxLabel {
+  float: left;
+  width: 100%;
+  padding: 0 20px 0 5px;
+  background-color: var(--filter-background);
+  background-image: url('Img/down_arrow.svg');
+  background-repeat: no-repeat;
+  background-position: calc(100% - 2px) 50%;
+  background-size: 15px;
+  height: calc(var(--header-height) - 14px);
+  line-height: calc(var(--header-height) - 14px);
+  font-size: 12px;
+  border-radius: 3px;
+  position: relative;
+}
+.Widget .SelectCheckbox .SelectCheckboxLabel:hover {
+  cursor: pointer;
+}
+.Widget .SelectCheckbox .SelectCheckboxList {
+  position: absolute;
+  top: calc(var(--header-height) - 9px);
+  background-color: var(--filter-background);
+  border-radius: 0 5px 5px 5px;
+  width: 200px;
+  box-shadow: 0px 10px 10px 0px rgba(0,0,0,0.3);
+  display: none;
+}
+.Widget .SelectCheckbox .SelectCheckboxList .SelectCheckboxListItem {
+  float: left;
+  width: 100%;
+  border-top: 1px solid #3d3d3d;
+}
+.Widget .SelectCheckbox .SelectCheckboxList .SelectCheckboxListItem input {
+  float: left;
+  width: 15px;
+  height: 15px;
+  margin: 5px;
+}
+.Widget .SelectCheckbox .SelectCheckboxList .SelectCheckboxListItem input:hover {
+  cursor: pointer;
+}
+.Widget .SelectCheckbox .SelectCheckboxList .SelectCheckboxListItem label {
+  float: left;
+  font-size: 12px;
+  height: 25px;
+  line-height: 25px;
+  width: auto;
+}
+.Widget .SelectCheckbox:hover > .SelectCheckboxList {
+  display: block;
+}
 
 /* Elements */
 .ToolTip {
@@ -194,7 +276,7 @@ body {
   margin: 16px 20px 0 0;
 }
 .Widget .SwitchContainer {
-  margin: 7px 7px 0 0;
+  margin: 7px 7px 0 7px;
 }
 .SwitchLabel {
   float: right;
@@ -302,4 +384,26 @@ body {
   }
   .DragDropHide {
     display: none;
+  }
+
+  /*
+    MOBILE VIEW ADJUSTMENTS
+    ====================================================
+  */
+  .WidgetWidth100 { width: 100%; }
+  .WidgetWidth75 { width: 75%; }
+  .WidgetWidth50 { width: 50%; }
+  .WidgetWidth25 { width: 25%; }
+  
+  @media all and (max-width: 960px) {
+    .WidgetWidth100 { width: 100%; }
+    .WidgetWidth75 { width: 100%; }
+    .WidgetWidth50 { width: 50%; }
+    .WidgetWidth25 { width: 50%; }
+  }  
+  @media all and (max-width: 620px) {
+    .WidgetWidth100 { width: 100%; }
+    .WidgetWidth75 { width: 100%; }
+    .WidgetWidth50 { width: 100%; }
+    .WidgetWidth25 { width: 100%; }
   }

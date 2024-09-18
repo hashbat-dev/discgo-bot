@@ -73,6 +73,11 @@ var slashCommands = []SlashCommand{
 	},
 }
 
+// Message Commands are not allowed Descriptions, enter User descriptions below for these.
+var userDescriptions map[string]string = map[string]string{
+	"Create Meme": "Turn an image into a Meme! Either enter an Above Image caption (Option A) or choose Top/Bottom text to add (Option B)",
+}
+
 type SlashCommand struct {
 	Command    *discordgo.ApplicationCommand
 	Handler    func(i *discordgo.InteractionCreate, correlationId string)
@@ -206,21 +211,37 @@ func writeSlashHelpText() {
 	})
 
 	// 2. Generate the Help Text
-	text := ""
-	for i, cmd := range slashCmds {
-		cmdText := "* **/" + cmd.Command.Name + "**: " + cmd.Command.Description
-		if len(cmd.Command.Options) > 0 {
-			cmdText += " It accepts these parameters:"
+	slashText := ""
+	msgCmdText := ""
+
+	for _, cmd := range slashCmds {
+		if cmd.Command.Type == discordgo.MessageApplicationCommand {
+			// Message Commands
+			if len(msgCmdText) > 0 {
+				msgCmdText += "\n"
+			}
+			msgCmdText += "**" + cmd.Command.Name + "**: " + userDescriptions[cmd.Command.Name]
+		} else {
+			// Regular Slash Commands
+			cmdText := "**/" + cmd.Command.Name + "**: " + cmd.Command.Description
+			if len(cmd.Command.Options) > 0 {
+				cmdText += " It accepts these parameters: "
+			}
+			for i, opt := range cmd.Command.Options {
+				if i > 0 {
+					cmdText += ", "
+				}
+				cmdText += opt.Name + ": *" + opt.Description + "*"
+			}
+			if len(slashText) > 0 {
+				slashText += "\n"
+			}
+			slashText += cmdText
 		}
-		for _, opt := range cmd.Command.Options {
-			cmdText += "\n * **" + opt.Name + "**: " + opt.Description
-		}
-		if i > 0 {
-			text += "\n"
-		}
-		text += cmdText
+
 	}
 
 	// 3. Set it in the Config
-	config.UserSlashHelpText = text
+	config.UserSlashHelpText = slashText
+	config.UserMsgCmdHelpText = msgCmdText
 }
