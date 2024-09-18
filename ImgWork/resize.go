@@ -66,3 +66,22 @@ func ResizeGif(guildId string, gifImg *gif.GIF, width uint, height uint) (io.Rea
 	logger.Info(guildId, "Resized GIF to %dx%d after %v", height, width, time.Since(startTime))
 	return &buf, nil
 }
+
+func StretchImage(guildId string, img image.Image, width uint) (io.Reader, error) {
+	bounds := img.Bounds()
+	originalHeight := uint(bounds.Dy())
+	newHeight := uint(float64(originalHeight) * 0.6)
+	newWidth := uint(float64(width) * 1.3)
+
+	resizedImg := resize.Resize(newWidth, newHeight, img, resize.Bilinear)
+	// Create a bytes buffer to write the PNG image to
+	var buf bytes.Buffer
+	err := png.Encode(&buf, resizedImg)
+	if err != nil {
+		logger.Error(guildId, err)
+		return nil, err
+	}
+
+	logger.Debug(guildId, "Resized static image to %dx%d", originalHeight, newWidth)
+	return &buf, nil
+}
