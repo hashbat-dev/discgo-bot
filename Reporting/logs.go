@@ -1,6 +1,8 @@
 package reporting
 
 import (
+	"sort"
+
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	widgets "github.com/dabi-ngin/discgo-bot/Dashboard/Widgets"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
@@ -25,8 +27,8 @@ func Logs() {
 			},
 			TextColour: config.LoggingLevels[log.LogLevel].Colour,
 		})
+		AddGuildIDToFilter(log.LogInfo.GuildID)
 	}
-
 	err := widgets.SaveTableWidget(&widgets.TableWidget{
 		Options: widgets.TableWidgetOptions{
 			Name:  "Recent Logs",
@@ -34,9 +36,25 @@ func Logs() {
 		},
 		Columns: LogColumns,
 		Rows:    newRows,
+		Filters: LogFilters,
 	})
 	if err != nil {
 		logger.Error("REPORTING", err)
 	}
 
+}
+
+var guildExists map[string]struct{} = make(map[string]struct{})
+var guildValues []string
+
+func AddGuildIDToFilter(guildId string) {
+	if guildId == "" {
+		return
+	}
+	if _, exists := guildExists[guildId]; !exists {
+		guildExists[guildId] = struct{}{}
+		guildValues = append(guildValues, guildId)
+		sort.Strings(guildValues)
+		LogFilters[0].Values = guildValues
+	}
 }
