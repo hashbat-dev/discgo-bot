@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
@@ -52,23 +51,6 @@ func checkForDashboardMessage(r *http.Request) {
 	if config.ServiceSettings.DASHBOARDURL == "" {
 		config.ServiceSettings.DASHBOARDURL = fmt.Sprintf("http://%v/", r.Host)
 	}
-	if !config.ServiceSettings.ISDEV && !initMessage && strings.TrimSpace(config.ServiceSettings.DASHBOARDURL) != "" {
-		if TrySendDashboardInitMessage() == nil {
-			initMessage = true
-		}
-	}
-}
-
-func TrySendDashboardInitMessage() error {
-	if config.Session != nil && strings.TrimSpace(config.ServiceSettings.LOGGINGCHANNELID) != "" {
-		timeFormat := time.Now().Format("15:04:05")
-		_, err := config.Session.ChannelMessageSend(config.ServiceSettings.LOGGINGCHANNELID, fmt.Sprintf("[%v] Dashboard Live: %v", timeFormat, config.ServiceSettings.DASHBOARDURL))
-		if err != nil {
-			logger.Error("DASHBOARD", err)
-			return err
-		}
-	}
-	return nil
 }
 
 func handleGetData(w http.ResponseWriter, r *http.Request) {
