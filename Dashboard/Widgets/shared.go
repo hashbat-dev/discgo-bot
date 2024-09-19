@@ -24,6 +24,13 @@ const (
 	TextFormatDuration_WithMs
 )
 
+const (
+	TableWidgetType = iota
+	TableWidgetType_SelectRegular
+	TableWidgetType_SelectCheckbox
+	TableWidgetType_FreeText
+)
+
 var (
 	AbbrevRemainingChars = 5
 	DateTimeLayout       = "2006-01-02T15:04:05.000"

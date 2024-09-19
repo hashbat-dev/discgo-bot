@@ -17,6 +17,7 @@ type TableWidget struct {
 	Options   TableWidgetOptions
 	Columns   []TableWidgetColumn
 	Rows      []TableWidgetRow
+	Filters   []TableWidgetFilter `json:"Filters,omitempty"`
 	RefreshMs int
 }
 
@@ -41,6 +42,14 @@ type TableWidgetRowValue struct {
 	TextFormat int `json:"-"`
 	TextColour config.Colour
 	HoverText  string `json:"HoverText,omitempty"`
+}
+
+type TableWidgetFilter struct {
+	Name          string
+	FilterType    int
+	ColumnNames   []string
+	Values        []string `json:"Values,omitempty"`
+	FullMatchOnly bool
 }
 
 func SaveTableWidget(widget *TableWidget) error {
