@@ -16,7 +16,6 @@ import (
 
 var jsonCache map[string]map[string]interface{} = make(map[string]map[string]interface{})
 var jsonCacheOrder []JsonCacheOrder
-var initMessage bool
 
 type JsonCacheOrder struct {
 	CacheKey  string
