@@ -71,7 +71,7 @@ func (s DeepFry) Execute(message *discordgo.MessageCreate, command string) error
 
 	// 4. Write the new Image to a Bytes Buffer
 	var newImageBuffer bytes.Buffer
-	discord.EditMessage(progressMessage, "Deepfry: Frying")
+	discord.EditMessage(progressMessage, "Deepfry: Frying :cook:")
 	deepfryImageErr := deepfryImage(message.GuildID, imageReader, &newImageBuffer, isAnimated, imgExtension)
 	if deepfryImageErr != nil {
 		discord.SendUserMessageReply(message, false, "Error creating Media")
@@ -104,12 +104,12 @@ func deepfryImage(
 	if isAnimated {
 		err = DeepFryGIF(imageReader, newImgBuffer)
 		if err != nil {
-			return errors.New("Error in deepfry Gif")
+			return errors.New(err.Error())
 		}
 	} else {
 		err = DeepFryIMG(imageReader, newImgBuffer)
 		if err != nil {
-			return errors.New("Error in deepfry img")
+			return errors.New(err.Error())
 		}
 	}
 	if err != nil {

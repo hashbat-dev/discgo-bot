@@ -46,7 +46,7 @@ func (s Wide) Execute(message *discordgo.MessageCreate, command string) error {
 
 	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension == "" {
-		discord.EditMessage(progressMessage, "Wide mode: Speech: Invalid image")
+		discord.EditMessage(progressMessage, "Wide mode: Invalid image")
 		return errors.New("invalid extension")
 	}
 
