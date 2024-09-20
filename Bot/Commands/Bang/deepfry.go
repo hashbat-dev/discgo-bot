@@ -35,7 +35,6 @@ func (s DeepFry) Complexity() int {
 	return config.CPU_BOUND_TASK
 }
 
-// NH TODO
 func (s DeepFry) Execute(message *discordgo.MessageCreate, command string) error {
 	progressMessage := discord.SendUserMessageReply(message, false, "Deepfry: Decoding media...")
 
@@ -97,7 +96,6 @@ func deepfryImage(
 	isAnimated bool,
 	imgExtension string,
 ) error {
-	//	func DeepFryThatShit(imageReader io.Reader, isGif bool, outputFilePath string) error {
 
 	var err error
 
