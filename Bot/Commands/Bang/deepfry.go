@@ -42,7 +42,7 @@ func (s DeepFry) Execute(message *discordgo.MessageCreate, command string) error
 	// 1. Check we have a valid Image and Extension
 	imgUrl := helpers.GetImageFromMessage(message.Message, "")
 	if imgUrl == "" {
-		discord.EditMessage(progressMessage, "Wide mode: Invalid media")
+		discord.EditMessage(progressMessage, "Deepfry: Invalid media")
 		return errors.New("no media found")
 	}
 
@@ -103,8 +103,14 @@ func deepfryImage(
 
 	if isAnimated {
 		err = DeepFryGIF(imageReader, newImgBuffer)
+		if err != nil {
+			return errors.New("Error in deepfry Gif")
+		}
 	} else {
 		err = DeepFryIMG(imageReader, newImgBuffer)
+		if err != nil {
+			return errors.New("Error in deepfry img")
+		}
 	}
 	if err != nil {
 		return err
@@ -137,8 +143,7 @@ func DeepFryIMG(imageReader io.Reader, newImgBuffer *bytes.Buffer) error {
 	img = imaging.AdjustBrightness(img, brightnessOffset)
 	img = imaging.Sharpen(img, sigmaOffset)
 
-	var buf bytes.Buffer
-	err = png.Encode(&buf, img)
+	err = png.Encode(newImgBuffer, img)
 	return err
 }
 
@@ -186,8 +191,7 @@ func DeepFryGIF(imageReader io.Reader, newImgBuffer *bytes.Buffer) error {
 	wg.Wait()
 
 	// Encode the modified GIF
-	var buf bytes.Buffer
-	err = gif.EncodeAll(&buf, img)
+	err = gif.EncodeAll(newImgBuffer, img)
 	if err != nil {
 		return err
 	}
