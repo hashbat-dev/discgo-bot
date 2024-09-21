@@ -237,6 +237,7 @@ var (
 	ValidImageExtensions []string
 	UserBangHelpText     string
 	UserSlashHelpText    string
+	UserMsgCmdHelpText   string
 )
 
 const (

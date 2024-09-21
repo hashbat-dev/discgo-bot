@@ -12,6 +12,7 @@ import (
 	embed "github.com/clinet/discordgo-embed"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
+	database "github.com/dabi-ngin/discgo-bot/Database"
 	discord "github.com/dabi-ngin/discgo-bot/Discord"
 	imgur "github.com/dabi-ngin/discgo-bot/External/Imgur"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
@@ -23,6 +24,8 @@ import (
 var (
 	MemeGenCustomBase = "https://api.memegen.link/images/custom/"
 )
+
+// Uses this API: https://github.com/jacebrowning/memegen
 
 func MakeMemeInit(i *discordgo.InteractionCreate, correlationId string) {
 	// 1. Get the Message object associated with the Interaction request
@@ -120,50 +123,93 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 		logger.Error(i.GuildID, err)
 	}
 
-	// 2. Is the URL we have Accessible by MemeGen?
-	//	  We need a clean URL without any Query strings, Discord Proxy URLs do not work.
-	//	  If we DON'T have a clean URL we'll upload it to Imgur and get use that URL.
-	var sendImgUrl, sendImgExt, deleteHash string
-	var imgSource int // 0: Inbound URL, 1: TempFile, 2: Imgur
+	originalUrl := cachedInteraction.Values.String["imgUrl"]
+	originalExt := cachedInteraction.Values.String["imgExtension"]
+
+	// 2. Get a Publically accessible URL
+	//	  MemeGen's API needs to be able to see the image. We need to factor these points in:
+	//		- Localhost is off limits for Development
+	//		- The MemeGen API doesn't support .webp
+	//		- Discord's CDN actively blocks Proxy URLs from external sites
+	//		- The MemeGen API doesn't support links with Query strings
+	discord.UpdateInteractionResponse(i, "Creating Meme", "Getting image...")
+	var imgSource int
+	// 0 - Inbound URL
+	// 1 - Temp File
+	// 2 - Imgur
 	if strings.Contains(cachedInteraction.Values.String["imgUrl"], "?") {
-		discord.UpdateInteractionResponse(i, "Creating Meme", "Getting image...")
+		// Query string exists, can't use Direct URL
 		if !config.ServiceSettings.ISDEV {
-			// Temp file route
-			tempFileReader, err := imgwork.DownloadImageToReader(i.GuildID, cachedInteraction.Values.String["imgUrl"], cachedInteraction.Values.String["imgExtension"] == ".gif")
-			if err != nil {
-				discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.")
-				cache.InteractionComplete(correlationId)
-				return
-			}
-			tempFile := tempfiles.AddFile(tempFileReader, cachedInteraction.Values.String["imgExtension"])
-			if tempFile == "" {
-				discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.")
-				cache.InteractionComplete(correlationId)
-				return
-			}
 			imgSource = 1
-			sendImgUrl = tempFile
-			sendImgExt = cachedInteraction.Values.String["imgExtension"]
 		} else {
-			// Imgur route
-			imgurUrl, imgurDeleteHash, err := getImgurLink(i.GuildID, i.Member.User.ID, cachedInteraction.Values.String["imgUrl"], cachedInteraction.Values.String["imgExtension"])
-			if err != nil {
-				if strings.Contains(err.Error(), "413") {
-					discord.UpdateInteractionResponse(i, "Error", "File size too large.")
-				} else {
-					discord.UpdateInteractionResponse(i, "Error", "Error getting image.")
-				}
-				cache.InteractionComplete(correlationId)
-				return
-			}
 			imgSource = 2
-			deleteHash = imgurDeleteHash
-			sendImgUrl = imgurUrl
-			sendImgExt = imgwork.GetExtensionFromURL(imgurUrl)
 		}
 	} else {
+		if cachedInteraction.Values.String["imgUrl"] == ".webp" {
+			imgSource = 1 // Needed to convert
+		} else {
+			imgSource = 0
+		}
+	}
+
+	var (
+		sendImgUrl string // URL to send to the API
+		sendImgExt string // Extension of the URL going to the API
+		deleteHash string // [If using Imgur] Used to delete the image at Imgur after processing
+	)
+	switch imgSource {
+	case 0: // Send inbound URL - No conversion/download required as this can be accessed by the API
 		sendImgUrl = cachedInteraction.Values.String["imgUrl"]
 		sendImgExt = cachedInteraction.Values.String["imgExtension"]
+	case 1: // Download the file to the temp/ directory and provide that URL to the API
+		tempFileReader, err := imgwork.DownloadImageToReader(i.GuildID, cachedInteraction.Values.String["imgUrl"], cachedInteraction.Values.String["imgExtension"] == ".gif")
+		if err != nil {
+			discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.")
+			cache.InteractionComplete(correlationId)
+			return
+		}
+
+		// Convert .webp to .png
+		if cachedInteraction.Values.String["imgExtension"] == ".webp" {
+			pngReader, err := imgwork.ConvertWebpToPNG(tempFileReader)
+			if err != nil {
+				discord.UpdateInteractionResponse(i, "Error", "Couldn't convert .webp image.")
+				cache.InteractionComplete(correlationId)
+				return
+			} else {
+				tempFileReader = pngReader
+			}
+		}
+
+		tempFile := tempfiles.AddFile(tempFileReader, cachedInteraction.Values.String["imgExtension"])
+		if tempFile == "" {
+			discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.")
+			cache.InteractionComplete(correlationId)
+			return
+		}
+		imgSource = 1
+		sendImgUrl = tempFile
+		sendImgExt = cachedInteraction.Values.String["imgExtension"]
+	case 2: // Upload to Imgur - Use the Imgur API to upload and provide the Imgur Image URL
+		imgurUrl, imgurDeleteHash, err := getImgurLink(i.GuildID, i.Member.User.ID, cachedInteraction.Values.String["imgUrl"], cachedInteraction.Values.String["imgExtension"])
+		if err != nil {
+			if strings.Contains(err.Error(), "413") {
+				discord.UpdateInteractionResponse(i, "Error", "File size too large.")
+			} else {
+				discord.UpdateInteractionResponse(i, "Error", "Error getting image.")
+			}
+			cache.InteractionComplete(correlationId)
+			return
+		}
+		imgSource = 2
+		deleteHash = imgurDeleteHash
+		sendImgUrl = imgurUrl
+		sendImgExt = imgwork.GetExtensionFromURL(imgurUrl)
+	default:
+		logger.ErrorText(i.GuildID, "Unknown imgSource value: %v", imgSource)
+		discord.UpdateInteractionResponse(i, "Error", "An Error occured.")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	if sendImgUrl == "" || sendImgExt == "" {
@@ -175,6 +221,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	// 3. Generate the Request URL
 	discord.UpdateInteractionResponse(i, "Creating Meme", "Building request...")
 	url := MemeGenCustomBase
+	logUrl := ""
 	captionText := ""
 	topText := ""
 	bottomText := ""
@@ -191,7 +238,9 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	if captionText != "" {
 		// Top Caption
 		url += encodeTextForUrl(captionText) + sendImgExt
-		url += "?layout=top&font=notosans&background=" + sendImgUrl
+		url += "?layout=top&font=notosans&background="
+		logUrl = url + "{0}"
+		url += sendImgUrl
 	} else {
 		// In Image Caption
 		if topText == "" && bottomText == "" {
@@ -211,7 +260,9 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 		} else {
 			url += encodeTextForUrl(bottomText)
 		}
-		url += sendImgExt + "?font=impact&background=" + sendImgUrl
+		url += sendImgExt + "?font=impact&background="
+		logUrl = url + "{0}"
+		url += sendImgUrl
 	}
 
 	// 4. Get the Meme
@@ -237,15 +288,17 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	if err != nil {
 		logger.Error(i.GuildID, err)
 	}
-	_, err = discord.SendMessageWithImageBuffer(i.ChannelID, i.GuildID, sendImgExt, &buffer)
+	outMessage, err := discord.SendMessageWithImageBuffer(i.ChannelID, i.GuildID, sendImgExt, &buffer)
 	if err != nil {
 		logger.Error(i.GuildID, err)
 	}
 
-	// 6. Cleanup
+	// 6. Record in the Database
+	database.InsertMemeGenLog(i.GuildID, i.Member.User.ID, correlationId, outMessage, originalUrl, originalExt, logUrl)
+
+	// 7. Cleanup
 	switch imgSource {
 	case 1: // => Temp File
-		// This is being commented out for Debugging, think we're deleting it too quickly.
 		tempfiles.DeleteFile(i.GuildID, sendImgUrl)
 	case 2: // => Imgur
 		if deleteHash != "" {
@@ -316,6 +369,8 @@ func encodeTextForUrl(input string) string {
 			buffer.WriteString("~g")
 		case '"':
 			buffer.WriteString("''")
+		case '\'':
+			buffer.WriteString("'")
 		default:
 			if unicode.IsLetter(rune(input[i])) || unicode.IsDigit(rune(input[i])) {
 				buffer.WriteByte(input[i])
