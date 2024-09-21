@@ -7,13 +7,15 @@ import (
 )
 
 type Guild struct {
-	DbID         int
-	DiscordID    string
-	Name         string
-	CommandCount int
-	IsDev        bool
-	LastCommand  time.Time
-	Triggers     []triggers.Phrase
+	DbID            int
+	DiscordID       string
+	Name            string
+	CommandCount    int
+	IsDev           bool
+	LastCommand     time.Time
+	Triggers        []triggers.Phrase
+	StarUpChannel   string
+	StarDownChannel string
 }
 
 type GuildPermissions struct {

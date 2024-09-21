@@ -13,6 +13,7 @@ import (
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	discord "github.com/dabi-ngin/discgo-bot/Discord"
+	reactions "github.com/dabi-ngin/discgo-bot/Discord/Reactions"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
@@ -26,6 +27,7 @@ type Task struct {
 	SlashDetails         *SlashTaskDetails
 	SlashResponseDetails *SlashResponseDetails
 	PhraseDetails        *PhraseTaskDetails
+	MessageObj           *discordgo.Message
 }
 
 type BangTaskDetails struct {
@@ -87,6 +89,8 @@ func worker(id int, taskId int, ch <-chan *Task) {
 			workerSlashResponse(task.SlashResponseDetails)
 		case config.CommandTypePhrase:
 			workerPhrase(task.PhraseDetails)
+		case config.CommandTypeReactionCheck:
+			workerReaction(task.MessageObj)
 		default:
 			logger.ErrorText("WORKER", "Unknown CommandType value [%v]", task.CommandType)
 		}
@@ -166,4 +170,76 @@ func workerPhrase(msg *PhraseTaskDetails) {
 			logger.ErrorText(msg.Message.GuildID, "Unhandled Special Phrase [%v]", phrase.Phrase)
 		}
 	}
+}
+
+func workerReaction(msg *discordgo.Message) {
+	// 1. Get the Reactions
+	upCount := 0
+	upString := ""
+	downCount := 0
+	downString := ""
+	var userIds map[string]interface{} = make(map[string]interface{})
+
+	for _, reaction := range msg.Reactions {
+		if _, exists := userIds[reaction.Emoji.User.ID]; exists {
+			continue
+		}
+		found := false
+		for _, emoji := range reactions.UpvoteEmojis {
+			if reaction.Emoji.Name == emoji {
+				upCount += reaction.Count
+				if len(upString) > 0 {
+					upString += " "
+				}
+				upString += addEmojis(emoji, reaction.Count)
+				userIds[reaction.Emoji.User.ID] = struct{}{}
+				found = true
+				break
+			}
+		}
+		if found {
+			continue
+		}
+		for _, emoji := range reactions.DownvoteEmojis {
+			if reaction.Emoji.Name == emoji {
+				downCount += reaction.Count
+				if len(downString) > 0 {
+					downString += " "
+				}
+				downString += addEmojis(emoji, reaction.Count)
+				userIds[reaction.Emoji.User.ID] = struct{}{}
+				found = true
+				break
+			}
+		}
+		if !found {
+			logger.Debug(msg.GuildID, "Unclassified Up/Down Emoji: %s", reaction.Emoji.Name)
+		}
+	}
+
+	// 2. Check whether the Reaction count passes the threshold for saving
+	score := upCount - downCount
+	threshold := 1
+	if score >= threshold || score <= -threshold {
+		emojiString := upString
+		if score < 0 {
+			emojiString = downString
+		}
+		reactions.AddOrUpdate(msg, score, emojiString)
+	} else {
+		reactions.DeleteIfExists(msg)
+	}
+
+	logger.Info(msg.GuildID, "Finished Reaction processing for Message ID: %s", msg.ID)
+}
+
+func addEmojis(emoji string, count int) string {
+	result := ""
+	for i := 0; i < count; i++ {
+		if i > 0 {
+			result += " "
+		}
+		result += emoji
+	}
+	return result
 }

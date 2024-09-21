@@ -143,6 +143,7 @@ const ( // A) Populate A + B!
 	CommandTypePhrase
 	CommandTypeSlash
 	CommandTypeSlashResponse
+	CommandTypeReactionCheck
 )
 
 // B) Populate A + B!
@@ -152,6 +153,7 @@ var CommandTypes map[int]string = map[int]string{
 	CommandTypePhrase:        "Phrase",
 	CommandTypeSlash:         "Slash",
 	CommandTypeSlashResponse: "Slash Response",
+	CommandTypeReactionCheck: "Reaction",
 }
 
 // ------------------------------------------------

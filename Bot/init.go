@@ -86,9 +86,11 @@ func sessionOpen() bool {
 }
 
 func addHandlers() bool {
-	config.Session.AddHandler(handlers.HandleNewMessage)          //   New Messages
+	config.Session.AddHandler(handlers.HandleNewMessage)          //    New Messages
 	config.Session.AddHandler(handlers.HandleNewGuild)            //	Server connected to the bot
 	config.Session.AddHandler(handlers.HandleInteractionResponse) //	Responses from Interaction objects
+	config.Session.AddHandler(handlers.HandleReactionAdd)         //	Message Reactions: Add
+	config.Session.AddHandler(handlers.HandleReactionRemove)      //	Message Reactions: Remove
 	return true
 }
 
