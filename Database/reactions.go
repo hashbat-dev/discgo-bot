@@ -45,9 +45,10 @@ func Starboard_Get(guildId string, originalMessageId string) StarboardMessage {
 
 	if !ID.Valid {
 		return r
+	} else {
+		r.ID = int(ID.Int32)
 	}
 
-	r.ID = int(ID.Int32)
 	if GuildID.Valid {
 		r.GuildID = GuildID.String
 	}

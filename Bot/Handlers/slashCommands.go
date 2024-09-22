@@ -8,6 +8,7 @@ import (
 	slash "github.com/dabi-ngin/discgo-bot/Bot/Commands/Slash"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
+	discord "github.com/dabi-ngin/discgo-bot/Discord"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
 
@@ -71,6 +72,26 @@ var slashCommands = []SlashCommand{
 		},
 		Complexity: config.TRIVIAL_TASK,
 	},
+	//	/admin-role
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name:        "admin-role",
+			Description: "[SERVER OWNER ONLY] Designate role with access to all Bot options",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionRole,
+					Name:        "role",
+					Description: "The Role you want to assign as the Bot Administrator.",
+					Required:    true,
+				},
+			},
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.AssignNewAdminRole(i, correlationId)
+		},
+		Complexity:      config.TRIVIAL_TASK,
+		PermissionLevel: config.CommandLevelServerOwner,
+	},
 }
 
 // Message Commands are not allowed Descriptions, enter User descriptions below for these.
@@ -79,9 +100,10 @@ var userDescriptions map[string]string = map[string]string{
 }
 
 type SlashCommand struct {
-	Command    *discordgo.ApplicationCommand
-	Handler    func(i *discordgo.InteractionCreate, correlationId string)
-	Complexity int
+	Command         *discordgo.ApplicationCommand
+	Handler         func(i *discordgo.InteractionCreate, correlationId string)
+	Complexity      int
+	PermissionLevel int
 }
 
 var SlashCommands map[string]SlashCommand = make(map[string]SlashCommand)
@@ -114,18 +136,48 @@ func SlashCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	cmdName := i.ApplicationCommandData().Name
 	if cmd, exists := SlashCommands[i.ApplicationCommandData().Name]; exists {
-		DispatchTask(&Task{
-			CommandType: config.CommandTypeSlash,
-			Complexity:  cmd.Complexity,
-			SlashDetails: &SlashTaskDetails{
-				Interaction:  i,
-				SlashCommand: cmd,
-			},
-		})
+
+		if !confirmPermissions(i, cmd.PermissionLevel) {
+			logger.Event(i.GuildID, "User [ID: %s, UserName: %s] was blocked from using command [%s]", i.Member.User.ID, i.Member.User.Username, cmd.Command.Name)
+			discord.SendEmbedFromInteraction(i, "Permission Denied", "You do not have permission to use this command.")
+		} else {
+			DispatchTask(&Task{
+				CommandType: config.CommandTypeSlash,
+				Complexity:  cmd.Complexity,
+				SlashDetails: &SlashTaskDetails{
+					Interaction:  i,
+					SlashCommand: cmd,
+				},
+			})
+		}
 		return
 	}
 
 	logger.ErrorText(i.GuildID, "No Handler found for Slash Command: %v", cmdName)
+}
+
+func confirmPermissions(i *discordgo.InteractionCreate, permLevel int) bool {
+	switch permLevel {
+	case config.CommandLevelUser:
+		return true
+	case config.CommandLevelBotAdmin:
+		guildAdminRole := cache.ActiveGuilds[i.GuildID].BotAdminRole
+		if guildAdminRole == "" {
+			return i.Member.User.ID == cache.ActiveGuilds[i.GuildID].ServerOwner
+		} else {
+			for _, r := range i.Member.Roles {
+				if r == guildAdminRole {
+					return true
+				}
+			}
+			return false
+		}
+	case config.CommandLevelServerOwner:
+		return true
+		return i.Member.User.ID == cache.ActiveGuilds[i.GuildID].ServerOwner
+	default:
+	}
+	return false
 }
 
 func RefreshSlashCommands(guildId string) {

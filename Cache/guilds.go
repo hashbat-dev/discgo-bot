@@ -3,23 +3,25 @@ package cache
 import (
 	"time"
 
-	"github.com/bwmarrin/discordgo"
 	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 )
 
 var ActiveGuilds map[string]Guild = make(map[string]Guild)
 
-func AddToActiveGuildCache(guild *discordgo.GuildCreate, dbId int, isDev bool, triggers []triggers.Phrase, starUpId string, starDownId string) {
-	ActiveGuilds[guild.ID] = Guild{
+func AddToActiveGuildCache(dbId int, guildId string, isDev bool, guildName string, triggers []triggers.Phrase, starUpChannel string,
+	starDownChannel string, ownerId string, adminRoleId string) {
+	ActiveGuilds[guildId] = Guild{
 		DbID:            dbId,
-		DiscordID:       guild.ID,
+		DiscordID:       guildId,
 		IsDev:           isDev,
-		Name:            guild.Name,
+		Name:            guildName,
 		LastCommand:     helpers.GetNullDateTime(),
 		Triggers:        triggers,
-		StarUpChannel:   starUpId,
-		StarDownChannel: starDownId,
+		StarUpChannel:   starUpChannel,
+		StarDownChannel: starDownChannel,
+		ServerOwner:     ownerId,
+		BotAdminRole:    adminRoleId,
 	}
 }
 
@@ -37,5 +39,11 @@ func UpdateStarboardChannel(guildId string, channelId string, isUp bool) {
 	} else {
 		guildInfo.StarDownChannel = channelId
 	}
+	ActiveGuilds[guildId] = guildInfo
+}
+
+func UpdateBotAdminRole(guildId string, newRoleId string) {
+	guildInfo := ActiveGuilds[guildId]
+	guildInfo.BotAdminRole = newRoleId
 	ActiveGuilds[guildId] = guildInfo
 }

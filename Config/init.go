@@ -109,14 +109,9 @@ var Colours map[string]Colour = map[string]Colour{
 }
 
 const (
-	CommandLevelBotAdmin = iota
+	CommandLevelUser = iota
+	CommandLevelBotAdmin
 	CommandLevelServerOwner
-	CommandLevelAdmin
-	CommandLevelMod
-	CommandLevelVIP
-	CommandLevelUser
-	CommandLevelRestricted
-	CommandLevelDisabled
 )
 
 // Task categories for channels in message handling

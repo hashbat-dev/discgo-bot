@@ -16,6 +16,8 @@ type Guild struct {
 	Triggers        []triggers.Phrase
 	StarUpChannel   string
 	StarDownChannel string
+	ServerOwner     string
+	BotAdminRole    string
 }
 
 type GuildPermissions struct {

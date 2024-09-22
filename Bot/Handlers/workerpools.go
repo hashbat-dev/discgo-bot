@@ -181,39 +181,61 @@ func workerReaction(msg *discordgo.Message) {
 	var userIds map[string]interface{} = make(map[string]interface{})
 
 	for _, reaction := range msg.Reactions {
-		if _, exists := userIds[reaction.Emoji.User.ID]; exists {
+		emojiIdentifier := reaction.Emoji.Name
+		if reaction.Emoji.ID != "" {
+			emojiIdentifier = fmt.Sprintf("%s:%s", reaction.Emoji.Name, reaction.Emoji.ID)
+		}
+		users, err := config.Session.MessageReactions(msg.ChannelID, msg.ID, emojiIdentifier, 100, "", "")
+		if err != nil {
+			logger.Error(msg.GuildID, err)
 			continue
 		}
 		found := false
+		// Check for upvote emojis
+		isUpVote := false
 		for _, emoji := range reactions.UpvoteEmojis {
-			if reaction.Emoji.Name == emoji {
-				upCount += reaction.Count
-				if len(upString) > 0 {
-					upString += " "
+			if emojiIdentifier == emoji {
+				isUpVote = true
+				for _, user := range users {
+					if _, exists := userIds[user.ID]; !exists {
+						userIds[user.ID] = struct{}{}
+						upCount += reaction.Count
+						if len(upString) > 0 {
+							upString += " "
+						}
+						upString += addEmojis(emoji, reaction.Count)
+						found = true
+						break
+					}
 				}
-				upString += addEmojis(emoji, reaction.Count)
-				userIds[reaction.Emoji.User.ID] = struct{}{}
-				found = true
 				break
 			}
 		}
 		if found {
 			continue
 		}
+		// Check for downvote emojis
+		isDownVote := false
 		for _, emoji := range reactions.DownvoteEmojis {
-			if reaction.Emoji.Name == emoji {
-				downCount += reaction.Count
-				if len(downString) > 0 {
-					downString += " "
+			if emojiIdentifier == emoji {
+				isDownVote = true
+				for _, user := range users {
+					if _, exists := userIds[user.ID]; !exists {
+						userIds[user.ID] = struct{}{}
+						downCount += reaction.Count
+						if len(downString) > 0 {
+							downString += " "
+						}
+						downString += addEmojis(emoji, reaction.Count)
+						found = true
+						break
+					}
 				}
-				downString += addEmojis(emoji, reaction.Count)
-				userIds[reaction.Emoji.User.ID] = struct{}{}
-				found = true
 				break
 			}
 		}
-		if !found {
-			logger.Debug(msg.GuildID, "Unclassified Up/Down Emoji: %s", reaction.Emoji.Name)
+		if !isUpVote && !isDownVote {
+			logger.Debug(msg.GuildID, "Unclassified Up/Down Emoji: %s", emojiIdentifier)
 		}
 	}
 
