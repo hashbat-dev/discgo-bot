@@ -4,6 +4,7 @@ import (
 	"time"
 
 	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
+	data "github.com/dabi-ngin/discgo-bot/Data"
 )
 
 type Guild struct {
@@ -18,6 +19,7 @@ type Guild struct {
 	StarDownChannel string
 	ServerOwner     string
 	BotAdminRole    string
+	ReactionEmojis  []data.GuildEmoji
 }
 
 type GuildPermissions struct {

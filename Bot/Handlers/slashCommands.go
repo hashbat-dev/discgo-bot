@@ -10,6 +10,7 @@ import (
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	discord "github.com/dabi-ngin/discgo-bot/Discord"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	reactions "github.com/dabi-ngin/discgo-bot/Reactions"
 )
 
 // ===[Add Slash Commands]=============================================
@@ -92,6 +93,18 @@ var slashCommands = []SlashCommand{
 		Complexity:      config.TRIVIAL_TASK,
 		PermissionLevel: config.CommandLevelServerOwner,
 	},
+	//	/edit-starboard-reactions
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name:        "edit-hall-reactions",
+			Description: "[ADMIN] Designate which Emojis constitute up/down votes",
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			reactions.EditReactions(i, correlationId)
+		},
+		Complexity:      config.TRIVIAL_TASK,
+		PermissionLevel: config.CommandLevelBotAdmin,
+	},
 }
 
 // Message Commands are not allowed Descriptions, enter User descriptions below for these.
@@ -173,7 +186,6 @@ func confirmPermissions(i *discordgo.InteractionCreate, permLevel int) bool {
 			return false
 		}
 	case config.CommandLevelServerOwner:
-		return true
 		return i.Member.User.ID == cache.ActiveGuilds[i.GuildID].ServerOwner
 	default:
 	}

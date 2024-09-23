@@ -8,14 +8,14 @@ import (
 )
 
 func HandleReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
-	if skipReactionCheck(r.UserID, r.GuildID) {
+	if skipReactionCheck(r.UserID, r.GuildID, r.ChannelID) {
 		return
 	}
 	startReactionCheck(r.GuildID, r.ChannelID, r.MessageID)
 }
 
 func HandleReactionRemove(s *discordgo.Session, r *discordgo.MessageReactionRemove) {
-	if skipReactionCheck(r.UserID, r.GuildID) {
+	if skipReactionCheck(r.UserID, r.GuildID, r.ChannelID) {
 		return
 	}
 	startReactionCheck(r.GuildID, r.ChannelID, r.MessageID)
@@ -34,7 +34,7 @@ func startReactionCheck(guildId string, channelId string, messageId string) {
 	})
 }
 
-func skipReactionCheck(userId string, guildId string) bool {
+func skipReactionCheck(userId string, guildId string, channelId string) bool {
 	if userId == config.Session.State.User.ID {
 		return true
 	}
@@ -43,5 +43,9 @@ func skipReactionCheck(userId string, guildId string) bool {
 		return true
 	}
 
+	if _, exists := cache.ActiveAdminChannels[channelId]; exists {
+		logger.Debug(guildId, "Skipping Reaction check as sourced from an Admin Channel")
+		return true
+	}
 	return false
 }

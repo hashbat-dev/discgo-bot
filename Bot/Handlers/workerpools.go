@@ -13,9 +13,9 @@ import (
 	config "github.com/dabi-ngin/discgo-bot/Config"
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	discord "github.com/dabi-ngin/discgo-bot/Discord"
-	reactions "github.com/dabi-ngin/discgo-bot/Discord/Reactions"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	reactions "github.com/dabi-ngin/discgo-bot/Reactions"
 	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 	"github.com/google/uuid"
 )

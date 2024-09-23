@@ -51,10 +51,22 @@ func CreateChannel(guildId string, isUp bool) string {
 		return ""
 	}
 
-	err = database.Guild_UpdateStarboardChannel(guildId, channel.ID, isUp)
+	guildObj, err := database.Guild_Get(guildId)
 	if err != nil {
 		return ""
 	}
+
+	if isUp {
+		guildObj.StarUpChannel = channel.ID
+	} else {
+		guildObj.StarDownChannel = channel.ID
+	}
+
+	_, err = database.Guild_InsertUpdate(guildObj)
+	if err != nil {
+		return ""
+	}
+
 	cache.UpdateStarboardChannel(guildId, channel.ID, isUp)
 	return channel.ID
 }

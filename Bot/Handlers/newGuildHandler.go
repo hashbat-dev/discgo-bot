@@ -1,16 +1,24 @@
 package handlers
 
 import (
+	"sync"
+
 	"github.com/bwmarrin/discordgo"
 	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	reactions "github.com/dabi-ngin/discgo-bot/Reactions"
 	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 )
 
+var guildMutex sync.Mutex
+
 // Calls whenever a new Guild connects to the bot. This also runs for all active Guilds on startup.
 func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate) {
+	guildMutex.Lock()
+	defer guildMutex.Unlock()
+
 	// 1. Do we have any existing records for the Guild?
 	guild, err := database.Guild_Get(newGuild.ID)
 	if err != nil {
@@ -33,6 +41,25 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 		}
 	}
 
+	// 3. Get the Guild Starboard Emojis
+	guildEmojis, err := database.GetAllGuildEmojis(guild.GuildID)
+	if err == nil && len(guildEmojis) == 0 {
+		// None assigned, provide the bare basics
+		err = reactions.AddGuildEmoji(guild.GuildID, "", reactions.StandardUp, reactions.EmojiCategoryUp)
+		if err != nil {
+			logger.ErrorText(guild.GuildID, "Failed to add Standard 'Up' Emoji")
+		}
+		err = reactions.AddGuildEmoji(guild.GuildID, "", reactions.StandardDown, reactions.EmojiCategoryDown)
+		if err != nil {
+			logger.ErrorText(guild.GuildID, "Failed to add Standard 'Down' Emoji")
+		}
+		guildEmojis, err = database.GetAllGuildEmojis(guild.GuildID)
+		if err != nil {
+			logger.ErrorText(guild.GuildID, "Failed to get newly inserted Guild Emojis")
+		}
+	}
+
+	// 4. Update our Guild Information
 	// => Add Global Phrases
 	triggerList = append(triggerList, triggers.GlobalPhrases...)
 
@@ -41,7 +68,7 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 	guild.GuildMemberCount = newGuild.MemberCount
 	guild.GuildOwnerID = newGuild.OwnerID
 
-	// 3. Update the Database with this information
+	// 5. Update the Database with this information
 	newG, err := database.Guild_InsertUpdate(guild)
 	if err != nil {
 		logger.ErrorText(guild.GuildID, "Error updating Database")
@@ -49,8 +76,8 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 		guild = newG
 	}
 
-	// 4. Add to the Active Cache
+	// 6. Add to the Active Cache
 	cache.AddToActiveGuildCache(guild.ID, guild.GuildID, guild.IsDevServer, guild.GuildName, triggerList, guild.StarUpChannel,
-		guild.StarDownChannel, guild.GuildOwnerID, guild.GuildAdminRole)
+		guild.StarDownChannel, guild.GuildOwnerID, guild.GuildAdminRole, guildEmojis)
 	reporting.Guilds()
 }

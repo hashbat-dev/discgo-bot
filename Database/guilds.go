@@ -211,19 +211,3 @@ func Guild_InsertUpdate(g GuildInfo) (GuildInfo, error) {
 		return g, nil
 	}
 }
-
-func Guild_UpdateStarboardChannel(GuildID string, ChannelID string, IsUp bool) error {
-	channel := "StarUpChannel"
-	if !IsUp {
-		channel = "StarDownChannel"
-	}
-	query := "UPDATE Guilds SET " + channel + " = ? WHERE GuildID = ?"
-	_, err := Db.ExecContext(context.Background(), query, ChannelID, GuildID)
-	if err != nil {
-		logger.Error(GuildID, err)
-		return err
-	} else {
-		return nil
-	}
-
-}

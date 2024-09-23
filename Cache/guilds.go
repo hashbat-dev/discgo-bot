@@ -4,13 +4,15 @@ import (
 	"time"
 
 	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
+	data "github.com/dabi-ngin/discgo-bot/Data"
 	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
 )
 
 var ActiveGuilds map[string]Guild = make(map[string]Guild)
+var ActiveAdminChannels map[string]time.Time = make(map[string]time.Time)
 
 func AddToActiveGuildCache(dbId int, guildId string, isDev bool, guildName string, triggers []triggers.Phrase, starUpChannel string,
-	starDownChannel string, ownerId string, adminRoleId string) {
+	starDownChannel string, ownerId string, adminRoleId string, reactionEmojis []data.GuildEmoji) {
 	ActiveGuilds[guildId] = Guild{
 		DbID:            dbId,
 		DiscordID:       guildId,
@@ -22,6 +24,7 @@ func AddToActiveGuildCache(dbId int, guildId string, isDev bool, guildName strin
 		StarDownChannel: starDownChannel,
 		ServerOwner:     ownerId,
 		BotAdminRole:    adminRoleId,
+		ReactionEmojis:  reactionEmojis,
 	}
 }
 
