@@ -4,6 +4,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	config "github.com/dabi-ngin/discgo-bot/Config"
+	database "github.com/dabi-ngin/discgo-bot/Database"
 	discord "github.com/dabi-ngin/discgo-bot/Discord"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
 )
@@ -28,7 +29,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 	msgText := "<@" + i.Member.User.ID + ">\n"
 	msgText += "* Add/Remove the reactions below to define what your Upvote/Downvote emojis should be.\n"
 	msgText += "* Click [Reset to Default] to reset them to a standard Thumbs Up/Down.\n"
-	msgText += "* Click [Assign ALL Generics] to assign ALL positive/negative default Emojis, these can be edited after.\n"
+	msgText += "* Click [Assign ALL Generics] to remove all current reactions and assign a range of positive/negative default Emojis, these can be edited after.\n"
 	msgText += "* Click [Save Changes] to do just that!\n"
 	msgText += "* Click [Cancel Changes] discard everything here and destroy this channel.\n"
 	_, err = config.Session.ChannelMessageSend(channel.ID, msgText)
@@ -57,6 +58,8 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 		logger.Error(i.GuildID, err)
 		return
 	}
+	cache.ActiveInteractions[correlationId].Values.String["UpMessageId"] = upMsg.ID
+	cache.ActiveInteractions[correlationId].Values.String["DownMessageId"] = downMsg.ID
 
 	// 4. Add the Current reactions to these Messages
 	for _, emoji := range cache.ActiveGuilds[i.GuildID].ReactionEmojis {
@@ -124,17 +127,140 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 }
 
 func EditHandler_Reset(i *discordgo.InteractionCreate, correlationId string) {
-	logger.Info(i.GuildID, "EditHandler_Reset")
+	err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "Resetting to Default...",
+		},
+	})
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+
+	channelId := cache.ActiveInteractions[correlationId].Values.String["tempChannelId"]
+	upMsgId := cache.ActiveInteractions[correlationId].Values.String["UpMessageId"]
+	downMsgId := cache.ActiveInteractions[correlationId].Values.String["DownMessageId"]
+
+	// 1. Delete all current Reactions
+	err = config.Session.MessageReactionsRemoveAll(channelId, upMsgId)
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+	err = config.Session.MessageReactionsRemoveAll(channelId, downMsgId)
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+
+	// 2. Add the default Reactions
+	err = config.Session.MessageReactionAdd(channelId, upMsgId, StandardUp)
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+	err = config.Session.MessageReactionAdd(channelId, downMsgId, StandardDown)
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
 }
 
 func EditHandler_Generics(i *discordgo.InteractionCreate, correlationId string) {
-	logger.Info(i.GuildID, "EditHandler_Generics")
+	err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "Adding Generics...",
+		},
+	})
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+
+	channelId := cache.ActiveInteractions[correlationId].Values.String["tempChannelId"]
+	upMsgId := cache.ActiveInteractions[correlationId].Values.String["UpMessageId"]
+	downMsgId := cache.ActiveInteractions[correlationId].Values.String["DownMessageId"]
+
+	// 1. Delete all current Reactions
+	err = config.Session.MessageReactionsRemoveAll(channelId, upMsgId)
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+	err = config.Session.MessageReactionsRemoveAll(channelId, downMsgId)
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+
+	// 2. Add all the Generic Reactions
+	for _, emoji := range UpvoteEmojis {
+		err = config.Session.MessageReactionAdd(channelId, upMsgId, emoji)
+		if err != nil {
+			logger.Error(i.GuildID, err)
+		}
+	}
+	for _, emoji := range DownvoteEmojis {
+		err = config.Session.MessageReactionAdd(channelId, downMsgId, emoji)
+		if err != nil {
+			logger.Error(i.GuildID, err)
+		}
+	}
 }
 
 func EditHandler_Save(i *discordgo.InteractionCreate, correlationId string) {
-	logger.Info(i.GuildID, "EditHandler_Save")
+	err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "Saving Changes...",
+		},
+	})
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+
+	// 1. Delete all existing Reactions
+	err = database.DeleteAllEmojiLinks(i.GuildID)
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+
+	channelId := cache.ActiveInteractions[correlationId].Values.String["tempChannelId"]
+	upMsgId := cache.ActiveInteractions[correlationId].Values.String["UpMessageId"]
+	downMsgId := cache.ActiveInteractions[correlationId].Values.String["DownMessageId"]
+
+	// 2. Get the Messages as Objects
+	upMsg, err := config.Session.ChannelMessage(channelId, upMsgId)
+	if err != nil {
+		logger.Error(i.GuildID, err)
+		cache.InteractionComplete(correlationId)
+		discord.DeleteAdminChannel(i.GuildID, channelId)
+		return
+	}
+	downMsg, err := config.Session.ChannelMessage(channelId, downMsgId)
+	if err != nil {
+		logger.Error(i.GuildID, err)
+		cache.InteractionComplete(correlationId)
+		discord.DeleteAdminChannel(i.GuildID, channelId)
+		return
+	}
+
+	// 3. Get the Emojis and add them one-by-one
+	for _, reaction := range upMsg.Reactions {
+		err = AddGuildEmoji(i.GuildID, "", reaction.Emoji.Name, EmojiCategoryUp)
+		if err != nil {
+			logger.ErrorText(i.GuildID, "Failed to add Standard 'Up' Emoji")
+		}
+	}
+	for _, reaction := range downMsg.Reactions {
+		err = AddGuildEmoji(i.GuildID, "", reaction.Emoji.Name, EmojiCategoryUp)
+		if err != nil {
+			logger.ErrorText(i.GuildID, "Failed to add Standard 'Up' Emoji")
+		}
+	}
+
+	// 4. Complete the Session
+	logger.Event(i.GuildID, "New Hall Reactions assigned to Guild")
+	discord.DeleteAdminChannel(i.GuildID, cache.ActiveInteractions[correlationId].Values.String["tempChannelId"])
+	cache.InteractionComplete(correlationId)
 }
 
 func EditHandler_Cancel(i *discordgo.InteractionCreate, correlationId string) {
-	logger.Info(i.GuildID, "EditHandler_Cancel")
+	discord.DeleteAdminChannel(i.GuildID, cache.ActiveInteractions[correlationId].Values.String["tempChannelId"])
+	cache.InteractionComplete(correlationId)
+	logger.Info(i.GuildID, "User [%s] closed the EditReactions request", i.Member.User.ID)
 }

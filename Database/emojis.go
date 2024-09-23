@@ -141,3 +141,30 @@ func InsertEmojiGuildLink(emojiId int, categoryId int, guildId string, addedByUs
 
 	return nil
 }
+
+func DeleteAllEmojiLinks(guildId string) error {
+	query := `DELETE FROM
+				EmojiGuildLink
+			  WHERE 
+			  	GuildID = ?`
+	_, err := Db.Exec(query, guildId)
+	if err != nil {
+		logger.Error(guildId, err)
+		return err
+	}
+	return TidyEmojiStorage(guildId)
+}
+
+func TidyEmojiStorage(guildId string) error {
+	queryStorage := `SELECT * FROM EmojiStorage
+	WHERE ID NOT IN (
+		SELECT EmojiID FROM EmojiGuildLink
+	)`
+	_, err := Db.Exec(queryStorage)
+	if err != nil {
+		logger.Error(guildId, err)
+		return err
+	}
+
+	return err
+}
