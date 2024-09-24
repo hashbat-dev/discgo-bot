@@ -1,67 +1,83 @@
 package handlers
 
 import (
-	"errors"
-	"strings"
+	"sync"
 
 	"github.com/bwmarrin/discordgo"
 	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
 	cache "github.com/dabi-ngin/discgo-bot/Cache"
 	database "github.com/dabi-ngin/discgo-bot/Database"
 	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	reactions "github.com/dabi-ngin/discgo-bot/Reactions"
 	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 )
 
+var guildMutex sync.Mutex
+
 // Calls whenever a new Guild connects to the bot. This also runs for all active Guilds on startup.
 func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate) {
+	guildMutex.Lock()
+	defer guildMutex.Unlock()
+
 	// 1. Do we have any existing records for the Guild?
-	dbId, isDev, err := database.Guild_DoesGuildExist(newGuild.ID)
-	if err != nil && !strings.Contains(err.Error(), "no rows") {
-		logger.Error(newGuild.ID, err)
+	guild, err := database.Guild_Get(newGuild.ID)
+	if err != nil {
+		logger.ErrorText(newGuild.ID, "Failed to process Guild")
+		return
 	}
 
+	// 2. Get the Guild Triggers
 	var triggerList []triggers.Phrase
-
-	if dbId > 0 {
-		// => Guild already exists, update the Member Count
-		err = database.Guild_UpdateMemberCount(newGuild.ID, newGuild.MemberCount)
-		if err != nil {
-			logger.Error(newGuild.ID, err)
-			return
-		}
-
+	if guild.ID > 0 {
 		// => Does the Guild have any Triggers? If so get for the Cache
-		phraseLinks, err := database.GetAllGuildPhrases(newGuild.ID)
+		phraseLinks, err := database.GetAllGuildPhrases(guild.GuildID)
 		if err != nil {
-			logger.Error(newGuild.ID, err)
+			logger.Error(guild.GuildID, err)
 			return
 		}
 
 		for _, phrase := range phraseLinks {
 			triggerList = append(triggerList, phrase.Phrase)
 		}
+	}
 
-		// => Add Global Phrases
-		triggerList = append(triggerList, triggers.GlobalPhrases...)
-
-		logger.Event(newGuild.ID, "Existing Guild connected: %v", newGuild.Name)
-	} else {
-		// 2. This is a new Guild, perform our First Time setup
-		newId, err := database.Guild_InsertNewEntry(newGuild.ID, newGuild.Name, newGuild.MemberCount, newGuild.OwnerID)
+	// 3. Get the Guild Starboard Emojis
+	guildEmojis, err := database.GetAllGuildEmojis(guild.GuildID)
+	if err == nil && len(guildEmojis) == 0 {
+		// None assigned, provide the bare basics
+		err = reactions.AddGuildEmoji(guild.GuildID, "", reactions.StandardUp, reactions.EmojiCategoryUp)
 		if err != nil {
-			logger.Error(newGuild.ID, err)
-			return
+			logger.ErrorText(guild.GuildID, "Failed to add Standard 'Up' Emoji")
 		}
-
-		if newId > 0 {
-			dbId = newId
-		} else {
-			logger.Error(newGuild.ID, errors.New("guild insert returned 0"))
-			return
+		err = reactions.AddGuildEmoji(guild.GuildID, "", reactions.StandardDown, reactions.EmojiCategoryDown)
+		if err != nil {
+			logger.ErrorText(guild.GuildID, "Failed to add Standard 'Down' Emoji")
+		}
+		guildEmojis, err = database.GetAllGuildEmojis(guild.GuildID)
+		if err != nil {
+			logger.ErrorText(guild.GuildID, "Failed to get newly inserted Guild Emojis")
 		}
 	}
 
-	// 3. Add to the Active Cache
-	cache.AddToActiveGuildCache(newGuild, dbId, isDev, triggerList)
+	// 4. Update our Guild Information
+	// => Add Global Phrases
+	triggerList = append(triggerList, triggers.GlobalPhrases...)
+
+	// => Update the Guild Info
+	guild.GuildName = newGuild.Name
+	guild.GuildMemberCount = newGuild.MemberCount
+	guild.GuildOwnerID = newGuild.OwnerID
+
+	// 5. Update the Database with this information
+	newG, err := database.Guild_InsertUpdate(guild)
+	if err != nil {
+		logger.ErrorText(guild.GuildID, "Error updating Database")
+	} else {
+		guild = newG
+	}
+
+	// 6. Add to the Active Cache
+	cache.AddToActiveGuildCache(guild.ID, guild.GuildID, guild.IsDevServer, guild.GuildName, triggerList, guild.StarUpChannel,
+		guild.StarDownChannel, guild.GuildOwnerID, guild.GuildAdminRole, guildEmojis)
 	reporting.Guilds()
 }

@@ -109,14 +109,9 @@ var Colours map[string]Colour = map[string]Colour{
 }
 
 const (
-	CommandLevelBotAdmin = iota
+	CommandLevelUser = iota
+	CommandLevelBotAdmin
 	CommandLevelServerOwner
-	CommandLevelAdmin
-	CommandLevelMod
-	CommandLevelVIP
-	CommandLevelUser
-	CommandLevelRestricted
-	CommandLevelDisabled
 )
 
 // Task categories for channels in message handling
@@ -143,6 +138,7 @@ const ( // A) Populate A + B!
 	CommandTypePhrase
 	CommandTypeSlash
 	CommandTypeSlashResponse
+	CommandTypeReactionCheck
 )
 
 // B) Populate A + B!
@@ -152,6 +148,7 @@ var CommandTypes map[int]string = map[int]string{
 	CommandTypePhrase:        "Phrase",
 	CommandTypeSlash:         "Slash",
 	CommandTypeSlashResponse: "Slash Response",
+	CommandTypeReactionCheck: "Reaction",
 }
 
 // ------------------------------------------------
