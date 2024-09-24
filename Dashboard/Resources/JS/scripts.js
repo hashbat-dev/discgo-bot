@@ -52,6 +52,7 @@ function resetPage() {
 
     // Clear Chart Instances
     chartInstances.clear();
+
     // Delete the Widgets
     while (widgetContainer.firstChild) {
         widgetContainer.removeChild(widgetContainer.firstChild);
