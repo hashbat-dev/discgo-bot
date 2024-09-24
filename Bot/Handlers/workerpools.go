@@ -241,7 +241,7 @@ func workerReaction(msg *discordgo.Message) {
 
 	// 2. Check whether the Reaction count passes the threshold for saving
 	score := upCount - downCount
-	threshold := 1
+	threshold := 3
 	if score >= threshold || score <= -threshold {
 		emojiString := upString
 		if score < 0 {
