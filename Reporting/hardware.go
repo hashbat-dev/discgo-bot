@@ -3,9 +3,9 @@ package reporting
 import (
 	"time"
 
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	widgets "github.com/dabi-ngin/discgo-bot/Dashboard/Widgets"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	widgets "github.com/hashbat-dev/discgo-bot/Dashboard/Widgets"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 )
@@ -15,7 +15,6 @@ var ramValuesCache []float64 = []float64{}
 var ramMaxValue int = -1
 
 func Hardware() {
-
 	// CPU -----------------------------------------------------------------------------
 	cpuPercentage, err := cpu.Percent(time.Second*time.Duration(config.ServiceSettings.HARDWARESTATINTERVALSECONDS), false)
 	if err != nil {

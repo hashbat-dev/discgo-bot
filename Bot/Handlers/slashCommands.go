@@ -5,12 +5,12 @@ import (
 	"sort"
 
 	"github.com/bwmarrin/discordgo"
-	slash "github.com/dabi-ngin/discgo-bot/Bot/Commands/Slash"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	discord "github.com/dabi-ngin/discgo-bot/Discord"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	reactions "github.com/dabi-ngin/discgo-bot/Reactions"
+	slash "github.com/hashbat-dev/discgo-bot/Bot/Commands/Slash"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
+	reactions "github.com/hashbat-dev/discgo-bot/Reactions"
 )
 
 // ===[Add Slash Commands]=============================================

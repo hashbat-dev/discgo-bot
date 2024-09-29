@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	widgets "github.com/dabi-ngin/discgo-bot/Dashboard/Widgets"
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	widgets "github.com/hashbat-dev/discgo-bot/Dashboard/Widgets"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 type DashCmdAvg struct {

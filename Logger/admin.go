@@ -1,6 +1,6 @@
 package logger
 
-import config "github.com/dabi-ngin/discgo-bot/Config"
+import config "github.com/hashbat-dev/discgo-bot/Config"
 
 // Logs important Events, ie. The requesting/delivery of user input
 func Admin(guildId string, logText string, a ...any) {

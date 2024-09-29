@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	discord "github.com/dabi-ngin/discgo-bot/Discord"
-	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
-	imgwork "github.com/dabi-ngin/discgo-bot/ImgWork"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
 	"github.com/google/uuid"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
+	imgwork "github.com/hashbat-dev/discgo-bot/ImgWork"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 type Reverse struct{}

@@ -3,7 +3,7 @@ package logger
 import (
 	"time"
 
-	config "github.com/dabi-ngin/discgo-bot/Config"
+	config "github.com/hashbat-dev/discgo-bot/Config"
 )
 
 var startTime time.Time

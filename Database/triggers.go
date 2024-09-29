@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"errors"
 
-	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	triggers "github.com/hashbat-dev/discgo-bot/Bot/Commands/Triggers"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func GetAllGuildPhrases(guildId string) ([]triggers.PhraseLink, error) {

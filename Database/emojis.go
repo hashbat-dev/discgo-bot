@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strings"
 
-	data "github.com/dabi-ngin/discgo-bot/Data"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	data "github.com/hashbat-dev/discgo-bot/Data"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func GetAllGuildEmojis(guildId string) ([]data.GuildEmoji, error) {

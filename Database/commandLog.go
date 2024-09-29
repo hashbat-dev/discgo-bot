@@ -1,8 +1,8 @@
 package database
 
 import (
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func LogCommandUsage(guildId string, userId string, commandTypeId int, command string) {

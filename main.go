@@ -3,9 +3,9 @@ package main
 import (
 	"sync"
 
-	bot "github.com/dabi-ngin/discgo-bot/Bot"
-	dashboard "github.com/dabi-ngin/discgo-bot/Dashboard"
-	scheduler "github.com/dabi-ngin/discgo-bot/Scheduler"
+	bot "github.com/hashbat-dev/discgo-bot/Bot"
+	dashboard "github.com/hashbat-dev/discgo-bot/Dashboard"
+	scheduler "github.com/hashbat-dev/discgo-bot/Scheduler"
 )
 
 func main() {

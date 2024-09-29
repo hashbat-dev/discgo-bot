@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func CreateAdminChannel(guildId string, channelName string) (*discordgo.Channel, error) {

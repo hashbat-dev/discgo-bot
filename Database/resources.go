@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func GetRandomResource(guildId string, resourceTypeId int) (string, error) {

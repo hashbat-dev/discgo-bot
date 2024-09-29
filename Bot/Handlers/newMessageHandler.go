@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	commands "github.com/dabi-ngin/discgo-bot/Bot/Commands"
-	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 	"github.com/google/uuid"
+	commands "github.com/hashbat-dev/discgo-bot/Bot/Commands"
+	triggers "github.com/hashbat-dev/discgo-bot/Bot/Commands/Triggers"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
+	reporting "github.com/hashbat-dev/discgo-bot/Reporting"
 )
 
 // HandleNewMessage checks for Bot actions whenever a new Message is posted in a Server

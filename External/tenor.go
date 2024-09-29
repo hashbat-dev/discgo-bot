@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func GetImageUrlFromTenor(guildId string, tenorLink string) (string, error) {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 type FakeYouRequestStartOut struct {

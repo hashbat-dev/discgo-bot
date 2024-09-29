@@ -4,12 +4,12 @@ import (
 	"sync"
 
 	"github.com/bwmarrin/discordgo"
-	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	reactions "github.com/dabi-ngin/discgo-bot/Reactions"
-	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
+	triggers "github.com/hashbat-dev/discgo-bot/Bot/Commands/Triggers"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
+	reactions "github.com/hashbat-dev/discgo-bot/Reactions"
+	reporting "github.com/hashbat-dev/discgo-bot/Reporting"
 )
 
 var guildMutex sync.Mutex
@@ -20,7 +20,7 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 	defer guildMutex.Unlock()
 
 	// 1. Do we have any existing records for the Guild?
-	guild, err := database.Guild_Get(newGuild.ID)
+	guild, err := database.Get(newGuild.ID)
 	if err != nil {
 		logger.ErrorText(newGuild.ID, "Failed to process Guild")
 		return
@@ -69,7 +69,7 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 	guild.GuildOwnerID = newGuild.OwnerID
 
 	// 5. Update the Database with this information
-	newG, err := database.Guild_InsertUpdate(guild)
+	newG, err := database.Upsert(guild)
 	if err != nil {
 		logger.ErrorText(guild.GuildID, "Error updating Database")
 	} else {

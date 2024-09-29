@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 type GuildInfo struct {
@@ -24,7 +24,7 @@ type GuildInfo struct {
 	IsDevServer      bool
 }
 
-func Guild_Get(guildId string) (GuildInfo, error) {
+func Get(guildId string) (GuildInfo, error) {
 	var ID, GuildMemberCount sql.NullInt32
 	var IsDevServer sql.NullBool
 	var GuildID, GuildName, GuildOwnerID, GuildAdminRole, StarUpChannel, StarDownChannel sql.NullString
@@ -88,7 +88,7 @@ func Guild_Get(guildId string) (GuildInfo, error) {
 	return r, nil
 }
 
-func Guild_InsertUpdate(g GuildInfo) (GuildInfo, error) {
+func Upsert(g GuildInfo) (GuildInfo, error) {
 	if g.ID == 0 {
 		// Insert
 		var params []interface{}

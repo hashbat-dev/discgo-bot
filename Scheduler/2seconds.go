@@ -1,10 +1,10 @@
 package scheduler
 
 import (
-	slash "github.com/dabi-ngin/discgo-bot/Bot/Commands/Slash"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
+	slash "github.com/hashbat-dev/discgo-bot/Bot/Commands/Slash"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
+	reporting "github.com/hashbat-dev/discgo-bot/Reporting"
 )
 
 func RunEvery2Seconds() {

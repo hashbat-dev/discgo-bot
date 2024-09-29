@@ -9,7 +9,7 @@ import (
 	"io"
 	"time"
 
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 	"github.com/nfnt/resize"
 )
 

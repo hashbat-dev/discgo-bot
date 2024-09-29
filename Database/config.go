@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func GetLastFakeYouCheck() (time.Time, error) {

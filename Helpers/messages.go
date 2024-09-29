@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	external "github.com/dabi-ngin/discgo-bot/External"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	external "github.com/hashbat-dev/discgo-bot/External"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 // Returns the Image URL if one exists in the message, if not the String is blank. If a specific extension is needed enter it as the second variable, if blank it will accept anything defined in Config.

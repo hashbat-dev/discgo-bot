@@ -3,9 +3,9 @@ package reporting
 import (
 	"sort"
 
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	widgets "github.com/dabi-ngin/discgo-bot/Dashboard/Widgets"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	widgets "github.com/hashbat-dev/discgo-bot/Dashboard/Widgets"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func Logs() {

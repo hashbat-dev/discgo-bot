@@ -4,10 +4,10 @@ import (
 	"errors"
 
 	"github.com/bwmarrin/discordgo"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 var (
@@ -51,7 +51,7 @@ func CreateChannel(guildId string, isUp bool) string {
 		return ""
 	}
 
-	guildObj, err := database.Guild_Get(guildId)
+	guildObj, err := database.Get(guildId)
 	if err != nil {
 		return ""
 	}
@@ -62,7 +62,7 @@ func CreateChannel(guildId string, isUp bool) string {
 		guildObj.StarDownChannel = channel.ID
 	}
 
-	_, err = database.Guild_InsertUpdate(guildObj)
+	_, err = database.Upsert(guildObj)
 	if err != nil {
 		return ""
 	}

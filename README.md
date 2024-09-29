@@ -5,4 +5,4 @@ Please feel free to get in contact with anyone from the team for information on 
 
 A page will be created soon which will outline who has been responsible for which areas of code.
 
-https://github.com/astrarium-dev/discgo-bot/wiki
+https://github.com/hashbat-dev/discgo-bot/wiki

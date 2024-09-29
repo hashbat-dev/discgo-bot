@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	config "github.com/dabi-ngin/discgo-bot/Config"
+	config "github.com/hashbat-dev/discgo-bot/Config"
 )
 
 func FormatInboundLogText(logText string, a ...any) string {

@@ -3,9 +3,9 @@ package cache
 import (
 	"time"
 
-	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
-	data "github.com/dabi-ngin/discgo-bot/Data"
-	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
+	triggers "github.com/hashbat-dev/discgo-bot/Bot/Commands/Triggers"
+	data "github.com/hashbat-dev/discgo-bot/Data"
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
 )
 
 var ActiveGuilds map[string]Guild = make(map[string]Guild)

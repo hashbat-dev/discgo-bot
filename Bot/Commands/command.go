@@ -4,8 +4,8 @@ import (
 	"sort"
 
 	"github.com/bwmarrin/discordgo"
-	bang "github.com/dabi-ngin/discgo-bot/Bot/Commands/Bang"
-	config "github.com/dabi-ngin/discgo-bot/Config"
+	bang "github.com/hashbat-dev/discgo-bot/Bot/Commands/Bang"
+	config "github.com/hashbat-dev/discgo-bot/Config"
 )
 
 type Command interface {

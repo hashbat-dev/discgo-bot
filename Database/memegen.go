@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func InsertMemeGenLog(guildId string, userId string, correlationId string, messageId string, sourceUrl string, sourceExt string, memeGenUrl string) {
