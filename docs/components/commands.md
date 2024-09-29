@@ -10,7 +10,7 @@ package bang
 
 import (
 	"github.com/bwmarrin/discordgo"
-	config "github.com/dabi-ngin/discgo-bot/Config"
+	config "github.com/hashbat-dev/discgo-bot/Config"
 )
 
 type MyCommand struct{}

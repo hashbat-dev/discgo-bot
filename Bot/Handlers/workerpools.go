@@ -7,17 +7,17 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	commands "github.com/dabi-ngin/discgo-bot/Bot/Commands"
-	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	discord "github.com/dabi-ngin/discgo-bot/Discord"
-	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	reactions "github.com/dabi-ngin/discgo-bot/Reactions"
-	reporting "github.com/dabi-ngin/discgo-bot/Reporting"
 	"github.com/google/uuid"
+	commands "github.com/hashbat-dev/discgo-bot/Bot/Commands"
+	triggers "github.com/hashbat-dev/discgo-bot/Bot/Commands/Triggers"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
+	reactions "github.com/hashbat-dev/discgo-bot/Reactions"
+	reporting "github.com/hashbat-dev/discgo-bot/Reporting"
 )
 
 type Task struct {

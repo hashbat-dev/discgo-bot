@@ -12,7 +12,7 @@ import (
 	"net/http"
 
 	"github.com/chai2010/webp"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 // DownloadImageToReader takes an imageUrl as found in a discord message, downloads from the CDN, and returns it as

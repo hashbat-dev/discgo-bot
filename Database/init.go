@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
 	_ "github.com/go-sql-driver/mysql"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 var Db *sql.DB

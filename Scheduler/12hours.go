@@ -1,9 +1,9 @@
 package scheduler
 
 import (
-	fakeyou "github.com/dabi-ngin/discgo-bot/External/FakeYou"
-	imgur "github.com/dabi-ngin/discgo-bot/External/Imgur"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	fakeyou "github.com/hashbat-dev/discgo-bot/External/FakeYou"
+	imgur "github.com/hashbat-dev/discgo-bot/External/Imgur"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func RunEvery12Hours() {

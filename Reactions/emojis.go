@@ -1,6 +1,6 @@
 package reactions
 
-import database "github.com/dabi-ngin/discgo-bot/Database"
+import database "github.com/hashbat-dev/discgo-bot/Database"
 
 const (
 	EmojiCategories = iota

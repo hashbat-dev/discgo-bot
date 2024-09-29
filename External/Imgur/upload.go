@@ -9,10 +9,10 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
 	"github.com/google/uuid"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 // Returns Imgur Link, Delete Hash, Error

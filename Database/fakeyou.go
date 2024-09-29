@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 type FakeYouModel struct {

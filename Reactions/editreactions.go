@@ -2,11 +2,11 @@ package reactions
 
 import (
 	"github.com/bwmarrin/discordgo"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	discord "github.com/dabi-ngin/discgo-bot/Discord"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func EditReactions(i *discordgo.InteractionCreate, correlationId string) {

@@ -3,8 +3,8 @@ package fakeyou
 import (
 	"fmt"
 
-	external "github.com/dabi-ngin/discgo-bot/External"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	external "github.com/hashbat-dev/discgo-bot/External"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 // Returns [Status, .wav Audio Path, Error]

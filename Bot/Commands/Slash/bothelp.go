@@ -2,9 +2,9 @@ package slash
 
 import (
 	"github.com/bwmarrin/discordgo"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	discord "github.com/dabi-ngin/discgo-bot/Discord"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func SendHelp(i *discordgo.InteractionCreate, correlationId string) {

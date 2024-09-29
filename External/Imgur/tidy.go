@@ -3,8 +3,8 @@ package imgur
 import (
 	"time"
 
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func TidySubmissions() {

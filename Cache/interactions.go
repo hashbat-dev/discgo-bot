@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
 	"github.com/google/uuid"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 var ActiveInteractions map[string]InteractionCache = make(map[string]InteractionCache)

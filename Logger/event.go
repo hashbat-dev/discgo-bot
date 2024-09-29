@@ -1,7 +1,7 @@
 package logger
 
 import (
-	config "github.com/dabi-ngin/discgo-bot/Config"
+	config "github.com/hashbat-dev/discgo-bot/Config"
 )
 
 // Logs important Events, ie. The requesting/delivery of user input

@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	discord "github.com/dabi-ngin/discgo-bot/Discord"
-	fakeyou "github.com/dabi-ngin/discgo-bot/External/FakeYou"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	fakeyou "github.com/hashbat-dev/discgo-bot/External/FakeYou"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

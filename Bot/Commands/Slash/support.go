@@ -3,7 +3,7 @@ package slash
 import (
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
-	discord "github.com/dabi-ngin/discgo-bot/Discord"
+	discord "github.com/hashbat-dev/discgo-bot/Discord"
 )
 
 func SupportInfo(i *discordgo.InteractionCreate, correlationId string) {

@@ -3,7 +3,7 @@ package imgwork
 import (
 	"strings"
 
-	config "github.com/dabi-ngin/discgo-bot/Config"
+	config "github.com/hashbat-dev/discgo-bot/Config"
 )
 
 func GetExtensionFromURL(url string) string {

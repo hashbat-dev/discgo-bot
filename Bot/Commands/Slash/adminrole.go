@@ -2,10 +2,10 @@ package slash
 
 import (
 	"github.com/bwmarrin/discordgo"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	discord "github.com/dabi-ngin/discgo-bot/Discord"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func AssignNewAdminRole(i *discordgo.InteractionCreate, correlationId string) {
@@ -23,7 +23,7 @@ func AssignNewAdminRole(i *discordgo.InteractionCreate, correlationId string) {
 		return
 	}
 
-	guildDbObj, err := database.Guild_Get(i.GuildID)
+	guildDbObj, err := database.Get(i.GuildID)
 	oldRoleId := guildDbObj.GuildAdminRole
 	if err != nil {
 		discord.SendGenericErrorFromInteraction(i)
@@ -31,7 +31,7 @@ func AssignNewAdminRole(i *discordgo.InteractionCreate, correlationId string) {
 	}
 
 	guildDbObj.GuildAdminRole = newRoleId
-	_, err = database.Guild_InsertUpdate(guildDbObj)
+	_, err = database.Upsert(guildDbObj)
 	if err != nil {
 		discord.SendGenericErrorFromInteraction(i)
 		return

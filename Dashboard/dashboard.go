@@ -10,8 +10,8 @@ import (
 	"strings"
 	"sync"
 
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 var jsonCache map[string]map[string]interface{} = make(map[string]map[string]interface{})

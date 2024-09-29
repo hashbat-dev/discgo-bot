@@ -1,7 +1,7 @@
 package scheduler
 
 import (
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
 )
 
 func RunEvery5Minutes() {

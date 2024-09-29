@@ -1,4 +1,4 @@
-module github.com/dabi-ngin/discgo-bot
+module github.com/hashbat-dev/discgo-bot
 
 go 1.23
 

@@ -6,9 +6,9 @@ import (
 	"math"
 	"time"
 
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	dashboard "github.com/dabi-ngin/discgo-bot/Dashboard"
 	"github.com/google/uuid"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	dashboard "github.com/hashbat-dev/discgo-bot/Dashboard"
 )
 
 type GraphWidget struct {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	widgets "github.com/dabi-ngin/discgo-bot/Dashboard/Widgets"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	widgets "github.com/hashbat-dev/discgo-bot/Dashboard/Widgets"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 var workerData map[int]WorkerData = make(map[int]WorkerData)

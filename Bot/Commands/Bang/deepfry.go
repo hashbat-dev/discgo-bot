@@ -12,13 +12,13 @@ import (
 	"sync"
 
 	"github.com/bwmarrin/discordgo"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	discord "github.com/dabi-ngin/discgo-bot/Discord"
-	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
-	imgwork "github.com/dabi-ngin/discgo-bot/ImgWork"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
 	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
+	imgwork "github.com/hashbat-dev/discgo-bot/ImgWork"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 type DeepFry struct{}
@@ -71,7 +71,7 @@ func (s DeepFry) Execute(message *discordgo.MessageCreate, command string) error
 	// 4. Write the new Image to a Bytes Buffer
 	var newImageBuffer bytes.Buffer
 	discord.EditMessage(progressMessage, "Deepfry: Frying :cook:")
-	deepfryImageErr := deepfryImage(message.GuildID, imageReader, &newImageBuffer, isAnimated, imgExtension)
+	deepfryImageErr := deepfryImage(imageReader, &newImageBuffer, isAnimated)
 	if deepfryImageErr != nil {
 		discord.SendUserMessageReply(message, false, "Error creating Media")
 		return deepfryImageErr
@@ -90,13 +90,10 @@ func (s DeepFry) Execute(message *discordgo.MessageCreate, command string) error
 }
 
 func deepfryImage(
-	guildId string,
 	imageReader io.Reader,
 	newImgBuffer *bytes.Buffer,
 	isAnimated bool,
-	imgExtension string,
 ) error {
-
 	var err error
 
 	if isAnimated {
@@ -110,24 +107,11 @@ func deepfryImage(
 			return errors.New(err.Error())
 		}
 	}
-	if err != nil {
-		return err
-	}
-
 	// 2. Write the resulting Bytes to the OutputFilePath as a file
-	if err != nil {
-		return err
-	}
-
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func DeepFryIMG(imageReader io.Reader, newImgBuffer *bytes.Buffer) error {
-
 	var contrastOffset float64 = 85
 	var brightnessOffset float64 = -20
 	var sigmaOffset float64 = 5

@@ -3,8 +3,8 @@ package cache
 import (
 	"time"
 
-	triggers "github.com/dabi-ngin/discgo-bot/Bot/Commands/Triggers"
-	data "github.com/dabi-ngin/discgo-bot/Data"
+	triggers "github.com/hashbat-dev/discgo-bot/Bot/Commands/Triggers"
+	data "github.com/hashbat-dev/discgo-bot/Data"
 )
 
 type Guild struct {

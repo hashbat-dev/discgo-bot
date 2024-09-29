@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	external "github.com/dabi-ngin/discgo-bot/External"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	external "github.com/hashbat-dev/discgo-bot/External"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func UpdateModels() {

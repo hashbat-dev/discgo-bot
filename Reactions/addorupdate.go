@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func AddOrUpdate(message *discordgo.Message, score int, emojiString string) {

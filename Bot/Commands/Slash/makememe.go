@@ -10,15 +10,15 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	database "github.com/dabi-ngin/discgo-bot/Database"
-	discord "github.com/dabi-ngin/discgo-bot/Discord"
-	imgur "github.com/dabi-ngin/discgo-bot/External/Imgur"
-	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
-	imgwork "github.com/dabi-ngin/discgo-bot/ImgWork"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
-	tempfiles "github.com/dabi-ngin/discgo-bot/TempFiles"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	database "github.com/hashbat-dev/discgo-bot/Database"
+	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	imgur "github.com/hashbat-dev/discgo-bot/External/Imgur"
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
+	imgwork "github.com/hashbat-dev/discgo-bot/ImgWork"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
+	tempfiles "github.com/hashbat-dev/discgo-bot/TempFiles"
 )
 
 var (

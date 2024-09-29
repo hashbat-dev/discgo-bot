@@ -5,9 +5,9 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
-	config "github.com/dabi-ngin/discgo-bot/Config"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
 	"github.com/google/uuid"
+	config "github.com/hashbat-dev/discgo-bot/Config"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func SendUserError(message *discordgo.MessageCreate, errorText string) {

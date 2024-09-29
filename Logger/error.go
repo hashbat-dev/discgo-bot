@@ -1,7 +1,7 @@
 package logger
 
 import (
-	config "github.com/dabi-ngin/discgo-bot/Config"
+	config "github.com/hashbat-dev/discgo-bot/Config"
 )
 
 // Error - logs include stackTrace, requires LoggingLevel 1 or lower in config

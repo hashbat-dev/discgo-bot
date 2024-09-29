@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	cache "github.com/dabi-ngin/discgo-bot/Cache"
-	helpers "github.com/dabi-ngin/discgo-bot/Helpers"
-	imgwork "github.com/dabi-ngin/discgo-bot/ImgWork"
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
+	imgwork "github.com/hashbat-dev/discgo-bot/ImgWork"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func AddImg(message *discordgo.MessageCreate, category string, imgUrl string) error {

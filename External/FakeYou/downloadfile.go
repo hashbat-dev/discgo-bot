@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	logger "github.com/dabi-ngin/discgo-bot/Logger"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func DownloadFile(guildId string, correlationId string, audioPath string) (io.Reader, error) {
