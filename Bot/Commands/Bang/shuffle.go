@@ -99,15 +99,9 @@ func shuffleGif(guildId string, imageReader io.Reader, buffer *bytes.Buffer) err
 			tempFrames := []*image.Paletted{frame}
 			tempDelay := []int{gifImage.Delay[i]}
 			tempDisposal := []byte{gifImage.Disposal[i]}
-			for _, savedFrame := range outGif.Image {
-				tempFrames = append(tempFrames, savedFrame)
-			}
-			for _, savedDelay := range outGif.Delay {
-				tempDelay = append(tempDelay, savedDelay)
-			}
-			for _, savedDisposal := range outGif.Disposal {
-				tempDisposal = append(tempDisposal, savedDisposal)
-			}
+			tempFrames = append(tempFrames, outGif.Image...)
+			tempDelay = append(tempDelay, outGif.Delay...)
+			tempDisposal = append(tempDisposal, outGif.Disposal...)
 			outGif.Image = tempFrames
 			outGif.Delay = tempDelay
 			outGif.Disposal = tempDisposal
