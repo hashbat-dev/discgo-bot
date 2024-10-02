@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"image/draw"
 	"image/gif"
+	"image/jpeg"
 	"image/png"
 	"io"
 	"math"
@@ -117,13 +118,18 @@ func addSpeechBubbleToImage(
 		}
 		imageHeight = gifImage.Config.Height
 	} else {
-		if imgExtension == ".png" || imgExtension == ".jpg" {
-			// .jpg images are resized to a .png before this function is called
+		switch imgExtension {
+		case ".png":
 			inputImage, decodeErr = png.Decode(imageReader)
-		} else if imgExtension == ".webp" {
+		case ".jpg", ".jpeg":
+			inputImage, decodeErr = jpeg.Decode(imageReader)
+		case ".webp":
 			inputImage, decodeErr = webp.Decode(imageReader)
+		default:
+			decodeErr = fmt.Errorf("unsupported extension: %s", imgExtension)
 		}
 		if decodeErr != nil {
+			logger.Error(guildId, decodeErr)
 			return decodeErr
 		}
 		imageHeight = inputImage.Bounds().Max.Y
