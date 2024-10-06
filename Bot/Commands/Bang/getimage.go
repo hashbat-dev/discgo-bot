@@ -35,23 +35,23 @@ func (s GetImage) Complexity() int {
 func (s GetImage) Execute(message *discordgo.MessageCreate, command string) error {
 	imgCat, err := database.GetImgCategory(message.GuildID, s.ImageCategory)
 	if err != nil {
-		discord.SendUserError(message, "Invalid Category")
+		discord.Message_ReplyWithError(message.Message, false, "Invalid Category")
 		return errors.New("unable to get gif category")
 	}
 
 	imgUrl, err := database.GetRandomImage(message.GuildID, imgCat.ID)
 	if err != nil {
-		discord.SendUserError(message, "Couldn't find an Image")
+		discord.Message_ReplyWithError(message.Message, false, "Couldn't find an Image")
 		return err
 	}
 
 	_, err = config.Session.ChannelMessageSend(message.ChannelID, imgUrl)
 	if err != nil {
 		logger.Error(message.GuildID, err)
-		discord.SendUserError(message, "Couldn't send Image")
+		discord.Message_ReplyWithError(message.Message, false, "Couldn't send Image")
 		return err
 	}
 
-	discord.DeleteMessage(message)
+	discord.Message_Delete(message.Message)
 	return nil
 }

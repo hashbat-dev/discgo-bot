@@ -2,13 +2,17 @@ package reporting
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	widgets "github.com/hashbat-dev/discgo-bot/Dashboard/Widgets"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
-var workerData map[int]WorkerData = make(map[int]WorkerData)
+var (
+	workerData map[int]WorkerData = make(map[int]WorkerData)
+	workerMu   sync.Mutex
+)
 
 type WorkerData struct {
 	Name              string
@@ -35,14 +39,17 @@ var workerOptions widgets.TableWidgetOptions = widgets.TableWidgetOptions{
 }
 
 func CreateWorkerChannel(channelId int, channelName string, maxQueued int, maxProcessing int) {
+	workerMu.Lock()
 	workerData[channelId] = WorkerData{
 		Name:          channelName,
 		MaxQueued:     maxQueued,
 		MaxProcessing: maxProcessing,
 	}
+	workerMu.Unlock()
 }
 
 func WorkerSaveWidget(channelId int) {
+	workerMu.Lock()
 	var tableRows []widgets.TableWidgetRow
 	for _, data := range workerData {
 		tableRows = append(tableRows, widgets.TableWidgetRow{
@@ -55,7 +62,7 @@ func WorkerSaveWidget(channelId int) {
 			},
 		})
 	}
-
+	workerMu.Unlock()
 	err := widgets.SaveTableWidget(&widgets.TableWidget{
 		Options:   workerOptions,
 		Columns:   workerColumns,
@@ -68,14 +75,17 @@ func WorkerSaveWidget(channelId int) {
 }
 
 func WorkerQueued(channelId int) {
+	workerMu.Lock()
 	worker := workerData[channelId]
 	worker.Queued++
 	worker.LastQueued = time.Now()
 	workerData[channelId] = worker
+	workerMu.Unlock()
 	WorkerSaveWidget(channelId)
 }
 
 func WorkerProcessingStart(channelId int) {
+	workerMu.Lock()
 	worker := workerData[channelId]
 	worker.Queued--
 	if worker.Queued < 0 {
@@ -84,10 +94,12 @@ func WorkerProcessingStart(channelId int) {
 	worker.Processing++
 	worker.LastProcessStart = time.Now()
 	workerData[channelId] = worker
+	workerMu.Unlock()
 	WorkerSaveWidget(channelId)
 }
 
 func WorkerProcessingFinish(channelId int) {
+	workerMu.Lock()
 	worker := workerData[channelId]
 	worker.Processing--
 	if worker.Processing < 0 {
@@ -95,5 +107,6 @@ func WorkerProcessingFinish(channelId int) {
 	}
 	worker.LastProcessFinish = time.Now()
 	workerData[channelId] = worker
+	workerMu.Unlock()
 	WorkerSaveWidget(channelId)
 }

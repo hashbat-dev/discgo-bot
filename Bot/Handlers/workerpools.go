@@ -14,20 +14,23 @@ import (
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	database "github.com/hashbat-dev/discgo-bot/Database"
 	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	editmodule "github.com/hashbat-dev/discgo-bot/EditModule"
 	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
+	module "github.com/hashbat-dev/discgo-bot/Module"
 	reactions "github.com/hashbat-dev/discgo-bot/Reactions"
 	reporting "github.com/hashbat-dev/discgo-bot/Reporting"
 )
 
 type Task struct {
-	CommandType          int
-	Complexity           int
-	BangDetails          *BangTaskDetails
-	SlashDetails         *SlashTaskDetails
-	SlashResponseDetails *SlashResponseDetails
-	PhraseDetails        *PhraseTaskDetails
-	MessageObj           *discordgo.Message
+	CommandType           int
+	Complexity            int
+	BangDetails           *BangTaskDetails
+	ModuleDetails         *ModuleDetails
+	ModuleResponseDetails *ModuleResponseDetails
+	EditModuleDetails     *EditModuleDetails
+	PhraseDetails         *PhraseTaskDetails
+	MessageObj            *discordgo.Message
 }
 
 type BangTaskDetails struct {
@@ -36,12 +39,17 @@ type BangTaskDetails struct {
 	CorrelationId uuid.UUID
 }
 
-type SlashTaskDetails struct {
-	Interaction  *discordgo.InteractionCreate
-	SlashCommand SlashCommand
+type ModuleDetails struct {
+	Interaction *discordgo.InteractionCreate
+	Module      module.Module
 }
 
-type SlashResponseDetails struct {
+type EditModuleDetails struct {
+	Interaction *discordgo.InteractionCreate
+	EditModule  editmodule.EditModule
+}
+
+type ModuleResponseDetails struct {
 	Interaction   *discordgo.InteractionCreate
 	ObjectID      string
 	CorrelationID string
@@ -83,10 +91,12 @@ func worker(id int, taskId int, ch <-chan *Task) {
 		switch task.CommandType {
 		case config.CommandTypeBang:
 			workerBang(task.BangDetails)
-		case config.CommandTypeSlash:
-			workerSlash(task.SlashDetails)
-		case config.CommandTypeSlashResponse:
-			workerSlashResponse(task.SlashResponseDetails)
+		case config.CommandTypeModule:
+			workerModule(task.ModuleDetails)
+		case config.CommandTypeModuleResponse:
+			workerModuleResponse(task.ModuleResponseDetails)
+		case config.CommandTypeEditModule:
+			workerEditModule(task.EditModuleDetails)
 		case config.CommandTypePhrase:
 			workerPhrase(task.PhraseDetails)
 		case config.CommandTypeReactionCheck:
@@ -112,14 +122,21 @@ func workerBang(msg *BangTaskDetails) {
 	reporting.Command(config.CommandTypeBang, msg.Message.GuildID, msg.Message.Author.ID, msg.Message.Author.Username, msg.Command.Name(), msg.CorrelationId.String(), timeStart)
 }
 
-func workerSlash(msg *SlashTaskDetails) {
-	correlationId := cache.AddInteraction(msg.Interaction, msg.SlashCommand.Command.Name)
+func workerModule(msg *ModuleDetails) {
+	correlationId := cache.AddInteraction(msg.Interaction, msg.Module.Command().Name)
 	timeStarted := time.Now()
-	msg.SlashCommand.Handler(msg.Interaction, correlationId)
-	reporting.Command(config.CommandTypeSlash, msg.Interaction.GuildID, msg.Interaction.Member.User.ID, msg.Interaction.Member.User.Username, msg.SlashCommand.Command.Name, correlationId, timeStarted)
+	msg.Module.Execute(msg.Interaction, correlationId)
+	reporting.Command(config.CommandTypeModule, msg.Interaction.GuildID, msg.Interaction.Member.User.ID, msg.Interaction.Member.User.Username, msg.Module.Command().Name, correlationId, timeStarted)
 }
 
-func workerSlashResponse(msg *SlashResponseDetails) {
+func workerEditModule(msg *EditModuleDetails) {
+	correlationId := cache.AddInteraction(msg.Interaction, msg.EditModule.SelectName())
+	timeStarted := time.Now()
+	msg.EditModule.Execute(msg.Interaction, correlationId)
+	reporting.Command(config.CommandTypeModule, msg.Interaction.GuildID, msg.Interaction.Member.User.ID, msg.Interaction.Member.User.Username, msg.EditModule.SelectName(), correlationId, timeStarted)
+}
+
+func workerModuleResponse(msg *ModuleResponseDetails) {
 	logger.Info(msg.Interaction.GuildID, "Interaction ID: [%v] Processing Response, Object: [%v]", msg.CorrelationID, msg.ObjectID)
 	timeStarted := time.Now()
 
@@ -127,8 +144,30 @@ func workerSlashResponse(msg *SlashResponseDetails) {
 	cache.UpdateInteraction(msg.CorrelationID, msg.Interaction)
 
 	// Execute the Command Response
-	discord.InteractionResponseHandlers[msg.ObjectID].Execute(msg.Interaction, msg.CorrelationID)
-	reporting.Command(config.CommandTypeSlash, msg.Interaction.GuildID, msg.Interaction.Member.User.ID, msg.Interaction.Member.User.Username, msg.ObjectID, msg.CorrelationID, timeStarted)
+	if msg.ObjectID == "edit-image_select" {
+		// => Edit Image response needs to be handled here due to the modular nature
+		editFound := false
+		editMod := ""
+		for _, edit := range editmodule.EditList {
+			if _, exists := cache.ActiveInteractions[msg.CorrelationID].Values.String["edit-image_select"]; !exists {
+				logger.ErrorText(msg.Interaction.GuildID, "Edit Module Select value not present")
+				break
+			}
+
+			if cache.ActiveInteractions[msg.CorrelationID].Values.String["edit-image_select"] == helpers.LettersNumbersAndDashesOnly(edit.SelectName()) {
+				editMod = cache.ActiveInteractions[msg.CorrelationID].Values.String["edit-image_select"]
+				editFound = true
+				edit.Execute(msg.Interaction, msg.CorrelationID)
+			}
+		}
+
+		if !editFound {
+			logger.ErrorText(msg.Interaction.GuildID, "Unable to find Edit Module: [%s]", editMod)
+		}
+	} else {
+		discord.InteractionResponseHandlers[msg.ObjectID].Execute(msg.Interaction, msg.CorrelationID)
+	}
+	reporting.Command(config.CommandTypeModuleResponse, msg.Interaction.GuildID, msg.Interaction.Member.User.ID, msg.Interaction.Member.User.Username, msg.ObjectID, msg.CorrelationID, timeStarted)
 }
 
 func workerPhrase(msg *PhraseTaskDetails) {
@@ -165,7 +204,7 @@ func workerPhrase(msg *PhraseTaskDetails) {
 			if err != nil {
 				continue
 			}
-			discord.SendUserMessageReply(msg.Message, false, fmt.Sprintf("[%s](%s)", "Jason Statham?", webm))
+			discord.Message_ReplyWithMessage(msg.Message.Message, false, fmt.Sprintf("[%s](%s)", "Jason Statham?", webm))
 		default:
 			logger.ErrorText(msg.Message.GuildID, "Unhandled Special Phrase [%v]", phrase.Phrase)
 		}

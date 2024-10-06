@@ -1,8 +1,7 @@
-package bang
+package editmodule
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"image"
 	"image/gif"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	discord "github.com/hashbat-dev/discgo-bot/Discord"
 	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
@@ -19,18 +19,14 @@ import (
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
-type FlipImage struct {
-	FlipDirection string
+type FlipImage struct{}
+
+func (s FlipImage) SelectName() string {
+	return "Flip Image"
 }
 
-func NewFlipImage(flipDirection string) *FlipImage {
-	return &FlipImage{
-		FlipDirection: flipDirection,
-	}
-}
-
-func (s FlipImage) Name() string {
-	return "flipimage"
+func (s FlipImage) Emoji() *discordgo.ComponentEmoji {
+	return &discordgo.ComponentEmoji{Name: "🪞"}
 }
 
 func (s FlipImage) PermissionRequirement() int {
@@ -38,45 +34,131 @@ func (s FlipImage) PermissionRequirement() int {
 }
 
 func (s FlipImage) Complexity() int {
-	return config.CPU_BOUND_TASK
+	return config.TRIVIAL_TASK
 }
 
-func (s FlipImage) Execute(message *discordgo.MessageCreate, command string) error {
-	progressMessage := discord.SendUserMessageReply(message, false, "Flip Image: Finding image...")
+func (s FlipImage) Execute(i *discordgo.InteractionCreate, correlationId string) {
+	cachedInteraction := cache.ActiveInteractions[correlationId]
 
-	// 1. Check we have a valid Image and Extension
-	imgUrl := helpers.GetImageFromMessage(message.Message, "")
+	// 1. Get the Message object associated with the Interaction request
+	message, err := discord.Message_GetObject(i.GuildID, i.ChannelID, cachedInteraction.Values.String["imgMessageId"])
+	if err != nil {
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
+	}
+
+	// 2. Check there's an associated Image
+	imgUrl := helpers.GetImageFromMessage(message, "")
 	if imgUrl == "" {
-		discord.EditMessage(progressMessage, "Flip Image: Invalid image")
-		return errors.New("no image found")
+		discord.Interactions_EditIntoError(i, "No image found in message")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension == "" {
-		discord.EditMessage(progressMessage, "Flip Image: Invalid image")
-		return errors.New("invalid extension")
+		discord.Interactions_EditIntoError(i, fmt.Sprintf("Invalid image extension (%s)", imgExtension))
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
+	// => Store these in the Interactions cache for later
+
+	// 3. Create the Interaction Objects
+	selectMenu := discord.CreateSelectMenu(discordgo.SelectMenu{
+		CustomID: "flip-image_select-direction",
+		Options: []discordgo.SelectMenuOption{
+			{
+				Label: "Left",
+				Value: "left",
+				Emoji: &discordgo.ComponentEmoji{Name: "⬅️"},
+			}, {
+				Label: "Right",
+				Value: "right",
+				Emoji: &discordgo.ComponentEmoji{Name: "➡️"},
+			},
+			{
+				Label: "Left & Right",
+				Value: "both",
+				Emoji: &discordgo.ComponentEmoji{Name: "↔️"},
+			}, {
+				Label: "Up",
+				Value: "up",
+				Emoji: &discordgo.ComponentEmoji{Name: "⬆️"},
+			}, {
+				Label: "Down",
+				Value: "down",
+				Emoji: &discordgo.ComponentEmoji{Name: "⬇️"},
+			}, {
+				Label: "All",
+				Value: "all",
+				Emoji: &discordgo.ComponentEmoji{Name: "🔄"},
+			},
+		},
+		Placeholder: "Choose Flip Direction...",
+	}, correlationId, config.CPU_BOUND_TASK, FlipImageProcess)
+
+	actionRow := discordgo.ActionsRow{
+		Components: []discordgo.MessageComponent{
+			selectMenu,
+		},
+	}
+
+	// 4. Send the Select menu response
+	err = config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseUpdateMessage,
+		Data: &discordgo.InteractionResponseData{
+			Flags:      discordgo.MessageFlagsEphemeral,
+			Components: []discordgo.MessageComponent{actionRow},
+		},
+	})
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+
+}
+
+func FlipImageProcess(i *discordgo.InteractionCreate, correlationId string) {
+	cachedInteraction := cache.ActiveInteractions[correlationId]
+	discord.Interactions_EditText(&cachedInteraction.StartInteraction, "Flip Image", "Getting image...")
+
+	// 1. Check we have a valid Image and Extension
+	imgUrl := cache.ActiveInteractions[correlationId].Values.String["imgUrl"]
+	imgExtension := cache.ActiveInteractions[correlationId].Values.String["imgExtension"]
 	isAnimated := imgExtension == ".gif"
 
 	// 2. Get the image as an io.Reader object
-	discord.EditMessage(progressMessage, "Flip Image: Downloading image...")
-	imageReader, err := imgwork.DownloadImageToReader(message.GuildID, imgUrl, isAnimated)
+	discord.Interactions_EditText(&cachedInteraction.StartInteraction, "Flip Image", "Downloading image...")
+	imageReader, err := imgwork.DownloadImageToReader(i.GuildID, imgUrl, isAnimated)
 	if err != nil {
-		return err
+		logger.ErrorText(i.GuildID, "Couldn't download image")
+		discord.Interactions_EditIntoError(&cachedInteraction.StartInteraction, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 3. Convert it to a buffer, this is needed for multiple operations
 	var imageBuffer bytes.Buffer
 	_, err = imageBuffer.ReadFrom(imageReader)
 	if err != nil {
-		logger.Error(message.GuildID, err)
-		return err
+		logger.Error(i.GuildID, err)
+		discord.Interactions_EditIntoError(&cachedInteraction.StartInteraction, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 4. Work out which Directions we want flipping
+	FlipDirection := cache.ActiveInteractions[correlationId].Values.String["flip-image_select-direction"]
+	if FlipDirection == "" {
+		logger.ErrorText(i.GuildID, "Flip Direction was blank")
+		discord.Interactions_EditIntoError(&cachedInteraction.StartInteraction, "")
+		cache.InteractionComplete(correlationId)
+		return
+	}
+
 	var flipDirections []string
-	switch s.FlipDirection {
+	switch FlipDirection {
 	case "left":
 		flipDirections = append(flipDirections, "left")
 	case "right":
@@ -94,15 +176,23 @@ func (s FlipImage) Execute(message *discordgo.MessageCreate, command string) err
 		flipDirections = append(flipDirections, "up")
 		flipDirections = append(flipDirections, "down")
 	default:
-		err = fmt.Errorf("unknown Flip Direction [%v]", s.FlipDirection)
-		discord.EditMessage(progressMessage, "Flip Image: Bot Error")
-		logger.Error(message.GuildID, err)
-		return err
+		logger.ErrorText(i.GuildID, "Unknown Flip Direction: %s", FlipDirection)
+		discord.Interactions_EditIntoError(&cachedInteraction.StartInteraction, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 5. Perform the Flips and write back each Image individually
+	message, err := config.Session.ChannelMessage(i.ChannelID, cache.ActiveInteractions[correlationId].Values.String["imgMessageId"])
+	if err != nil {
+		logger.Error(i.GuildID, err)
+		discord.Interactions_EditIntoError(&cachedInteraction.StartInteraction, "")
+		cache.InteractionComplete(correlationId)
+		return
+	}
+
 	for _, flip := range flipDirections {
-		discord.EditMessage(progressMessage, "Flip Image: Flipping "+flip+"...")
+		discord.Interactions_EditText(&cachedInteraction.StartInteraction, "Flip Image", "Flipping "+flip+"...")
 		outputImageName := uuid.New().String()
 		if imgExtension == ".gif" {
 			outputImageName += ".gif"
@@ -112,25 +202,24 @@ func (s FlipImage) Execute(message *discordgo.MessageCreate, command string) err
 
 		var newImageBuffer bytes.Buffer
 		if isAnimated {
-			newImageBuffer, err = flipImageGif(message.GuildID, imageBuffer, flip)
+			newImageBuffer, err = flipImageGif(i.GuildID, imageBuffer, flip)
 		} else {
-			newImageBuffer, err = flipImageStatic(message.GuildID, imageBuffer, flip)
+			newImageBuffer, err = flipImageStatic(i.GuildID, imageBuffer, flip)
 		}
 
 		if err != nil {
 			continue
 		}
 
-		err = discord.ReplyToMessageWithImageBuffer(message, true, outputImageName, &newImageBuffer)
+		err = discord.Message_ReplyWithImage(message, false, outputImageName, &newImageBuffer)
 		if err != nil {
 			logger.Error(message.GuildID, err)
 		}
 	}
 
 	// 6. Delete the calling Message
-	discord.DeleteMessageObject(progressMessage)
-	discord.DeleteMessage(message)
-	return nil
+	discord.Interactions_EditText(&cachedInteraction.StartInteraction, "Flip Image Completed", "")
+	cache.InteractionComplete(correlationId)
 }
 
 func flipImageGif(guildId string, imageReader bytes.Buffer, flipDirection string) (bytes.Buffer, error) {

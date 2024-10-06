@@ -25,14 +25,14 @@ func (s TTSInfo) Complexity() int {
 func (s TTSInfo) Execute(message *discordgo.MessageCreate, command string) error {
 	// 1. Did they reply to a Message?
 	if message.ReferencedMessage == nil {
-		discord.SendUserMessage(message, "Please reply to a Text-to-Speech voice message...")
+		discord.Message_ReplyWithMessage(message.Message, false, "Please reply to a Text-to-Speech voice message...")
 		return nil
 	}
 
 	// 2. See if the Message exists
 	result, err := database.GetFakeYouLog(message.GuildID, message.ReferencedMessage.ID)
 	if err != nil {
-		discord.SendUserMessage(message, "Please reply to a Text-to-Speech voice message...")
+		discord.Message_ReplyWithMessage(message.Message, false, "Please reply to a Text-to-Speech voice message...")
 		return nil
 	}
 
@@ -40,7 +40,7 @@ func (s TTSInfo) Execute(message *discordgo.MessageCreate, command string) error
 	user, err := config.Session.User(result.UserID)
 	if err != nil {
 		logger.Error(message.GuildID, err)
-		discord.SendUserMessage(message, "Error getting Text-to-Speech information...")
+		discord.Message_ReplyWithMessage(message.Message, false, "Error getting Text-to-Speech information...")
 		return nil
 	}
 
@@ -53,6 +53,6 @@ func (s TTSInfo) Execute(message *discordgo.MessageCreate, command string) error
 		logger.Error(message.GuildID, err)
 	}
 
-	discord.DeleteMessage(message)
+	discord.Message_Delete(message.Message)
 	return nil
 }

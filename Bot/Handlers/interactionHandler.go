@@ -4,25 +4,62 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	discord "github.com/hashbat-dev/discgo-bot/Discord"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
+	module "github.com/hashbat-dev/discgo-bot/Module"
 )
 
-// Handles responses to Interactions
 func HandleInteractionResponse(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	logger.Debug(i.GuildID, "HandleInteractionResponse")
+	if config.ServiceSettings.ISDEV != cache.ActiveGuilds[i.GuildID].IsDev {
+		return
+	}
+
 	switch i.Type {
 	case discordgo.InteractionMessageComponent:
-		handleInteractionMessageComponent(s, i)
+		handleInteractionMessageComponent(i)
 	case discordgo.InteractionModalSubmit:
-		handleInteractionModalSubmit(s, i)
+		handleInteractionModalSubmit(i)
 	default:
-		// Not an issue, this will be handled elsewhere
+		handleGenericInteraction(i)
 	}
 }
 
-func handleInteractionMessageComponent(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func handleGenericInteraction(i *discordgo.InteractionCreate) {
+	logger.Debug(i.GuildID, "Interaction Recieved: handleGenericInteraction")
+	cmdName := i.ApplicationCommandData().Name
+
+	foundCmd := false
+	for _, mod := range module.ModuleList {
+		if mod.Command().Name == cmdName {
+			foundCmd = true
+
+			if !ConfirmPermissions(i, mod.PermissionRequirement()) {
+				logger.Event(i.GuildID, "User [ID: %s, UserName: %s] was blocked from using command [%s]", i.Member.User.ID, i.Member.User.Username, cmdName)
+				discord.Interactions_SendMessage(i, "Permission Denied", "You do not have permission to use this command.")
+			} else {
+				DispatchTask(&Task{
+					CommandType: config.CommandTypeModule,
+					Complexity:  mod.Complexity(),
+					ModuleDetails: &ModuleDetails{
+						Interaction: i,
+						Module:      mod,
+					},
+				})
+			}
+
+			break
+		}
+	}
+
+	if !foundCmd {
+		logger.ErrorText(i.GuildID, "No Handler found for Slash Command: %v", cmdName)
+	}
+}
+
+func handleInteractionMessageComponent(i *discordgo.InteractionCreate) {
+	logger.Debug(i.GuildID, "Interaction Recieved: handleInteractionMessageComponent")
 	inboundObjectId := i.MessageComponentData().CustomID
 
 	// Make sure we have the format of <ObjectID>|<CorrelationID>
@@ -37,9 +74,9 @@ func handleInteractionMessageComponent(s *discordgo.Session, i *discordgo.Intera
 	correlationId := splitObjectId[1]
 	if responseObject, exists := discord.InteractionResponseHandlers[objectId]; exists {
 		DispatchTask(&Task{
-			CommandType: config.CommandTypeSlashResponse,
+			CommandType: config.CommandTypeModuleResponse,
 			Complexity:  responseObject.Complexity,
-			SlashResponseDetails: &SlashResponseDetails{
+			ModuleResponseDetails: &ModuleResponseDetails{
 				Interaction:   i,
 				ObjectID:      objectId,
 				CorrelationID: correlationId,
@@ -49,7 +86,7 @@ func handleInteractionMessageComponent(s *discordgo.Session, i *discordgo.Intera
 		logger.ErrorText(i.GuildID, "Unknown Interaction Response ObjectID [%v]", objectId)
 
 		// Generic Error back to the user
-		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: "Error finding Command",
@@ -61,7 +98,8 @@ func handleInteractionMessageComponent(s *discordgo.Session, i *discordgo.Intera
 	}
 }
 
-func handleInteractionModalSubmit(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func handleInteractionModalSubmit(i *discordgo.InteractionCreate) {
+	logger.Debug(i.GuildID, "Interaction Recieved: handleInteractionModalSubmit")
 	inboundObjectId := i.ModalSubmitData().CustomID
 
 	// Make sure we have the format of <ObjectID>|<CorrelationID>
@@ -76,9 +114,9 @@ func handleInteractionModalSubmit(s *discordgo.Session, i *discordgo.Interaction
 	correlationId := splitObjectId[1]
 	if responseObject, exists := discord.InteractionResponseHandlers[objectId]; exists {
 		DispatchTask(&Task{
-			CommandType: config.CommandTypeSlashResponse,
+			CommandType: config.CommandTypeModuleResponse,
 			Complexity:  responseObject.Complexity,
-			SlashResponseDetails: &SlashResponseDetails{
+			ModuleResponseDetails: &ModuleResponseDetails{
 				Interaction:   i,
 				ObjectID:      objectId,
 				CorrelationID: correlationId,
@@ -88,7 +126,7 @@ func handleInteractionModalSubmit(s *discordgo.Session, i *discordgo.Interaction
 		logger.ErrorText(i.GuildID, "Unknown Interaction Response ObjectID [%v]", objectId)
 
 		// Generic Error back to the user
-		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: "Error finding Command",

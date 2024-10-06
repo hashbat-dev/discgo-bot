@@ -1,4 +1,4 @@
-package slash
+package module
 
 import (
 	"fmt"
@@ -16,9 +16,40 @@ import (
 	"golang.org/x/text/language"
 )
 
+type TTSPlay struct{}
+
 var resultsEmoji discordgo.ComponentEmoji = discordgo.ComponentEmoji{Name: "🎤"}
 
-func TtsPlay(i *discordgo.InteractionCreate, correlationId string) {
+func (s TTSPlay) Command() *discordgo.ApplicationCommand {
+	return &discordgo.ApplicationCommand{
+		Name:        "tts-play",
+		Description: "Convert Text to Speech through one of FakeYou.com's thousands of Voice Models",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "voice",
+				Description: "The Voice model to use, you can choose from a list of results once submitted.",
+				Required:    true,
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "text",
+				Description: "The Text to convert to speech.",
+				Required:    true,
+			},
+		},
+	}
+}
+
+func (s TTSPlay) PermissionRequirement() int {
+	return config.CommandLevelUser
+}
+
+func (s TTSPlay) Complexity() int {
+	return config.IO_BOUND_TASK
+}
+
+func (s TTSPlay) Execute(i *discordgo.InteractionCreate, correlationId string) {
 	cachedInteraction := cache.ActiveInteractions[correlationId]
 	searchTerm := cachedInteraction.Values.String["voice"]
 	ttsText := cachedInteraction.Values.String["text"]
@@ -27,7 +58,7 @@ func TtsPlay(i *discordgo.InteractionCreate, correlationId string) {
 	modelResults, err := database.GetFakeYouModels(searchTerm)
 	if err != nil {
 		logger.Error(i.GuildID, err)
-		discord.SendGenericErrorFromInteraction(i)
+		discord.Interactions_SendError(i, "")
 		return
 	}
 
@@ -35,7 +66,7 @@ func TtsPlay(i *discordgo.InteractionCreate, correlationId string) {
 		// No Results
 		retText := fmt.Sprintf("No voice models were found for the search term: '%v'", searchTerm)
 		retText += "\nPlease try again, your requested text is below:\n\n" + ttsText
-		discord.SendEmbedFromInteraction(i, "No Results", retText)
+		discord.Interactions_SendMessage(i, "No Results", retText)
 		cache.InteractionComplete(correlationId)
 		return
 	} else if len(modelResults) == 1 {
@@ -104,7 +135,7 @@ func TtsPlaySelectModel(i *discordgo.InteractionCreate, correlationId string) {
 	voiceModel := cachedInteraction.Values.String["tts-play_select-model"]
 	if voiceModel == "" {
 		logger.ErrorText(i.GuildID, "VoiceModel property was blank, cannot process request")
-		discord.UpdateInteractionResponseWithGenericError(&cachedInteraction.StartInteraction)
+		discord.Interactions_EditIntoError(&cachedInteraction.StartInteraction, "")
 		cache.InteractionComplete(correlationId)
 		return
 	}
@@ -181,13 +212,13 @@ func TtsPlayCreateRequest(correlationId string, requestModelName string, request
 
 	// 3. Update with the Initial Embed
 	title, desc := requestEmbedText(requestModelName, requestText, "Creating Request", "...")
-	discord.UpdateInteractionResponse(&cachedInteraction.StartInteraction, title, desc)
+	discord.Interactions_EditText(&cachedInteraction.StartInteraction, title, desc)
 
 	// From here, the Scheduler will begin processing queued items in the function below
 }
 
 // Called every 2 seconds from the Scheduler
-func ProcessQueue() {
+func ProcessTtsQueue() {
 	for k, v := range ActiveRequests {
 		go func(key string, value ActiveRequest) {
 			value.UpdateCount++
@@ -196,7 +227,7 @@ func ProcessQueue() {
 			// 1. Has the Request exceed the Maximum update attempts?
 			if value.UpdateCount > config.ServiceSettings.MAXFAKEYOUREQUESTCHECKS {
 				sendText := fmt.Sprintf("Text-to-Speech request hit the Maximum number of attempts (%v), please try again later.", value.UpdateCount)
-				discord.UpdateInteractionResponse(&value.Interaction, RequestEmbedTitle, sendText)
+				discord.Interactions_EditText(&value.Interaction, RequestEmbedTitle, sendText)
 				cache.InteractionComplete(value.CorrelationId)
 				delete(ActiveRequests, key)
 				return
@@ -207,7 +238,7 @@ func ProcessQueue() {
 				jobToken := fakeyou.CreateRequest(value.Interaction.GuildID, value.CorrelationId, value.RequestModelID, value.RequestText)
 				if jobToken == "" {
 					// Request failed, provide error and complete the request
-					discord.UpdateInteractionResponseWithGenericError(&value.Interaction)
+					discord.Interactions_EditIntoError(&value.Interaction, "")
 					cache.InteractionComplete(value.CorrelationId)
 					delete(ActiveRequests, key)
 				} else {
@@ -215,7 +246,7 @@ func ProcessQueue() {
 					value.FakeYouJobToken = jobToken
 					value.LastStatus = "Request Sent"
 					title, desc := requestEmbedText(value.RequestModelName, value.RequestText, value.LastStatus, value.LoadingSpinner)
-					discord.UpdateInteractionResponse(&value.Interaction, title, desc)
+					discord.Interactions_EditText(&value.Interaction, title, desc)
 					ActiveRequests[key] = value
 				}
 				return
@@ -227,14 +258,14 @@ func ProcessQueue() {
 				value.ErrorCount++
 				if value.ErrorCount >= config.ServiceSettings.MAXFAKEYOUREQUESTERRORS {
 					// Too many errors, provide error and complete the request
-					discord.UpdateInteractionResponseWithGenericError(&value.Interaction)
+					discord.Interactions_EditIntoError(&value.Interaction, "")
 					cache.InteractionComplete(value.CorrelationId)
 					delete(ActiveRequests, key)
 					return
 				} else {
 					// Try again
 					title, desc := requestEmbedText(value.RequestModelName, value.RequestText, value.LastStatus, value.LoadingSpinner)
-					discord.UpdateInteractionResponse(&value.Interaction, title, desc)
+					discord.Interactions_EditText(&value.Interaction, title, desc)
 					ActiveRequests[key] = value
 					return
 				}
@@ -245,14 +276,14 @@ func ProcessQueue() {
 				if status == "complete_failure" || status == "attempt_failed" || status == "dead" {
 					// Has the Request errored at FakeYou's end?
 					sendText := fmt.Sprintf("Text-to-Speech request failed after %v attempts with the status '%v'", value.UpdateCount, getUserFriendlyStatus(status))
-					discord.UpdateInteractionResponse(&value.Interaction, RequestEmbedTitle, sendText)
+					discord.Interactions_EditIntoError(&value.Interaction, sendText)
 					cache.InteractionComplete(value.CorrelationId)
 					delete(ActiveRequests, key)
 				} else {
 					// Update user with the current status
 					value.LastStatus = getUserFriendlyStatus(status)
 					title, desc := requestEmbedText(value.RequestModelName, value.RequestText, value.LastStatus, value.LoadingSpinner)
-					discord.UpdateInteractionResponse(&value.Interaction, title, desc)
+					discord.Interactions_EditText(&value.Interaction, title, desc)
 					ActiveRequests[key] = value
 				}
 				return
@@ -263,7 +294,7 @@ func ProcessQueue() {
 			wavReader, err := fakeyou.DownloadFile(value.Interaction.GuildID, value.CorrelationId, audioPath)
 			if err != nil {
 				sendText := "Text-to-Speech request failed, could not download the result"
-				discord.UpdateInteractionResponse(&value.Interaction, RequestEmbedTitle, sendText)
+				discord.Interactions_EditIntoError(&value.Interaction, sendText)
 				cache.InteractionComplete(value.CorrelationId)
 				delete(ActiveRequests, key)
 				return
@@ -284,7 +315,7 @@ func ProcessQueue() {
 			if err != nil {
 				logger.Error(value.Interaction.GuildID, err)
 				sendText := "Text-to-Speech request failed, could not send the downloaded result"
-				discord.UpdateInteractionResponse(&value.Interaction, RequestEmbedTitle, sendText)
+				discord.Interactions_EditIntoError(&value.Interaction, sendText)
 				cache.InteractionComplete(value.CorrelationId)
 				delete(ActiveRequests, key)
 				return

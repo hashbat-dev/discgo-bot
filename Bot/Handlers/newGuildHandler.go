@@ -6,6 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	triggers "github.com/hashbat-dev/discgo-bot/Bot/Commands/Triggers"
 	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
 	database "github.com/hashbat-dev/discgo-bot/Database"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 	reactions "github.com/hashbat-dev/discgo-bot/Reactions"
@@ -76,7 +77,25 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 		guild = newG
 	}
 
-	// 6. Add to the Active Cache
+	// 6. Make sure we have no Orphaned Commands registered against the Guild
+	registeredCommands, err := config.Session.ApplicationCommands(config.Session.State.User.ID, guild.GuildID)
+	if err != nil {
+		logger.Error(newG.GuildID, err)
+		return
+	}
+	if len(registeredCommands) > 0 {
+		for _, cmd := range registeredCommands {
+			err := config.Session.ApplicationCommandDelete(config.Session.State.User.ID, guild.GuildID, cmd.ID)
+			if err != nil {
+				logger.ErrorText(guild.GuildID, "Error deleting Command: %s, Error: %e", cmd.Name, err)
+			} else {
+				logger.Info(guild.GuildID, "Deleted orphan Command from Guild: %s", cmd.Name)
+			}
+		}
+
+	}
+
+	// 7. Add to the Active Cache
 	cache.AddToActiveGuildCache(guild.ID, guild.GuildID, guild.IsDevServer, guild.GuildName, triggerList, guild.StarUpChannel,
 		guild.StarDownChannel, guild.GuildOwnerID, guild.GuildAdminRole, guildEmojis)
 	reporting.Guilds()
