@@ -1,4 +1,4 @@
-package bang
+package editmodule
 
 import (
 	"bytes"
@@ -14,17 +14,21 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	discord "github.com/hashbat-dev/discgo-bot/Discord"
 	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
 	imgwork "github.com/hashbat-dev/discgo-bot/ImgWork"
-	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 type DeepFry struct{}
 
-func (s DeepFry) Name() string {
-	return "deepfry"
+func (s DeepFry) SelectName() string {
+	return "Deep Fry"
+}
+
+func (s DeepFry) Emoji() *discordgo.ComponentEmoji {
+	return &discordgo.ComponentEmoji{Name: "🧑‍🍳"}
 }
 
 func (s DeepFry) PermissionRequirement() int {
@@ -35,20 +39,24 @@ func (s DeepFry) Complexity() int {
 	return config.CPU_BOUND_TASK
 }
 
-func (s DeepFry) Execute(message *discordgo.MessageCreate, command string) error {
-	progressMessage := discord.SendUserMessageReply(message, false, "Deepfry: Decoding media...")
+func (s DeepFry) Execute(i *discordgo.InteractionCreate, correlationId string) {
+	msgTitle := "Deep Fry"
+	discord.Interactions_SendMessage(i, msgTitle, "Decoding media...")
 
 	// 1. Check we have a valid Image and Extension
-	imgUrl := helpers.GetImageFromMessage(message.Message, "")
+	_, message := discord.GetAssociatedMessageFromInteraction(i)
+	imgUrl := helpers.GetImageFromMessage(message, "")
 	if imgUrl == "" {
-		discord.EditMessage(progressMessage, "Deepfry: Invalid media")
-		return errors.New("no media found")
+		discord.Interactions_EditIntoError(i, "No image found in Message")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension == "" {
-		discord.EditMessage(progressMessage, "Deepfry: Invalid image")
-		return errors.New("invalid extension")
+		discord.Interactions_EditIntoError(i, "Invalid image extension")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	outputImageName := uuid.New().String()
@@ -61,32 +69,34 @@ func (s DeepFry) Execute(message *discordgo.MessageCreate, command string) error
 	}
 
 	// 3. Get the image as an io.Reader object
-	discord.EditMessage(progressMessage, "Deepfry: Downloading Media...")
+	discord.Interactions_EditText(i, msgTitle, "Downloading image...")
 	imageReader, downloadErr := imgwork.DownloadImageToReader(message.GuildID, imgUrl, isAnimated)
 	if downloadErr != nil {
-		discord.SendUserMessageReply(message, false, "Error creating Media")
-		return downloadErr
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 4. Write the new Image to a Bytes Buffer
 	var newImageBuffer bytes.Buffer
-	discord.EditMessage(progressMessage, "Deepfry: Frying :cook:")
+	discord.Interactions_EditText(i, msgTitle, "Frying :cook:...")
 	deepfryImageErr := deepfryImage(imageReader, &newImageBuffer, isAnimated)
 	if deepfryImageErr != nil {
-		discord.SendUserMessageReply(message, false, "Error creating Media")
-		return deepfryImageErr
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 5. Send the new Image back to the User
-	replyErr := discord.ReplyToMessageWithImageBuffer(message, true, outputImageName, &newImageBuffer)
+	replyErr := discord.Message_ReplyWithImage(message, true, outputImageName, &newImageBuffer)
 	if replyErr != nil {
-		logger.Error(message.GuildID, replyErr)
-		return replyErr
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
-	discord.DeleteMessageObject(progressMessage)
-	discord.DeleteMessage(message)
-	return nil
+	discord.Interactions_EditText(i, msgTitle+" Completed", "")
+	cache.InteractionComplete(correlationId)
 }
 
 func deepfryImage(

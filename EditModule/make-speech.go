@@ -1,13 +1,13 @@
-package bang
+package editmodule
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/gif"
+	"image/jpeg"
 	"image/png"
 	"io"
 	"math"
@@ -17,6 +17,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	discord "github.com/hashbat-dev/discgo-bot/Discord"
 	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
@@ -27,8 +28,12 @@ import (
 
 type MakeSpeech struct{}
 
-func (s MakeSpeech) Name() string {
-	return "makespeech"
+func (s MakeSpeech) SelectName() string {
+	return "Add Speech Bubble"
+}
+
+func (s MakeSpeech) Emoji() *discordgo.ComponentEmoji {
+	return &discordgo.ComponentEmoji{Name: "💬"}
 }
 
 func (s MakeSpeech) PermissionRequirement() int {
@@ -36,26 +41,31 @@ func (s MakeSpeech) PermissionRequirement() int {
 }
 
 func (s MakeSpeech) Complexity() int {
-	return config.CPU_BOUND_TASK
+	return config.TRIVIAL_TASK
 }
 
-func (s MakeSpeech) Execute(message *discordgo.MessageCreate, command string) error {
-	progressMessage := discord.SendUserMessageReply(message, false, "Make Speech: Finding image...")
+func (s MakeSpeech) Execute(i *discordgo.InteractionCreate, correlationId string) {
+	discord.Interactions_SendMessage(i, "Add Speech Bubble", "Finding image...")
 
-	// 1. Check we have a valid Image and Extension
-	imgUrl := helpers.GetImageFromMessage(message.Message, "")
+	// 1. Get the Message object associated with the Interaction request
+	_, message := discord.GetAssociatedMessageFromInteraction(i)
+
+	// 2. Check there's an associated Image
+	imgUrl := helpers.GetImageFromMessage(message, "")
 	if imgUrl == "" {
-		discord.EditMessage(progressMessage, "Make Speech: Invalid image")
-		return errors.New("no image found")
+		discord.Interactions_EditIntoError(i, "No image found in message")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension == "" {
-		discord.EditMessage(progressMessage, "Make Speech: Invalid image")
-		return errors.New("invalid extension")
+		discord.Interactions_EditIntoError(i, fmt.Sprintf("Invalid image extension (%s)", imgExtension))
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
-	// 2. Generate the Output Image name
+	// 3. Generate the Output Image name
 	//	  This will always be either a .gif (for animated) or .png (for static)
 	outputImageName := uuid.New().String()
 	isAnimated := false
@@ -67,32 +77,37 @@ func (s MakeSpeech) Execute(message *discordgo.MessageCreate, command string) er
 	}
 
 	// 3. Get the image as an io.Reader object
-	discord.EditMessage(progressMessage, "Make Speech: Downloading Image...")
+	discord.Interactions_EditText(i, "Add Speech Bubble", "Downloading image...")
 	imageReader, downloadErr := imgwork.DownloadImageToReader(message.GuildID, imgUrl, isAnimated)
 	if downloadErr != nil {
-		discord.SendUserMessageReply(message, false, "Error creating Image")
-		return downloadErr
+		logger.ErrorText(i.GuildID, "Couldn't download image")
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 4. Write the new Image to a Bytes Buffer
 	var newImageBuffer bytes.Buffer
-	discord.EditMessage(progressMessage, "Make Speech: Adding Speech Bubble...")
+	discord.Interactions_EditText(i, "Add Speech Bubble", "Adding speech bubble...")
 	addBubbleErr := addSpeechBubbleToImage(message.GuildID, imageReader, &newImageBuffer, isAnimated, imgExtension)
 	if addBubbleErr != nil {
-		discord.SendUserMessageReply(message, false, "Error creating Image")
-		return addBubbleErr
+		logger.ErrorText(i.GuildID, "Error creating new image")
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 5. Send the new Image back to the User
-	replyErr := discord.ReplyToMessageWithImageBuffer(message, true, outputImageName, &newImageBuffer)
+	replyErr := discord.Message_ReplyWithImage(message, false, outputImageName, &newImageBuffer)
 	if replyErr != nil {
-		logger.Error(message.GuildID, replyErr)
-		return replyErr
+		logger.ErrorText(i.GuildID, "Error sending new image")
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
-	discord.DeleteMessageObject(progressMessage)
-	discord.DeleteMessage(message)
-	return nil
+	discord.Interactions_EditText(i, "Add Speech Bubble Completed", "")
+	cache.InteractionComplete(correlationId)
 }
 
 func addSpeechBubbleToImage(
@@ -106,6 +121,7 @@ func addSpeechBubbleToImage(
 	// setup values
 	var gifImage *gif.GIF
 	var imageHeight int
+	var imageWidth int
 	var inputImage image.Image
 	var decodeErr error
 
@@ -116,21 +132,28 @@ func addSpeechBubbleToImage(
 			return decodeErr
 		}
 		imageHeight = gifImage.Config.Height
+		imageWidth = gifImage.Config.Width
 	} else {
-		if imgExtension == ".png" || imgExtension == ".jpg" {
-			// .jpg images are resized to a .png before this function is called
+		switch imgExtension {
+		case ".png":
 			inputImage, decodeErr = png.Decode(imageReader)
-		} else if imgExtension == ".webp" {
+		case ".jpg", ".jpeg":
+			inputImage, decodeErr = jpeg.Decode(imageReader)
+		case ".webp":
 			inputImage, decodeErr = webp.Decode(imageReader)
+		default:
+			decodeErr = fmt.Errorf("unsupported extension: %s", imgExtension)
 		}
 		if decodeErr != nil {
+			logger.Error(guildId, decodeErr)
 			return decodeErr
 		}
 		imageHeight = inputImage.Bounds().Max.Y
+		imageWidth = inputImage.Bounds().Max.X
 	}
 
 	// Get corresponding overlay image
-	overlayImage, overlayErr := getOverlayImage(imageHeight)
+	overlayImage, overlayErr := getOverlayImage(imageHeight, imageWidth)
 	if overlayErr != nil {
 		logger.Error(guildId, overlayErr)
 		return overlayErr
@@ -245,15 +268,16 @@ func colourDistance(c1, c2 color.Color) float64 {
 }
 
 // determines which image file to use for the operation based on the height of the input image
-func getOverlayImage(height int) (image.Image, error) {
+func getOverlayImage(height int, width int) (image.Image, error) {
 	rootDir, fpErr := filepath.Abs(filepath.Dir("."))
 	if fpErr != nil {
 		return nil, fpErr
 	}
 	overlayPath := "Resources/SpeechTemplates/"
-	if height < 100 {
+	dimension := float64(height) / float64(width)
+	if dimension >= 2.5 {
 		overlayPath += "S"
-	} else if height < 200 {
+	} else if dimension >= 1.5 {
 		overlayPath += "M"
 	} else {
 		overlayPath += "L"

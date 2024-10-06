@@ -1,8 +1,10 @@
 package helpers
 
 import (
+	"bytes"
 	"strings"
 	"time"
+	"unicode"
 )
 
 func RemoveStartingXCharacters(inMsg string, removeLength int) string {
@@ -28,4 +30,23 @@ func ConcatStringWithAnd(words []string) string {
 	default:
 		return strings.Join(words[:len(words)-1], ", ") + " and " + words[len(words)-1]
 	}
+}
+
+func LettersNumbersAndDashesOnly(input string) string {
+	var buffer bytes.Buffer
+
+	for i := 0; i < len(input); i++ {
+		switch input[i] {
+		case ' ':
+			buffer.WriteByte('_')
+		case '-':
+			buffer.WriteString("--")
+		default:
+			if unicode.IsLetter(rune(input[i])) || unicode.IsDigit(rune(input[i])) {
+				buffer.WriteByte(input[i])
+			}
+		}
+	}
+
+	return buffer.String()
 }

@@ -1,15 +1,15 @@
 package scheduler
 
 import (
-	slash "github.com/hashbat-dev/discgo-bot/Bot/Commands/Slash"
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
+	module "github.com/hashbat-dev/discgo-bot/Module"
 	reporting "github.com/hashbat-dev/discgo-bot/Reporting"
 )
 
 func RunEvery2Seconds() {
 	go sendNextDiscordLogBatch()
-	go slash.ProcessQueue()
+	go module.ProcessTtsQueue()
 	go pollHardwareStats()
 	go reporting.Logs()
 }

@@ -12,7 +12,7 @@ import (
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
-func AddImg(message *discordgo.MessageCreate, category string, imgUrl string) error {
+func AddImg(message *discordgo.Message, category string, imgUrl string) error {
 	// 1. Get the Gif Category
 	imgCat, err := GetImgCategory(message.GuildID, category)
 	if err != nil {

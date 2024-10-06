@@ -1,8 +1,8 @@
-package bang
+package editmodule
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"image"
 	"image/gif"
 	"io"
@@ -10,6 +10,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	discord "github.com/hashbat-dev/discgo-bot/Discord"
 	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
@@ -19,8 +20,12 @@ import (
 
 type Reverse struct{}
 
-func (s Reverse) Name() string {
-	return "reverse"
+func (s Reverse) SelectName() string {
+	return "Reverse GIF"
+}
+
+func (s Reverse) Emoji() *discordgo.ComponentEmoji {
+	return &discordgo.ComponentEmoji{Name: "⏪"}
 }
 
 func (s Reverse) PermissionRequirement() int {
@@ -31,49 +36,52 @@ func (s Reverse) Complexity() int {
 	return config.CPU_BOUND_TASK
 }
 
-func (s Reverse) Execute(message *discordgo.MessageCreate, command string) error {
-	progressMessage := discord.SendUserMessageReply(message, false, "Reverse: Finding GIF...")
+func (s Reverse) Execute(i *discordgo.InteractionCreate, correlationId string) {
+	msgTitle := "Reverse"
+	discord.Interactions_SendMessage(i, msgTitle, "Decoding media...")
 
 	// 1. Check we have a valid Image and Extension
-	imgUrl := helpers.GetImageFromMessage(message.Message, "")
+	_, message := discord.GetAssociatedMessageFromInteraction(i)
+	imgUrl := helpers.GetImageFromMessage(message, "")
 	if imgUrl == "" {
-		discord.EditMessage(progressMessage, "Reverse: Invalid image")
-		return errors.New("no image found")
-	}
-
-	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
-	if imgExtension == "" {
-		discord.EditMessage(progressMessage, "Reverse: Invalid image")
-		return errors.New("invalid extension")
+		discord.Interactions_EditIntoError(i, "No image found in Message")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 2. Check the image is a GIF
+	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension != ".gif" {
-		discord.EditMessage(progressMessage, "Reverse: Image was not a GIF")
-		return errors.New("image provided is not a gif")
+		discord.Interactions_EditIntoError(i, fmt.Sprintf("Can't reverse %s's!", imgExtension))
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 3. Get the image as an io.Reader object
-	discord.EditMessage(progressMessage, "Reverse: Downloading GIF...")
+	discord.Interactions_EditText(i, msgTitle, "Downloading GIF...")
 	imageReader, err := imgwork.DownloadImageToReader(message.GuildID, imgUrl, true)
 	if err != nil {
-		return err
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 4. Reverse the GIF
 	var newImageBuffer bytes.Buffer
-	discord.EditMessage(progressMessage, "Reverse: Reversing GIF...")
+	discord.Interactions_EditText(i, msgTitle, "Reversing GIF...")
 	err = reverseGif(message.GuildID, imageReader, &newImageBuffer)
 	if err != nil {
-		discord.SendUserMessageReply(message, false, "Error reversing GIF")
-		return err
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 5. Return the reversed Image
 	outputImageName := uuid.New().String() + ".gif"
-	discord.DeleteMessageObject(progressMessage)
-	discord.DeleteMessage(message)
-	return discord.ReplyToMessageWithImageBuffer(message, true, outputImageName, &newImageBuffer)
+	discord.Interactions_EditText(i, msgTitle+" Completed", "")
+	if discord.Message_ReplyWithImage(message, true, outputImageName, &newImageBuffer) != nil {
+		logger.Info(i.GuildID, "Error sending ReplyWithImage")
+	}
 }
 
 func reverseGif(guildId string, imageReader io.Reader, buffer *bytes.Buffer) error {

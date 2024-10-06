@@ -1,4 +1,4 @@
-package reactions
+package module
 
 import (
 	"github.com/bwmarrin/discordgo"
@@ -7,13 +7,31 @@ import (
 	database "github.com/hashbat-dev/discgo-bot/Database"
 	discord "github.com/hashbat-dev/discgo-bot/Discord"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
+	reactions "github.com/hashbat-dev/discgo-bot/Reactions"
 )
 
-func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
+type EditHallReactions struct{}
+
+func (s EditHallReactions) Command() *discordgo.ApplicationCommand {
+	return &discordgo.ApplicationCommand{
+		Name:        "edit-hall-reactions",
+		Description: "[ADMIN] Designate which Emojis constitute up/down votes",
+	}
+}
+
+func (s EditHallReactions) PermissionRequirement() int {
+	return config.CommandLevelBotAdmin
+}
+
+func (s EditHallReactions) Complexity() int {
+	return config.TRIVIAL_TASK
+}
+
+func (s EditHallReactions) Execute(i *discordgo.InteractionCreate, correlationId string) {
 	// 1. Create a Private Thread to handle the options
 	channel, err := discord.CreateAdminChannel(i.GuildID, "edit-hall-reactions")
 	if err != nil {
-		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.")
+		discord.Interactions_SendError(i, "There was an error processing your request, please try again.")
 		cache.InteractionComplete(correlationId)
 		return
 	}
@@ -22,7 +40,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 	cache.ActiveInteractions[correlationId].Values.String["tempChannelId"] = channel.ID
 
 	// 2. By this point we can Acknowledge the original Interaction
-	discord.SendEmbedFromInteraction(i, "Editing Hall Reactions", "We have opened a Private Channel for you to apply changes.")
+	discord.Interactions_SendMessage(i, "Editing Hall Reactions", "We have opened a Private Channel for you to apply changes.")
 
 	// 3. Post Messages in the Thread
 	// => Introduction Message
@@ -34,7 +52,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 	msgText += "* Click [Cancel Changes] discard everything here and destroy this channel.\n"
 	_, err = config.Session.ChannelMessageSend(channel.ID, msgText)
 	if err != nil {
-		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.")
+		discord.Interactions_EditText(i, "Error", "There was an error processing your request, please try again.")
 		cache.InteractionComplete(correlationId)
 		discord.DeleteAdminChannel(i.GuildID, channel.ID)
 		logger.Error(i.GuildID, err)
@@ -43,7 +61,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 	// => Upvote Message
 	upMsg, err := config.Session.ChannelMessageSend(channel.ID, "Upvote Reactions")
 	if err != nil {
-		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.")
+		discord.Interactions_EditText(i, "Error", "There was an error processing your request, please try again.")
 		cache.InteractionComplete(correlationId)
 		discord.DeleteAdminChannel(i.GuildID, channel.ID)
 		logger.Error(i.GuildID, err)
@@ -52,7 +70,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 	// => Downvote Message
 	downMsg, err := config.Session.ChannelMessageSend(channel.ID, "Downvote Reactions")
 	if err != nil {
-		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.")
+		discord.Interactions_EditText(i, "Error", "There was an error processing your request, please try again.")
 		cache.InteractionComplete(correlationId)
 		discord.DeleteAdminChannel(i.GuildID, channel.ID)
 		logger.Error(i.GuildID, err)
@@ -65,9 +83,9 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 	for _, emoji := range cache.ActiveGuilds[i.GuildID].ReactionEmojis {
 		var emojiErr error
 		switch emoji.CategoryID {
-		case EmojiCategoryUp:
+		case reactions.EmojiCategoryUp:
 			emojiErr = config.Session.MessageReactionAdd(channel.ID, upMsg.ID, emoji.Emoji)
-		case EmojiCategoryDown:
+		case reactions.EmojiCategoryDown:
 			emojiErr = config.Session.MessageReactionAdd(channel.ID, downMsg.ID, emoji.Emoji)
 		default:
 			logger.ErrorText(i.GuildID, "Undefined Emoji category [%v]", emoji.CategoryID)
@@ -118,7 +136,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 
 	_, err = config.Session.ChannelMessageSendComplex(channel.ID, buttonMessage)
 	if err != nil {
-		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.")
+		discord.Interactions_EditText(i, "Error", "There was an error processing your request, please try again.")
 		cache.InteractionComplete(correlationId)
 		discord.DeleteAdminChannel(i.GuildID, channel.ID)
 		logger.Error(i.GuildID, err)
@@ -152,11 +170,11 @@ func EditHandler_Reset(i *discordgo.InteractionCreate, correlationId string) {
 	}
 
 	// 2. Add the default Reactions
-	err = config.Session.MessageReactionAdd(channelId, upMsgId, StandardUp)
+	err = config.Session.MessageReactionAdd(channelId, upMsgId, reactions.StandardUp)
 	if err != nil {
 		logger.Error(i.GuildID, err)
 	}
-	err = config.Session.MessageReactionAdd(channelId, downMsgId, StandardDown)
+	err = config.Session.MessageReactionAdd(channelId, downMsgId, reactions.StandardDown)
 	if err != nil {
 		logger.Error(i.GuildID, err)
 	}
@@ -188,13 +206,13 @@ func EditHandler_Generics(i *discordgo.InteractionCreate, correlationId string) 
 	}
 
 	// 2. Add all the Generic Reactions
-	for _, emoji := range UpvoteEmojis {
+	for _, emoji := range reactions.UpvoteEmojis {
 		err = config.Session.MessageReactionAdd(channelId, upMsgId, emoji)
 		if err != nil {
 			logger.Error(i.GuildID, err)
 		}
 	}
-	for _, emoji := range DownvoteEmojis {
+	for _, emoji := range reactions.DownvoteEmojis {
 		err = config.Session.MessageReactionAdd(channelId, downMsgId, emoji)
 		if err != nil {
 			logger.Error(i.GuildID, err)
@@ -241,13 +259,13 @@ func EditHandler_Save(i *discordgo.InteractionCreate, correlationId string) {
 
 	// 3. Get the Emojis and add them one-by-one
 	for _, reaction := range upMsg.Reactions {
-		err = AddGuildEmoji(i.GuildID, "", reaction.Emoji.Name, EmojiCategoryUp)
+		err = reactions.AddGuildEmoji(i.GuildID, "", reaction.Emoji.Name, reactions.EmojiCategoryUp)
 		if err != nil {
 			logger.ErrorText(i.GuildID, "Failed to add Standard 'Up' Emoji")
 		}
 	}
 	for _, reaction := range downMsg.Reactions {
-		err = AddGuildEmoji(i.GuildID, "", reaction.Emoji.Name, EmojiCategoryDown)
+		err = reactions.AddGuildEmoji(i.GuildID, "", reaction.Emoji.Name, reactions.EmojiCategoryDown)
 		if err != nil {
 			logger.ErrorText(i.GuildID, "Failed to add Standard 'Down' Emoji")
 		}

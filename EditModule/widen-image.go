@@ -1,8 +1,7 @@
-package bang
+package editmodule
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"image"
 	"image/gif"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
+	cache "github.com/hashbat-dev/discgo-bot/Cache"
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	discord "github.com/hashbat-dev/discgo-bot/Discord"
 	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
@@ -20,34 +20,42 @@ import (
 	"golang.org/x/image/webp"
 )
 
-type Wide struct{}
+type WidenImage struct{}
 
-func (s Wide) Name() string {
-	return "wide"
+func (s WidenImage) SelectName() string {
+	return "Widen Image"
 }
 
-func (s Wide) PermissionRequirement() int {
+func (s WidenImage) Emoji() *discordgo.ComponentEmoji {
+	return &discordgo.ComponentEmoji{Name: "↔️"}
+}
+
+func (s WidenImage) PermissionRequirement() int {
 	return config.CommandLevelUser
 }
 
-func (s Wide) Complexity() int {
-	return config.CPU_BOUND_TASK
+func (s WidenImage) Complexity() int {
+	return config.TRIVIAL_TASK
 }
 
-func (s Wide) Execute(message *discordgo.MessageCreate, command string) error {
-	progressMessage := discord.SendUserMessageReply(message, false, "Wide mode: Finding image...")
+func (s WidenImage) Execute(i *discordgo.InteractionCreate, correlationId string) {
+	msgTitle := "Widen Image"
+	discord.Interactions_SendMessage(i, msgTitle, "Decoding media...")
 
 	// 1. Check we have a valid Image and Extension
-	imgUrl := helpers.GetImageFromMessage(message.Message, "")
+	_, message := discord.GetAssociatedMessageFromInteraction(i)
+	imgUrl := helpers.GetImageFromMessage(message, "")
 	if imgUrl == "" {
-		discord.EditMessage(progressMessage, "Wide mode: Invalid image")
-		return errors.New("no image found")
+		discord.Interactions_EditIntoError(i, "No image found in Message")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension == "" {
-		discord.EditMessage(progressMessage, "Wide mode: Invalid image")
-		return errors.New("invalid extension")
+		discord.Interactions_EditIntoError(i, fmt.Sprintf("Can't widen %s's!", imgExtension))
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	outputImageName := uuid.New().String()
@@ -60,32 +68,33 @@ func (s Wide) Execute(message *discordgo.MessageCreate, command string) error {
 	}
 
 	// 3. Get the image as an io.Reader object
-	discord.EditMessage(progressMessage, "Wide mode: Downloading Image...")
+	discord.Interactions_EditText(i, msgTitle, "Downloading Image...")
 	imageReader, downloadErr := imgwork.DownloadImageToReader(message.GuildID, imgUrl, isAnimated)
 	if downloadErr != nil {
-		discord.SendUserMessageReply(message, false, "Error creating Image")
-		return downloadErr
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 4. Write the new Image to a Bytes Buffer
 	var newImageBuffer bytes.Buffer
-	discord.EditMessage(progressMessage, "Wide mode: Widening...")
+	discord.Interactions_EditText(i, msgTitle, "Wiiiiiiidening...")
 	widenImageErr := widenImage(message.GuildID, imageReader, &newImageBuffer, isAnimated, imgExtension)
 	if widenImageErr != nil {
-		discord.SendUserMessageReply(message, false, "Error creating Image")
-		return widenImageErr
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
 	// 5. Send the new Image back to the User
-	replyErr := discord.ReplyToMessageWithImageBuffer(message, true, outputImageName, &newImageBuffer)
+	replyErr := discord.Message_ReplyWithImage(message, true, outputImageName, &newImageBuffer)
 	if replyErr != nil {
-		logger.Error(message.GuildID, replyErr)
-		return replyErr
+		discord.Interactions_EditIntoError(i, "")
+		cache.InteractionComplete(correlationId)
+		return
 	}
 
-	discord.DeleteMessageObject(progressMessage)
-	discord.DeleteMessage(message)
-	return nil
+	cache.InteractionComplete(correlationId)
 }
 
 func widenImage(
