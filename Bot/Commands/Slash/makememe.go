@@ -212,6 +212,9 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 		return
 	}
 
+	if sendImgExt == "" {
+		sendImgExt = ".jpg"
+	}
 	if sendImgUrl == "" || sendImgExt == "" {
 		discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.")
 		cache.InteractionComplete(correlationId)
@@ -371,6 +374,38 @@ func encodeTextForUrl(input string) string {
 			buffer.WriteString("''")
 		case '\'':
 			buffer.WriteString("'")
+		case ':':
+			buffer.WriteString(":")
+		case ';':
+			buffer.WriteString(";")
+		case '=':
+			buffer.WriteString("=")
+		case '(':
+			buffer.WriteString("(")
+		case ')':
+			buffer.WriteString(")")
+		case '[':
+			buffer.WriteString("[")
+		case ']':
+			buffer.WriteString("]")
+		case '{':
+			buffer.WriteString("{")
+		case '}':
+			buffer.WriteString("}")
+		case '@':
+			buffer.WriteString("@")
+		case '|':
+			buffer.WriteString("|")
+		case '!':
+			buffer.WriteString("!")
+		case '^':
+			buffer.WriteString("^")
+		case '*':
+			buffer.WriteString("*")
+		case '£':
+			buffer.WriteString("£")
+		case '$':
+			buffer.WriteString("$")
 		default:
 			if unicode.IsLetter(rune(input[i])) || unicode.IsDigit(rune(input[i])) {
 				buffer.WriteByte(input[i])
