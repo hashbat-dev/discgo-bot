@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"image/gif"
+	"image/jpeg"
 	"image/png"
 	"io"
 	"time"
@@ -107,11 +108,17 @@ func widenImage(
 			return decodeErr
 		}
 	} else {
-		if imgExtension == ".png" || imgExtension == ".jpg" {
-			// .jpg images are resized to a .png before this function is called
+		switch imgExtension {
+		case ".png":
 			inputImage, decodeErr = png.Decode(imageReader)
-		} else if imgExtension == ".webp" {
+		case ".jpg":
+			inputImage, decodeErr = jpeg.Decode(imageReader)
+		case ".webp":
 			inputImage, decodeErr = webp.Decode(imageReader)
+		default:
+			err := fmt.Errorf("Unsupported image extension: %s", imgExtension)
+			logger.Error(guildId, err)
+			return err
 		}
 		if decodeErr != nil {
 			return decodeErr
