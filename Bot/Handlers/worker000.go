@@ -23,6 +23,8 @@ import (
 type Task struct {
 	CommandType          int
 	Complexity           int
+	Interaction          *discordgo.InteractionCreate // using
+	InteractionCall      InteractionCall              // using
 	BangDetails          *BangTaskDetails
 	SlashDetails         *SlashTaskDetails
 	SlashResponseDetails *SlashResponseDetails
@@ -30,6 +32,11 @@ type Task struct {
 	MessageObj           *discordgo.Message
 }
 
+type InteractionCall struct {
+	ObjectID      string
+	CorrelationID string
+	Execute       func(i *discordgo.InteractionCreate, correlationId string)
+}
 type BangTaskDetails struct {
 	Message       *discordgo.MessageCreate
 	Command       commands.Command
@@ -83,6 +90,10 @@ func worker(id int, taskId int, ch <-chan *Task) {
 		switch task.CommandType {
 		case config.CommandTypeBang:
 			workerBang(task.BangDetails)
+		case config.CommandTypeNewInteraction:
+			WorkerNewInteraction(task.Interaction)
+		case config.CommandTypeInteractionCall:
+			WorkerInteractionCall(task.Interaction, task.InteractionCall)
 		case config.CommandTypeSlash:
 			workerSlash(task.SlashDetails)
 		case config.CommandTypeSlashResponse:

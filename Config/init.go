@@ -136,6 +136,8 @@ const ( // A) Populate A + B!
 	CommandTypeDefault = iota
 	CommandTypeBang
 	CommandTypePhrase
+	CommandTypeNewInteraction
+	CommandTypeInteractionCall
 	CommandTypeSlash
 	CommandTypeSlashResponse
 	CommandTypeReactionCheck
@@ -143,12 +145,14 @@ const ( // A) Populate A + B!
 
 // B) Populate A + B!
 var CommandTypes map[int]string = map[int]string{
-	CommandTypeDefault:       "Default",
-	CommandTypeBang:          "Bang",
-	CommandTypePhrase:        "Phrase",
-	CommandTypeSlash:         "Slash",
-	CommandTypeSlashResponse: "Slash Response",
-	CommandTypeReactionCheck: "Reaction",
+	CommandTypeDefault:         "Default",
+	CommandTypeBang:            "Bang",
+	CommandTypePhrase:          "Phrase",
+	CommandTypeNewInteraction:  "New Interaction",
+	CommandTypeInteractionCall: "Interaction Call",
+	CommandTypeSlash:           "Slash",
+	CommandTypeSlashResponse:   "Slash Response",
+	CommandTypeReactionCheck:   "Reaction",
 }
 
 // ------------------------------------------------
