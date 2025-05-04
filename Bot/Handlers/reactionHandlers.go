@@ -8,13 +8,21 @@ import (
 )
 
 func HandleReactionAdd(s *discordgo.Session, r *discordgo.MessageReactionAdd) {
+	handleMessageReactionAdd <- r
+}
+
+func HandleReactionRemove(s *discordgo.Session, r *discordgo.MessageReactionRemove) {
+	handleMessageReactionRemove <- r
+}
+
+func ProcessReactionAdd(r *discordgo.MessageReactionAdd) {
 	if skipReactionCheck(r.UserID, r.GuildID, r.ChannelID) {
 		return
 	}
 	startReactionCheck(r.GuildID, r.ChannelID, r.MessageID)
 }
 
-func HandleReactionRemove(s *discordgo.Session, r *discordgo.MessageReactionRemove) {
+func ProcessReactionRemove(r *discordgo.MessageReactionRemove) {
 	if skipReactionCheck(r.UserID, r.GuildID, r.ChannelID) {
 		return
 	}

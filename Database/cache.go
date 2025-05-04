@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	"time"
+
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 type BangCommand struct {
@@ -27,7 +29,12 @@ func GetBangs() ([]BangCommand, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			logger.Error("DATABASE", err)
+		}
+	}()
 
 	// Iterate over the rows
 	for rows.Next() {

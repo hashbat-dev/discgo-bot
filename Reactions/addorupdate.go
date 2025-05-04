@@ -71,10 +71,7 @@ func AddOrUpdate(message *discordgo.Message, score int, emojiString string) {
 }
 
 func createMessage(msg *discordgo.Message, score int, emojiString string) *discordgo.MessageEmbed {
-	isUp := true
-	if score < 0 {
-		isUp = false
-	}
+	isUp := score >= 0
 	color := 0xFFEE00
 	if !isUp {
 		color = 0xFF0000

@@ -116,7 +116,7 @@ func widenImage(
 		case ".webp":
 			inputImage, decodeErr = webp.Decode(imageReader)
 		default:
-			err := fmt.Errorf("Unsupported image extension: %s", imgExtension)
+			err := fmt.Errorf("unsupported image extension: %s", imgExtension)
 			logger.Error(guildId, err)
 			return err
 		}

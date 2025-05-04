@@ -38,7 +38,12 @@ func DeleteImgurEntry(guildId string, deleteHash string) error {
 		logger.Error(guildId, err)
 		return err
 	}
-	defer res.Body.Close()
+	defer func(g string) {
+		err := res.Body.Close()
+		if err != nil {
+			logger.Error(g, err)
+		}
+	}(guildId)
 
 	// 2. If successful Delete from the Database
 	return database.DeleteImgurLog(guildId, deleteHash)

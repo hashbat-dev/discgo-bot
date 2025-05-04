@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func GetJsonFromUrl(url string) (map[string]interface{}, error) {
@@ -12,7 +14,12 @@ func GetJsonFromUrl(url string) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func() {
+		err := response.Body.Close()
+		if err != nil {
+			logger.Error("EXTERNAL", err)
+		}
+	}()
 
 	// Read response body
 	body, err := io.ReadAll(response.Body)

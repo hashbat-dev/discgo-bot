@@ -13,37 +13,37 @@ import (
 func Init() {
 	// 1. Database Init
 	if !database.Init() {
-		logger.Error("", errors.New("Failed to initialise database"))
+		logger.Error("", errors.New("failed to initialise database"))
 		return
 	}
 
 	// 1. Database Init
 	if !database.Init() {
-		logger.Error("", errors.New("Failed to initialise database"))
+		logger.Error("", errors.New("failed to initialise database"))
 		return
 	}
 
 	// 2. Discord Session Init
 	if !sessionInit() {
-		logger.Error("", errors.New("Failed to initialise session"))
+		logger.Error("", errors.New("failed to initialise session"))
 		return
 	}
 
 	// 3. Add Handlers to the Session
 	if !addHandlers() {
-		logger.Error("", errors.New("Failed to add handlers"))
+		logger.Error("", errors.New("failed to add handlers"))
 		return
 	}
 
 	// 4. Open the Discord session
 	if !sessionOpen() {
-		logger.Error("", errors.New("Failed to open session"))
+		logger.Error("", errors.New("failed to open session"))
 		return
 	}
 
 	// 5. Log Init
 	if !logger.Init() {
-		logger.Error("", errors.New("Failed to initialise logging"))
+		logger.Error("", errors.New("failed to initialise logging"))
 		return
 	}
 
@@ -55,11 +55,14 @@ func Init() {
 
 	// 6. Register Discord /commands
 	if !registerCommands() {
-		logger.Error("", errors.New("Failed to register commands"))
+		logger.Error("", errors.New("failed to register commands"))
 		return
 	}
 
-	// 7. Reset Global Discord /commands
+	// 7. Start the Handler worker pools
+	handlers.Start()
+
+	// 8. Reset Global Discord /commands
 	handlers.RefreshSlashCommands("")
 
 }
@@ -86,7 +89,7 @@ func sessionOpen() bool {
 	}
 
 	if config.Session == nil {
-		logger.Error("FUCK", err)
+		logger.Error("uh oh", err)
 	}
 	return true
 }

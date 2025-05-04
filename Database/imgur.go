@@ -58,7 +58,12 @@ func GetAllImgurLogs(guildId string) ([]ImgurLog, error) {
 		logger.Error(guildId, err)
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(g string) {
+		err := rows.Close()
+		if err != nil {
+			logger.Error(g, err)
+		}
+	}(guildId)
 
 	var retSlice []ImgurLog
 	for rows.Next() {

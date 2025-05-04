@@ -23,7 +23,12 @@ func GetAllGuildPhrases(guildId string) ([]triggers.PhraseLink, error) {
 		logger.Error(guildId, err)
 		return nil, err
 	}
-	defer rows.Close()
+	defer func(g string) {
+		err := rows.Close()
+		if err != nil {
+			logger.Error(g, err)
+		}
+	}(guildId)
 
 	// Iterate over the rows
 	for rows.Next() {

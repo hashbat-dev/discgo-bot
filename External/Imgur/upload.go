@@ -54,7 +54,12 @@ func UploadAndGetUrl(guildId string, userId string, file io.Reader) (string, str
 		logger.Error(guildId, err)
 		return "", "", err
 	}
-	defer resp.Body.Close()
+	defer func(g string) {
+		err := resp.Body.Close()
+		if err != nil {
+			logger.Error(g, err)
+		}
+	}(guildId)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

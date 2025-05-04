@@ -15,10 +15,14 @@ import (
 	reporting "github.com/hashbat-dev/discgo-bot/Reporting"
 )
 
-// HandleNewMessage checks for Bot actions whenever a new Message is posted in a Server
 func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCreate) {
+	handleNewMessageQueue <- message
+}
+
+// HandleNewMessage checks for Bot actions whenever a new Message is posted in a Server
+func ProcessNewMessage(message *discordgo.MessageCreate) {
 	// 1. Do we want to skip this message?
-	if skipMessageCheck(session, message) {
+	if skipMessageCheck(message) {
 		return
 	}
 	// 2. Generate a correlationID for the request
@@ -53,12 +57,12 @@ func HandleNewMessage(session *discordgo.Session, message *discordgo.MessageCrea
 }
 
 // Determines whether we should ignore the inbound Message
-func skipMessageCheck(session *discordgo.Session, message *discordgo.MessageCreate) bool {
+func skipMessageCheck(message *discordgo.MessageCreate) bool {
 	if message.Author == nil {
 		return true
 	}
 
-	if message.Author.ID == session.State.User.ID {
+	if message.Author.ID == config.Session.State.User.ID {
 		return true
 	}
 

@@ -17,7 +17,12 @@ func GetImageUrlFromTenor(guildId string, tenorLink string) (string, error) {
 		logger.Error(guildId, err)
 		return "", err
 	}
-	defer res.Body.Close()
+	defer func(g string) {
+		err := res.Body.Close()
+		if err != nil {
+			logger.Error(g, err)
+		}
+	}(guildId)
 
 	if res.StatusCode != 200 {
 		err = fmt.Errorf("failed to fetch Tenor GIF from URL, Tenor responded with Status Code: %d", res.StatusCode)

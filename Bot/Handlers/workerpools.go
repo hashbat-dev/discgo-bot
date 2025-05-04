@@ -178,7 +178,7 @@ func workerReaction(msg *discordgo.Message) {
 	upString := ""
 	downCount := 0
 	downString := ""
-	var userIds map[string]interface{} = make(map[string]interface{})
+	var userIds = make(map[string]interface{})
 
 	for _, reaction := range msg.Reactions {
 		emojiIdentifier := reaction.Emoji.Name

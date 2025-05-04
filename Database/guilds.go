@@ -44,8 +44,10 @@ func Get(guildId string) (GuildInfo, error) {
 		if !strings.Contains(err.Error(), "no rows") {
 			logger.Error(guildId, err)
 			err = nil
+		} else {
+			r.ID = 0
+			return r, nil
 		}
-		return r, err
 	}
 
 	if !ID.Valid {

@@ -150,7 +150,7 @@ func UpdateInteraction(correlationId string, i *discordgo.InteractionCreate) {
 		}
 	case discordgo.InteractionMessageComponent:
 		// Message Component (selects/buttons etc.)
-		switch data := i.Interaction.Data.(type) {
+		switch data := i.Data.(type) {
 		case *discordgo.MessageComponentInteractionData:
 
 			var objectID string
@@ -172,7 +172,7 @@ func UpdateInteraction(correlationId string, i *discordgo.InteractionCreate) {
 		default:
 			// Handle situations where a type could not be asserted yet we can access the returned value.
 			// This will always be added as a string.
-			val := reflect.ValueOf(i.Interaction.Data)
+			val := reflect.ValueOf(i.Data)
 			if val.Kind() == reflect.Ptr && !val.IsNil() {
 				val = val.Elem()
 			}

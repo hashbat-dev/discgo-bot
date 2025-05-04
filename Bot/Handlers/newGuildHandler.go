@@ -14,8 +14,12 @@ import (
 
 var guildMutex sync.Mutex
 
-// Calls whenever a new Guild connects to the bot. This also runs for all active Guilds on startup.
 func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate) {
+	handleNewGuildQueue <- newGuild
+}
+
+// Calls whenever a new Guild connects to the bot. This also runs for all active Guilds on startup.
+func ProcessNewGuild(newGuild *discordgo.GuildCreate) {
 	guildMutex.Lock()
 	defer guildMutex.Unlock()
 
@@ -64,6 +68,10 @@ func HandleNewGuild(session *discordgo.Session, newGuild *discordgo.GuildCreate)
 	triggerList = append(triggerList, triggers.GlobalPhrases...)
 
 	// => Update the Guild Info
+	// No record found in DB
+	if guild.ID == 0 {
+		guild.GuildID = newGuild.ID
+	}
 	guild.GuildName = newGuild.Name
 	guild.GuildMemberCount = newGuild.MemberCount
 	guild.GuildOwnerID = newGuild.OwnerID

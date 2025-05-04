@@ -26,5 +26,6 @@ func Init() bool {
 	}
 
 	Db = dbIn
+	logger.Db = dbIn // Need a second instance in Logger to avoid import cycles, fun
 	return true
 }

@@ -38,7 +38,7 @@ func (s DelImage) Execute(message *discordgo.MessageCreate, command string) erro
 		return errors.New("no image found")
 	}
 
-	imgCat, err := database.GetImgCategory(message.GuildID, command)
+	imgCat, err := database.GetImgCategory(message.GuildID, "speech")
 	if err != nil {
 		return errors.New("unable to get gif category")
 	}

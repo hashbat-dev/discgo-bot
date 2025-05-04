@@ -132,7 +132,7 @@ func DeepFryIMG(imageReader io.Reader, newImgBuffer *bytes.Buffer) error {
 func DeepFryGIF(imageReader io.Reader, newImgBuffer *bytes.Buffer) error {
 	var contrastOffset float64 = 55
 	var brightnessOffset float64 = -5
-	var sigmaOffset float64 = 3.5
+	var sigmaOffset = 3.5
 
 	img, err := gif.DecodeAll(imageReader)
 	if err != nil {

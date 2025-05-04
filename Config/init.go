@@ -297,7 +297,7 @@ func parseEnvVariables() error {
 		return errors.New("could not find value for SUPERADMINS in environment variables")
 	}
 	ServiceSettings.SUPERADMINS = strings.Split(superadminstr, ",")
-	if !(len(ServiceSettings.SUPERADMINS) > 0) {
+	if len(ServiceSettings.SUPERADMINS) == 0 {
 		return errors.New("could not set any values for SUPERADMINS")
 	}
 
