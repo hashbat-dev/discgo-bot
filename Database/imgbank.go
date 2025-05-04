@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	cache "github.com/hashbat-dev/discgo-bot/Cache"
@@ -13,6 +14,25 @@ import (
 )
 
 func AddImg(message *discordgo.MessageCreate, category string, imgUrl string) error {
+	// 1. Get the Gif Category
+	imgCat, err := GetImgCategory(message.GuildID, category)
+	if err != nil {
+		return errors.New("unable to get gif category")
+	}
+
+	// 2. Get the Image Storage ID
+	storageId, err := GetImgStorage(message.GuildID, imgUrl)
+	if err != nil {
+		return errors.New("unable to get gif category")
+	}
+
+	// 3. Insert the Link
+	err = InsertImgGuildLink(storageId.ID, imgCat.ID, message.GuildID, message.Author.ID)
+
+	return err
+}
+
+func AddImgMan(message *discordgo.Message, category string, imgUrl string) error {
 	// 1. Get the Gif Category
 	imgCat, err := GetImgCategory(message.GuildID, category)
 	if err != nil {
@@ -304,15 +324,101 @@ func GetRandomImage(guildId string, categoryId int) (string, error) {
 }
 
 func TidyImgStorage(guildId string) error {
-	queryStorage := `SELECT * FROM ImgStorage
+	query := `DELETE FROM ImgStorage
 	WHERE ID NOT IN (
 		SELECT StorageID FROM ImgGuildLink
 	)`
-	_, err := Db.Exec(queryStorage)
+	_, err := Db.Exec(query)
+	if err != nil {
+		logger.Error(guildId, err)
+		return err
+	}
+
+	query = `DELETE FROM ImgGuildLink
+	WHERE StorageID NOT IN (
+		SELECT ID FROM ImgStorage
+	)`
+	_, err = Db.Exec(query)
 	if err != nil {
 		logger.Error(guildId, err)
 		return err
 	}
 
 	return err
+}
+
+type ImgStorageEntry struct {
+	ID                int
+	URL               string
+	LastCheckDateTime time.Time
+}
+
+func GetAllImages() ([]ImgStorageEntry, error) {
+	query := `SELECT
+					ID, URL, LastCheckDateTime
+				FROM
+					ImgStorage`
+
+	var images []ImgStorageEntry
+
+	rows, err := Db.Query(query)
+	if err != nil {
+		return []ImgStorageEntry{}, err
+	}
+	defer rows.Close()
+
+	// Iterate over the rows
+	for rows.Next() {
+
+		currentRow := ImgStorageEntry{
+			ID:                0,
+			URL:               "",
+			LastCheckDateTime: helpers.GetNullDateTime(),
+		}
+
+		var id sql.NullInt32
+		var url sql.NullString
+		var lastCheckDateTime sql.NullTime
+
+		err := rows.Scan(&id, &url, &lastCheckDateTime)
+		if err != nil {
+			return []ImgStorageEntry{}, err
+		}
+
+		if id.Valid {
+			currentRow.ID = int(id.Int32)
+		}
+
+		if url.Valid {
+			currentRow.URL = url.String
+		}
+
+		if lastCheckDateTime.Valid {
+			currentRow.LastCheckDateTime = lastCheckDateTime.Time
+		}
+		images = append(images, currentRow)
+	}
+
+	// Check for errors from iterating over rows
+	if err = rows.Err(); err != nil {
+		return []ImgStorageEntry{}, err
+	}
+
+	return images, nil
+}
+
+func UpdateImageLastChecked(ID int) {
+	query := `UPDATE ImgStorage SET LastCheckDateTime = NOW() WHERE ID = ?`
+	_, err := Db.Exec(query, ID)
+	if err != nil {
+		logger.Error("IMGBANK", err)
+	}
+}
+
+func DeleteImageStorage(ID int) {
+	query := `DELETE FROM ImgStorage WHERE ID = ?`
+	_, err := Db.Exec(query, ID)
+	if err != nil {
+		logger.Error("IMGBANK", err)
+	}
 }

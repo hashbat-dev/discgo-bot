@@ -45,10 +45,19 @@ func (s GetImage) Execute(message *discordgo.MessageCreate, command string) erro
 		return err
 	}
 
-	_, err = config.Session.ChannelMessageSend(message.ChannelID, imgUrl)
+	msg := &discordgo.MessageSend{
+		Content: imgUrl,
+	}
+
+	if message.MessageReference != nil {
+		// Preserve the original reply reference
+		msg.Reference = message.MessageReference
+	}
+
+	_, err = config.Session.ChannelMessageSendComplex(message.ChannelID, msg)
 	if err != nil {
 		logger.Error(message.GuildID, err)
-		discord.SendUserError(message, "Couldn't send Image")
+		discord.SendUserError(message, "Couldn't send image")
 		return err
 	}
 

@@ -59,7 +59,10 @@ func Init() {
 		return
 	}
 
-	// 7. Reset Global Discord /commands
+	// 7. Start the Handler worker pools
+	handlers.Start()
+
+	// 8. Reset Global Discord /commands
 	handlers.RefreshSlashCommands("")
 
 }

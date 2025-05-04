@@ -9,20 +9,24 @@ import (
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
-// Handles responses to Interactions
 func HandleInteractionResponse(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	handleInteractionResponseQueue <- i
+}
+
+// Handles responses to Interactions
+func ProcessInteractionResponse(i *discordgo.InteractionCreate) {
 	logger.Debug(i.GuildID, "HandleInteractionResponse")
 	switch i.Type {
 	case discordgo.InteractionMessageComponent:
-		handleInteractionMessageComponent(s, i)
+		handleInteractionMessageComponent(i)
 	case discordgo.InteractionModalSubmit:
-		handleInteractionModalSubmit(s, i)
+		handleInteractionModalSubmit(i)
 	default:
 		// Not an issue, this will be handled elsewhere
 	}
 }
 
-func handleInteractionMessageComponent(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func handleInteractionMessageComponent(i *discordgo.InteractionCreate) {
 	inboundObjectId := i.MessageComponentData().CustomID
 
 	// Make sure we have the format of <ObjectID>|<CorrelationID>
@@ -49,7 +53,7 @@ func handleInteractionMessageComponent(s *discordgo.Session, i *discordgo.Intera
 		logger.ErrorText(i.GuildID, "Unknown Interaction Response ObjectID [%v]", objectId)
 
 		// Generic Error back to the user
-		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: "Error finding Command",
@@ -61,7 +65,7 @@ func handleInteractionMessageComponent(s *discordgo.Session, i *discordgo.Intera
 	}
 }
 
-func handleInteractionModalSubmit(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func handleInteractionModalSubmit(i *discordgo.InteractionCreate) {
 	inboundObjectId := i.ModalSubmitData().CustomID
 
 	// Make sure we have the format of <ObjectID>|<CorrelationID>
@@ -88,7 +92,7 @@ func handleInteractionModalSubmit(s *discordgo.Session, i *discordgo.Interaction
 		logger.ErrorText(i.GuildID, "Unknown Interaction Response ObjectID [%v]", objectId)
 
 		// Generic Error back to the user
-		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: "Error finding Command",
