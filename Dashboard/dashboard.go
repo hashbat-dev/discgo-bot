@@ -133,7 +133,12 @@ func handleFileRequest(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			logger.Error("DASHBOARD", err)
+		}
+	}()
 
 	fileInfo, err := file.Stat()
 	if err != nil || fileInfo.IsDir() {

@@ -34,7 +34,7 @@ func CheckRequest(guildId string, correlationId string, jobToken string) (string
 		return returnStatus, returnAudioPath, nil
 
 	} else {
-		err = fmt.Errorf("Interaction Request ID: [%v] Could not marshal returned response into an interface", correlationId)
+		err = fmt.Errorf("interaction Request ID: [%v] Could not marshal returned response into an interface", correlationId)
 		return "", "", err
 	}
 }

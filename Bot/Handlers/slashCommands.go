@@ -205,16 +205,16 @@ func RefreshSlashCommands(guildId string) {
 	}
 
 	// Check Existing Commands
-	var validated map[string]interface{} = make(map[string]interface{})
+	var validated = make(map[string]interface{})
 	for _, cmd := range registeredCommands {
 		deleteCmd := false
 		if local, exists := SlashCommands[cmd.Name]; exists {
 			// Slash Command already registered, are the options the same?
-			var liveOpts map[string]interface{} = make(map[string]interface{})
+			var liveOpts = make(map[string]interface{})
 			for _, opt := range cmd.Options {
 				liveOpts[fmt.Sprintf("%s|%s", opt.Name, opt.Type.String())] = struct{}{}
 			}
-			var currOpts map[string]interface{} = make(map[string]interface{})
+			var currOpts = make(map[string]interface{})
 			for _, opt := range local.Command.Options {
 				currOpts[fmt.Sprintf("%s|%s", opt.Name, opt.Type.String())] = struct{}{}
 			}

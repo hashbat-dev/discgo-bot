@@ -42,7 +42,12 @@ func CreateRequest(guildId string, correlationId string, voiceModel string, requ
 		logger.ErrorText(guildId, "Interaction Request ID: [%v] ERROR: %v", correlationId, err)
 		return ""
 	}
-	defer resp.Body.Close()
+	defer func(g string) {
+		err := resp.Body.Close()
+		if err != nil {
+			logger.Error(g, err)
+		}
+	}(guildId)
 
 	// Check the response status
 	if resp.StatusCode != http.StatusOK {

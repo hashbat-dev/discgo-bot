@@ -26,7 +26,12 @@ func GetAllGuildEmojis(guildId string) ([]data.GuildEmoji, error) {
 		logger.Error(guildId, err)
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			logger.Error("DATABASE", err)
+		}
+	}()
 
 	// Iterate over the rows
 	var emojiList []data.GuildEmoji
@@ -110,7 +115,12 @@ func GetEmojiStorageID(guildId string, emoji string) (int, error) {
 		logger.Error(guildId, err)
 		return 0, err
 	}
-	defer stmt.Close()
+	defer func() {
+		err := stmt.Close()
+		if err != nil {
+			logger.Error("DATABASE", err)
+		}
+	}()
 
 	res, err := stmt.Exec(emoji)
 	if err != nil {

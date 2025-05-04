@@ -22,7 +22,12 @@ func AddFile(file io.Reader, fileExtension string) string {
 		logger.Error("TEMPFILES", err)
 		return ""
 	}
-	defer outFile.Close()
+	defer func() {
+		err := outFile.Close()
+		if err != nil {
+			logger.Error("TEMPFILES", err)
+		}
+	}()
 
 	// Write to the file
 	_, err = io.Copy(outFile, file)

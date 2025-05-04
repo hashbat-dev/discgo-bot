@@ -3,6 +3,8 @@ package helpers
 import (
 	"fmt"
 	"net/http"
+
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func DoesLinkWork(link string) (bool, error) {
@@ -10,7 +12,12 @@ func DoesLinkWork(link string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("error making request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			logger.Error("EXTERNAL", err)
+		}
+	}()
 
 	if resp.StatusCode == http.StatusNotFound {
 		return false, nil

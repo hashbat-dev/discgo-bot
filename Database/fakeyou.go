@@ -54,7 +54,12 @@ func GetFakeYouModels(searchTerm string) (map[string]FakeYouModel, error) {
 			return nil, err
 		}
 	}
-	defer rows.Close()
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			logger.Error("DATABASE", err)
+		}
+	}()
 
 	// 2. Iterate over the returned rows
 	for rows.Next() {

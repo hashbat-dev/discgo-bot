@@ -53,7 +53,7 @@ func AddImgMan(message *discordgo.Message, category string, imgUrl string) error
 
 // Returns the Img Category object from the database, using the Cache if available
 func GetImgCategory(guildId string, category string) (imgwork.ImgCategory, error) {
-	var imgCat imgwork.ImgCategory = imgwork.ImgCategory{}
+	var imgCat = imgwork.ImgCategory{}
 
 	//	=> Is it in the Cache?
 	for _, cat := range cache.ImgCategories {
@@ -101,7 +101,12 @@ func GetImgCategory(guildId string, category string) (imgwork.ImgCategory, error
 		logger.Error(guildId, err)
 		return imgCat, err
 	}
-	defer stmt.Close()
+	defer func() {
+		err := stmt.Close()
+		if err != nil {
+			logger.Error("DATABASE", err)
+		}
+	}()
 
 	res, err := stmt.Exec(strings.ToLower(category))
 	if err != nil {
@@ -121,7 +126,7 @@ func GetImgCategory(guildId string, category string) (imgwork.ImgCategory, error
 }
 
 func GetImgStorage(guildId string, imgUrl string) (imgwork.ImgStorage, error) {
-	var imgStorage imgwork.ImgStorage = imgwork.ImgStorage{
+	var imgStorage = imgwork.ImgStorage{
 		LastChecked: helpers.GetNullDateTime(),
 	}
 
@@ -194,7 +199,7 @@ func GetImgStorage(guildId string, imgUrl string) (imgwork.ImgStorage, error) {
 }
 
 func GetImgGuildLink(guildId string, category imgwork.ImgCategory, storage imgwork.ImgStorage) (imgwork.ImgGuildLink, error) {
-	var imgGuildLink imgwork.ImgGuildLink = imgwork.ImgGuildLink{}
+	var imgGuildLink = imgwork.ImgGuildLink{}
 
 	// 1. Is it in the Database?
 	var ID sql.NullInt32

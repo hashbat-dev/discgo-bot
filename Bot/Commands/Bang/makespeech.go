@@ -126,7 +126,7 @@ func addSpeechBubbleToImage(
 		case ".webp":
 			inputImage, decodeErr = webp.Decode(imageReader)
 		default:
-			err := fmt.Errorf("Unsupported image extension: %s", imgExtension)
+			err := fmt.Errorf("unsupported image extension: %s", imgExtension)
 			logger.Error(guildId, err)
 			return err
 		}
@@ -272,7 +272,12 @@ func getOverlayImage(height int) (image.Image, error) {
 	if fopenErr != nil {
 		return nil, fopenErr
 	}
-	defer overlayFile.Close()
+	defer func() {
+		err := overlayFile.Close()
+		if err != nil {
+			logger.Error("MAKESPEECH", err)
+		}
+	}()
 
 	overlayImage, overlayDecodeErr := png.Decode(overlayFile)
 	if overlayDecodeErr != nil {
