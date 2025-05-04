@@ -176,7 +176,12 @@ func GetImgStorage(guildId string, imgUrl string) (imgwork.ImgStorage, error) {
 		logger.Error(guildId, err)
 		return imgStorage, err
 	}
-	defer stmt.Close()
+	defer func(g string) {
+		err := stmt.Close()
+		if err != nil {
+			logger.Error(g, err)
+		}
+	}(guildId)
 
 	res, err := stmt.Exec(imgUrl)
 	if err != nil {
@@ -370,7 +375,12 @@ func GetAllImages() ([]ImgStorageEntry, error) {
 	if err != nil {
 		return []ImgStorageEntry{}, err
 	}
-	defer rows.Close()
+	defer func() {
+		err := rows.Close()
+		if err != nil {
+			logger.Error("DATABASE", err)
+		}
+	}()
 
 	// Iterate over the rows
 	for rows.Next() {

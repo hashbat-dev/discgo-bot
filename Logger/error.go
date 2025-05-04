@@ -46,7 +46,12 @@ func InsertIntoDB(codeSource string, errorText string, guildId string) {
 		ErrorWithoutDB(guildId, err)
 		return
 	}
-	defer stmt.Close()
+	defer func(g string) {
+		err := stmt.Close()
+		if err != nil {
+			ErrorWithoutDB(g, err)
+		}
+	}(guildId)
 
 	_, err = stmt.Exec(codeSource, errorText, guildId)
 	if err != nil {

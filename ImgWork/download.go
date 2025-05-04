@@ -81,7 +81,12 @@ func downloadGif(guildId string, gifLink string) (*gif.GIF, error) {
 		logger.Error(guildId, err)
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func(g string) {
+		err := response.Body.Close()
+		if err != nil {
+			logger.Error(g, err)
+		}
+	}(guildId)
 
 	// Check if the download was successful
 	if response.StatusCode != http.StatusOK {
@@ -107,7 +112,12 @@ func downloadImage(guildId string, url string) (*image.Image, error) {
 		logger.Error(guildId, err)
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func(g string) {
+		err := response.Body.Close()
+		if err != nil {
+			logger.Error(g, err)
+		}
+	}(guildId)
 
 	img, _, err := image.Decode(response.Body)
 	if err != nil {
