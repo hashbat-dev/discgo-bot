@@ -10,6 +10,11 @@ import (
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
+var (
+	// From here: https://gist.github.com/thomasbnt/b6f455e2c7d743b796917fa3c205f812
+	EmbedColourGold = 15844367
+)
+
 func SendUserError(message *discordgo.MessageCreate, errorText string) {
 	sendText := "An Error occured: " + errorText
 	_, err := config.Session.ChannelMessageSendReply(message.ChannelID, sendText, message.Reference())

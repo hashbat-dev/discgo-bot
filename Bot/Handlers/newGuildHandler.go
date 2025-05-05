@@ -34,7 +34,7 @@ func ProcessNewGuild(newGuild *discordgo.GuildCreate) {
 	var triggerList []triggers.Phrase
 	if guild.ID > 0 {
 		// => Does the Guild have any Triggers? If so get for the Cache
-		phraseLinks, err := database.GetAllGuildPhrases(guild.GuildID)
+		phraseLinks, err := database.GetGuildPhrases(guild.GuildID, 0)
 		if err != nil {
 			logger.Error(guild.GuildID, err)
 			return
