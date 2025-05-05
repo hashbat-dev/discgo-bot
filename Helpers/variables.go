@@ -3,6 +3,7 @@ package helpers
 import (
 	"strings"
 	"time"
+	"unicode"
 )
 
 func RemoveStartingXCharacters(inMsg string, removeLength int) string {
@@ -28,4 +29,16 @@ func ConcatStringWithAnd(words []string) string {
 	default:
 		return strings.Join(words[:len(words)-1], ", ") + " and " + words[len(words)-1]
 	}
+}
+
+func CapitaliseWords(s string) string {
+	words := strings.Fields(s)
+	for i, word := range words {
+		if len(word) > 0 {
+			r := []rune(word)
+			r[0] = unicode.ToUpper(r[0])
+			words[i] = string(r)
+		}
+	}
+	return strings.Join(words, " ")
 }

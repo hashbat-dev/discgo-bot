@@ -105,6 +105,95 @@ var slashCommands = []SlashCommand{
 		Complexity:      config.TRIVIAL_TASK,
 		PermissionLevel: config.CommandLevelBotAdmin,
 	},
+	//	/add-trigger
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name:        "add-trigger",
+			Description: "[ADMIN] Add words to be tracked in the Server",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "phrase",
+					Description: "The word/phrase to be tracked (case insensitive).",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "notify",
+					Description: "Whether to post a message when the word/phrase is detected.",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "phrase-only",
+					Description: "Whether to ignore if used in a sentence.",
+					Required:    true,
+				},
+			},
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.AddTrigger(i, correlationId)
+		},
+		Complexity:      config.TRIVIAL_TASK,
+		PermissionLevel: config.CommandLevelBotAdmin,
+	},
+	//	/edit-trigger
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name:        "edit-trigger",
+			Description: "[ADMIN] Edit a word which is being tracked in the Server",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "phrase",
+					Description: "The word/phrase to update",
+					Required:    true,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "notify",
+					Description: "If entered, updates whether to post a message when the word/phrase is detected.",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "phrase-only",
+					Description: "If entered, updates whether to ignore if used in a sentence.",
+					Required:    false,
+				},
+				{
+					Type:        discordgo.ApplicationCommandOptionBoolean,
+					Name:        "delete",
+					Description: "Deletes the phrase. WARNING: Will remove ALL statistics for this phrase in your server.",
+					Required:    false,
+				},
+			},
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.EditTrigger(i, correlationId)
+		},
+		Complexity:      config.TRIVIAL_TASK,
+		PermissionLevel: config.CommandLevelBotAdmin,
+	},
+	//	/phrase-leaderboard
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name:        "phrase-leaderboard",
+			Description: "See who's ranking highest for tracked phrases in the server!",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionString,
+					Name:        "phrase",
+					Description: "The word/phrase to see the leaderboard for",
+					Required:    true,
+				},
+			},
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.PhraseLeaderboard(i, correlationId)
+		},
+		Complexity: config.TRIVIAL_TASK,
+	},
 }
 
 // Message Commands are not allowed Descriptions, enter User descriptions below for these.

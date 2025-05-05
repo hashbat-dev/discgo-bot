@@ -21,6 +21,21 @@ type PhraseLink struct {
 	AddedDateTime time.Time
 }
 
+type DbTriggerPhrase struct {
+	ID     int
+	Phrase string
+}
+
+type DbTriggerGuildLink struct {
+	ID                int
+	PhraseID          int
+	GuildID           string
+	AddedByUserID     string
+	AddedDateTime     time.Time
+	NotifyOnDetection bool
+	WordOnlyMatch     bool
+}
+
 var GlobalPhrases []Phrase = []Phrase{
 	{
 		Phrase:    "jason statham",

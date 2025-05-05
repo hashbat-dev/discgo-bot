@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -107,16 +106,15 @@ func DispatchTask(task *Task) {
 func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 	var matchedPhrases []triggers.Phrase
 	for _, trigger := range cache.ActiveGuilds[message.GuildID].Triggers {
-		var regexString string
 		if trigger.WordOnlyMatch {
-			regexString = `(?i)\b%s\b`
+			if strings.EqualFold(strings.TrimSpace(message.Content), trigger.Phrase) {
+				matchedPhrases = append(matchedPhrases, trigger)
+			}
 		} else {
-			regexString = `(?i)%s`
-		}
-
-		check := regexp.MustCompile(fmt.Sprintf(regexString, regexp.QuoteMeta(trigger.Phrase)))
-		if check.MatchString(message.Content) {
-			matchedPhrases = append(matchedPhrases, trigger)
+			check := regexp.MustCompile(`(?i)` + regexp.QuoteMeta(trigger.Phrase))
+			if check.MatchString(message.Content) {
+				matchedPhrases = append(matchedPhrases, trigger)
+			}
 		}
 	}
 
@@ -131,5 +129,4 @@ func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 			},
 		})
 	}
-
 }

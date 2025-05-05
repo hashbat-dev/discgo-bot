@@ -28,6 +28,19 @@ func AddToActiveGuildCache(dbId int, guildId string, isDev bool, guildName strin
 	}
 }
 
+func AddGuildTrigger(guildId string, phrase triggers.Phrase) {
+	guildInfo := ActiveGuilds[guildId]
+	var newPhrases []triggers.Phrase
+	for _, p := range guildInfo.Triggers {
+		if p.Phrase != phrase.Phrase {
+			newPhrases = append(newPhrases, p)
+		}
+	}
+	newPhrases = append(newPhrases, phrase)
+	guildInfo.Triggers = newPhrases
+	ActiveGuilds[guildId] = guildInfo
+}
+
 func UpdateLastGuildCommand(guildId string) {
 	guildInfo := ActiveGuilds[guildId]
 	guildInfo.LastCommand = time.Now()
