@@ -119,13 +119,15 @@ func rollTotalIncreaseChance(wow *Generation) *Effect {
 	i := getRandomNumber(1, 100)
 	description := ""
 
-	if i == 100 {
+	switch i {
+	case 100:
 		description = "Your current total got Quadrupled! (1/100 chance)"
 		wow.OCount = ((wow.OCount + wow.CurrentRoll) * 4) - wow.CurrentRoll
-	} else if i == 1 || i == 25 || i == 50 || i == 75 {
+	case 1, 25, 50, 75:
 		description = "Your current total got Doubled! (1/25 chance)"
 		wow.OCount = ((wow.OCount + wow.CurrentRoll) * 2) - wow.CurrentRoll
 	}
+
 	if description == "" {
 		return nil
 	} else {
