@@ -97,11 +97,11 @@ func rollRolled10(wow *Generation) *Effect {
 func rollCountMultiplier(wow *Generation) *Effect {
 	i := getRandomNumber(1, 50)
 	description := ""
-
-	if i == 50 {
+	switch i {
+	case 50:
 		description = "Your current roll got Quadrupled! (1/50 chance)"
 		wow.CurrentRoll = wow.CurrentRoll * 4
-	} else if i == 1 || i == 25 {
+	case 1, 25:
 		description = "Your current total got Doubled! (1/25 chance)"
 		wow.CurrentRoll = wow.CurrentRoll * 2
 	}
