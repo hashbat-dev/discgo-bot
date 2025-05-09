@@ -2,6 +2,7 @@ package wow
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -20,6 +21,9 @@ var staticEffectList = []EffectList{
 	staticSixetyNine,
 	staticBlazeIt,
 	staticWeekend,
+	staticSpecificNumber,
+	staticDayOfTheYear,
+	staticMessageDubs,
 }
 
 var rollEffectList = []EffectList{
@@ -69,6 +73,60 @@ func staticWeekend(wow *Generation) *Effect {
 		}
 	}
 	return nil
+}
+
+func staticSpecificNumber(wow *Generation) *Effect {
+	if len(wow.Message.ID) <= 2 || wow.Message.ID[len(wow.Message.ID)-3:] != "365" {
+		return nil
+	}
+
+	wow.BonusRolls += 3
+	return &Effect{
+		Name:        "Bad Vibes",
+		Description: "Something about having your Message ID end in 365 lowered your multiplier by 0.8x.",
+		Multiplier:  0.8,
+	}
+}
+
+func staticDayOfTheYear(wow *Generation) *Effect {
+	yearDay := strconv.Itoa(time.Now().YearDay())
+
+	if len(wow.Message.ID) <= 2 || wow.Message.ID[len(wow.Message.ID)-len(yearDay):] != yearDay {
+		return nil
+	}
+
+	wow.BonusRolls += 5
+	return &Effect{
+		Name:        "Calendar Maxxing",
+		Description: fmt.Sprintf("Today is the %s day of the year, the same number your Message ID ends in! Have 5 bonus rolls!", yearDay),
+		BonusRolls:  5,
+		Emoji:       "📆",
+	}
+}
+
+func staticMessageDubs(wow *Generation) *Effect {
+	matchingTrailingNumbers := countMatchingLastDigits(wow.Message.ID)
+	var multi float64
+	switch matchingTrailingNumbers {
+	case 1:
+		return nil
+	case 2:
+		multi = 1.2
+	case 3:
+		multi = 1.6
+	case 4:
+		multi = 2
+	default:
+		multi = 2.5
+	}
+
+	wow.Multiplier *= multi
+	return &Effect{
+		Name:        "Check 'em",
+		Description: fmt.Sprintf("The last %d digits of your Message ID match! Get a %fx multiplier", matchingTrailingNumbers, multi),
+		Multiplier:  float32(multi),
+		Emoji:       "👉",
+	}
 }
 
 // Roll Based Effects ====================================================================
@@ -167,7 +225,7 @@ func rollStreakCheck(wow *Generation) *Effect {
 		wow.DiceRolls[len(wow.DiceRolls)-1].Roll == wow.DiceRolls[len(wow.DiceRolls)-2].Roll &&
 		wow.DiceRolls[len(wow.DiceRolls)-1].Roll == wow.CurrentRoll {
 		// Check for Triple
-		wow.Multiplier = wow.Multiplier * 1.4
+		wow.Multiplier *= 1.4
 		return &Effect{
 			Name:        "Oh Baby a Triple",
 			Description: "You rolled the same number 3 times in a row, get a 1.4x multiplier!",
@@ -175,7 +233,7 @@ func rollStreakCheck(wow *Generation) *Effect {
 		}
 	} else if len(wow.DiceRolls) >= 1 && wow.DiceRolls[len(wow.DiceRolls)-1].Roll == wow.CurrentRoll {
 		// Check for Double
-		wow.Multiplier = wow.Multiplier * 1.2
+		wow.Multiplier *= 1.2
 		return &Effect{
 			Name:        "Dirty Double",
 			Description: "You rolled the same number twice, get a 1.2x multiplier!",
