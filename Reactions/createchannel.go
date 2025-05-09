@@ -62,7 +62,7 @@ func CreateChannel(guildId string, isUp bool) string {
 		guildObj.StarDownChannel = channel.ID
 	}
 
-	_, err = database.Upsert(guildObj)
+	_, err = database.GuildUpsert(guildObj)
 	if err != nil {
 		return ""
 	}

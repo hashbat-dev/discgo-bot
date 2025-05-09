@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	commands "github.com/hashbat-dev/discgo-bot/Bot/Commands"
 	triggers "github.com/hashbat-dev/discgo-bot/Bot/Commands/Triggers"
+	wow "github.com/hashbat-dev/discgo-bot/Bot/Commands/Wow"
 	cache "github.com/hashbat-dev/discgo-bot/Cache"
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
@@ -118,8 +119,8 @@ func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 		}
 	}
 
-	// Dispatch any matching Triggers
 	if len(matchedPhrases) > 0 {
+		// Dispatch any matching Triggers
 		DispatchTask(&Task{
 			CommandType: config.CommandTypePhrase,
 			Complexity:  config.TRIVIAL_TASK,
@@ -128,5 +129,8 @@ func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 				TriggerPhrases: matchedPhrases,
 			},
 		})
+	} else {
+		// If no triggers, send for Wow detectoin
+		wow.QueueDetect <- message
 	}
 }

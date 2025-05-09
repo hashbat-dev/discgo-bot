@@ -223,6 +223,7 @@ type Vars struct {
 
 	TEMPFILEEXPIRYMINS int
 	TEMPFILEGRACE      bool
+	WOWRETENTIONMINS   int
 }
 
 var ServiceSettings Vars
@@ -445,6 +446,16 @@ func parseEnvVariables() error {
 		return errors.New("could not find value for TEMPFILEGRACE in environment variables")
 	}
 	ServiceSettings.TEMPFILEGRACE, convErr = strconv.ParseBool(tempFileGrace)
+	if convErr != nil {
+		return convErr
+	}
+
+	tempWowRetentionMins := os.Getenv("WOWRETENTIONMINS")
+	if tempWowRetentionMins == "" {
+		fmt.Println("Applied default WOWRETENTIONMINS value of 60")
+		tempWowRetentionMins = "60"
+	}
+	ServiceSettings.WOWRETENTIONMINS, convErr = strconv.Atoi(tempWowRetentionMins)
 	if convErr != nil {
 		return convErr
 	}

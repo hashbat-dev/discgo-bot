@@ -31,7 +31,7 @@ func AssignNewAdminRole(i *discordgo.InteractionCreate, correlationId string) {
 	}
 
 	guildDbObj.GuildAdminRole = newRoleId
-	_, err = database.Upsert(guildDbObj)
+	_, err = database.GuildUpsert(guildDbObj)
 	if err != nil {
 		discord.SendGenericErrorFromInteraction(i)
 		return

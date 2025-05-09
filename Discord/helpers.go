@@ -143,6 +143,32 @@ func ReplyToMessageWithImageBuffer(message *discordgo.MessageCreate, replyToQuot
 	return err
 }
 
+func ReplyToMessage(message *discordgo.MessageCreate, text string) error {
+	_, err := config.Session.ChannelMessageSendComplex(message.ChannelID, &discordgo.MessageSend{
+		Content:   text,
+		Reference: message.Reference(),
+	})
+
+	if err != nil {
+		logger.Error(message.GuildID, err)
+	}
+
+	return err
+}
+
+func ReplyToMessageWithEmbed(message *discordgo.Message, embed embed.Embed) {
+	_, err := config.Session.ChannelMessageSendComplex(message.ChannelID, &discordgo.MessageSend{
+		Content: "",
+		Embeds: []*discordgo.MessageEmbed{
+			embed.MessageEmbed,
+		},
+		Reference: message.Reference(),
+	})
+	if err != nil {
+		logger.Error(message.GuildID, err)
+	}
+}
+
 func SendMessageWithImageBuffer(channelId string, guildId string, imgExtension string, imageBuffer *bytes.Buffer) (string, error) {
 	imageName := uuid.New().String() + imgExtension
 	fileObj := &discordgo.File{

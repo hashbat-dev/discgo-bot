@@ -194,6 +194,36 @@ var slashCommands = []SlashCommand{
 		},
 		Complexity: config.TRIVIAL_TASK,
 	},
+	//	/wow-stats
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name:        "wow-stats",
+			Description: "See yours (or someone else's) Wow stats!",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Name:        "user",
+					Description: "The user to see the Wow stats for",
+					Required:    true,
+				},
+			},
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.WowStats(i, correlationId)
+		},
+		Complexity: config.TRIVIAL_TASK,
+	},
+	//	/wow-leaderboard
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name:        "wow-leaderboard",
+			Description: "See the server leaderboard for Wows!",
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.WowLeaderboard(i, correlationId)
+		},
+		Complexity: config.TRIVIAL_TASK,
+	},
 }
 
 // Message Commands are not allowed Descriptions, enter User descriptions below for these.
