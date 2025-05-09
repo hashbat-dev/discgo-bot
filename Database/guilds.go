@@ -1,9 +1,7 @@
 package database
 
 import (
-	"context"
 	"database/sql"
-	"errors"
 	"strings"
 	"time"
 
@@ -43,7 +41,7 @@ func Get(guildId string) (GuildInfo, error) {
 	if err != nil {
 		if !strings.Contains(err.Error(), "no rows") {
 			logger.Error(guildId, err)
-			err = nil
+			return GuildInfo{}, err
 		} else {
 			r.ID = 0
 			return r, nil
@@ -90,126 +88,26 @@ func Get(guildId string) (GuildInfo, error) {
 	return r, nil
 }
 
-func Upsert(g GuildInfo) (GuildInfo, error) {
-	if g.ID == 0 {
-		// Insert
-		var params []interface{}
-		colList := "("
-		valList := "("
-
-		colList += "GuildID"
-		valList += "?"
-		params = append(params, g.GuildID)
-
-		colList += ", GuildName"
-		valList += ", ?"
-		params = append(params, g.GuildName)
-
-		colList += ", GuildMemberCount"
-		valList += ", ?"
-		params = append(params, g.GuildMemberCount)
-
-		colList += ", GuildOwnerID"
-		valList += ", ?"
-		params = append(params, g.GuildOwnerID)
-
-		if g.GuildAdminRole != "" {
-			colList += ", GuildAdminRole"
-			valList += ", ?"
-			params = append(params, g.GuildAdminRole)
-		}
-
-		if g.StarUpChannel != "" {
-			colList += ", StarUpChannel"
-			valList += ", ?"
-			params = append(params, g.StarUpChannel)
-		}
-
-		if g.StarDownChannel != "" {
-			colList += ", StarDownChannel"
-			valList += ", ?"
-			params = append(params, g.StarDownChannel)
-		}
-
-		colList += ", UpdatedDateTime"
-		valList += ", NOW()"
-		colList += ", CreatedDateTime"
-		valList += ", NOW()"
-
-		colList += ", IsDevServer"
-		valList += ", ?"
-		params = append(params, g.IsDevServer)
-
-		colList += ")"
-		valList += ")"
-
-		query := "INSERT INTO Guilds " + colList + " VALUES " + valList
-		insertResult, err := Db.ExecContext(context.Background(), query, params...)
-		if err != nil {
-			logger.Error(g.GuildID, err)
-			return g, err
-		}
-		id, err := insertResult.LastInsertId()
-		if err != nil {
-			logger.Error(g.GuildID, err)
-			return g, err
-		} else if id == 0 {
-			err = errors.New("starboard insert returned id = 0")
-			logger.Error(g.GuildID, err)
-			return g, err
-		}
-		g.ID = int(id)
-		return g, nil
-	} else {
-		// Update
-		var params []interface{}
-		setList := ""
-
-		setList += "GuildID = ?"
-		params = append(params, g.GuildID)
-
-		setList += ", GuildName = ?"
-		params = append(params, g.GuildName)
-
-		setList += ", GuildMemberCount = ?"
-		params = append(params, g.GuildMemberCount)
-
-		setList += ", GuildOwnerID = ?"
-		params = append(params, g.GuildOwnerID)
-
-		if g.GuildAdminRole != "" {
-			setList += ", GuildAdminRole = ?"
-			params = append(params, g.GuildAdminRole)
-		} else {
-			setList += ", GuildAdminRole = NULL"
-		}
-
-		if g.StarUpChannel != "" {
-			setList += ", StarUpChannel = ?"
-			params = append(params, g.StarUpChannel)
-		} else {
-			setList += ", StarUpChannel = NULL"
-		}
-
-		if g.StarDownChannel != "" {
-			setList += ", StarDownChannel = ?"
-			params = append(params, g.StarDownChannel)
-		} else {
-			setList += ", StarDownChannel = NULL"
-		}
-
-		setList += ", UpdatedDateTime = NOW()"
-
-		setList += ", IsDevServer = ?"
-		params = append(params, g.IsDevServer)
-
-		query := "UPDATE Guilds SET " + setList + " WHERE ID = ?"
-		params = append(params, g.ID)
-		_, err := Db.ExecContext(context.Background(), query, params...)
-		if err != nil {
-			logger.Error(g.GuildID, err)
-			return g, err
-		}
-		return g, nil
+func GuildUpsert(guild GuildInfo) (GuildInfo, error) {
+	params := []any{
+		"GuildID", guild.GuildID,
+		"GuildName", guild.GuildName,
+		"GuildMemberCount", guild.GuildMemberCount,
+		"GuildOwnerID", guild.GuildOwnerID,
 	}
+	if guild.GuildAdminRole != "" {
+		params = append(params, "GuildAdminRole", guild.GuildAdminRole)
+	}
+	if guild.StarUpChannel != "" {
+		params = append(params, "StarUpChannel", guild.StarUpChannel)
+	}
+	if guild.StarDownChannel != "" {
+		params = append(params, "StarDownChannel", guild.StarDownChannel)
+	}
+
+	id, err := Upsert(guild.GuildID, "Guilds", "ID", guild.ID, params...)
+	if guild.ID != int(id) {
+		guild.ID = int(id)
+	}
+	return guild, err
 }

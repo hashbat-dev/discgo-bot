@@ -9,20 +9,22 @@ import (
 var (
 	QueueDetect   chan (*discordgo.MessageCreate) = make(chan *discordgo.MessageCreate)
 	queueGenerate chan (*discordgo.MessageCreate) = make(chan *discordgo.MessageCreate)
-	queueRespond  chan (Response)                 = make(chan Response)
+	queueRespond  chan (*Generation)              = make(chan *Generation)
+	queueDatabase chan (*Generation)              = make(chan *Generation)
 )
 
 type Response struct {
 	GuildID   string
 	ChannelID string
 	ReplyRef  *discordgo.MessageReference
-	WowText   string
+	Wow       Generation
 }
 
 func Start() {
 	go workerDetect()
 	go workerGenerate()
 	go workerRespond()
+	go workerDatabase()
 }
 
 func workerDetect() {
@@ -46,15 +48,26 @@ func workerGenerate() {
 func workerRespond() {
 	logger.Info("WOW", "Respond Queue starting...")
 	for item := range queueRespond {
-		go func(i Response) {
+		go func(i Generation) {
 			msg := &discordgo.MessageSend{
-				Content:   i.WowText,
-				Reference: i.ReplyRef,
+				Content:   i.Output,
+				Reference: i.Message.Reference(),
 			}
-			_, err := config.Session.ChannelMessageSendComplex(i.ChannelID, msg)
+			wowMsg, err := config.Session.ChannelMessageSendComplex(i.Message.ChannelID, msg)
 			if err != nil {
-				logger.Error(i.GuildID, err)
+				logger.Error(i.Message.GuildID, err)
 			}
-		}(item)
+			i.WowMessageID = wowMsg.ID
+			addToCache(&i)
+		}(*item)
+	}
+}
+
+func workerDatabase() {
+	logger.Info("WOW", "Database Queue starting...")
+	for item := range queueDatabase {
+		go func(i Generation) {
+			postToDatabase(&i)
+		}(*item)
 	}
 }

@@ -77,7 +77,7 @@ func ProcessNewGuild(newGuild *discordgo.GuildCreate) {
 	guild.GuildOwnerID = newGuild.OwnerID
 
 	// 5. Update the Database with this information
-	newG, err := database.Upsert(guild)
+	newG, err := database.GuildUpsert(guild)
 	if err != nil {
 		logger.ErrorText(guild.GuildID, "Error updating Database")
 	} else {

@@ -66,7 +66,7 @@ func PhraseLeaderboard(i *discordgo.InteractionCreate, correlationId string) {
 	// 3. Display Board
 	e := embed.NewEmbed()
 	e.SetTitle(helpers.CapitaliseWords(phrase) + " Leaderboard")
-	e.SetDescription(getLeaderboardText(ranks))
+	e.SetDescription(getPhraseLeaderboardText(ranks))
 	e.SetThumbnail(trophyImgUrl)
 	e.SetColor(discord.EmbedColourGold)
 	err = config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -83,7 +83,7 @@ func PhraseLeaderboard(i *discordgo.InteractionCreate, correlationId string) {
 
 }
 
-func getLeaderboardText(ranks []database.PhraseLeaderboardUser) string {
+func getPhraseLeaderboardText(ranks []database.PhraseLeaderboardUser) string {
 	if len(ranks) == 0 {
 		return "Nobody has said this yet! Maybe you'll be the first?"
 	}

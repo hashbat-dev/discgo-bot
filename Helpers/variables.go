@@ -1,6 +1,8 @@
 package helpers
 
 import (
+	"fmt"
+	"reflect"
 	"strings"
 	"time"
 	"unicode"
@@ -41,4 +43,65 @@ func CapitaliseWords(s string) string {
 		}
 	}
 	return strings.Join(words, " ")
+}
+
+func IsZero(v any) bool {
+	switch val := v.(type) {
+	case int:
+		return val == 0
+	case int64:
+		return val == 0
+	case uint:
+		return val == 0
+	case uint64:
+		return val == 0
+	default:
+		return reflect.ValueOf(v).IsZero()
+	}
+}
+
+func NiceDateFormat(t time.Time) string {
+	now := time.Now()
+	loc := now.Location()
+	t = t.In(loc)
+
+	// Strip time to midnight for date comparison
+	y, m, d := now.Date()
+	today := time.Date(y, m, d, 0, 0, 0, 0, loc)
+
+	y2, m2, d2 := t.Date()
+	inputDate := time.Date(y2, m2, d2, 0, 0, 0, 0, loc)
+
+	diff := today.Sub(inputDate).Hours() / 24
+	timePart := t.Format("15:04")
+
+	switch {
+	case diff == 0:
+		return "Today " + timePart
+	case diff == 1:
+		return "Yesterday " + timePart
+	case diff > 1 && diff <= 7:
+		return fmt.Sprintf("%.0f days ago %s", diff, timePart)
+	default:
+		day := t.Day()
+		month := t.Month().String()
+		return fmt.Sprintf("%d%s %s %s", day, ordinal(day), month, timePart)
+	}
+}
+
+// ordinal returns the English ordinal suffix for a given day
+func ordinal(n int) string {
+	if n >= 11 && n <= 13 {
+		return "th"
+	}
+	switch n % 10 {
+	case 1:
+		return "st"
+	case 2:
+		return "nd"
+	case 3:
+		return "rd"
+	default:
+		return "th"
+	}
 }
