@@ -17,7 +17,6 @@ type Effect struct {
 type EffectList func(*Generation) *Effect
 
 var staticEffectList = []EffectList{
-	staticTest,
 	staticSixetyNine,
 	staticBlazeIt,
 	staticWeekend,
@@ -70,14 +69,6 @@ func staticWeekend(wow *Generation) *Effect {
 		}
 	}
 	return nil
-}
-
-func staticTest(wow *Generation) *Effect {
-	return &Effect{
-		Name:        "Testing",
-		Description: "AHHHHHHHHHH",
-		BonusRolls:  1,
-	}
 }
 
 // Roll Based Effects ====================================================================
