@@ -142,7 +142,8 @@ func rollDeathDodger(wow *Generation) *Effect {
 	i := getRandomNumber(1, 300)
 	description := ""
 
-	if i == 300 {
+	switch i {
+	case 300:
 		oldMin := wow.MinContinue
 		newMin := wow.MinContinue + 2
 		if newMin >= wow.MaxRollValue {
@@ -150,7 +151,7 @@ func rollDeathDodger(wow *Generation) *Effect {
 		}
 		wow.MinContinue = newMin
 		description = fmt.Sprintf("Your min continue roll increased from %d to %d! (1/300 chance)", oldMin, newMin)
-	} else if i == 100 || i == 200 {
+	case 100, 200:
 		oldMin := wow.MinContinue
 		newMin := wow.MinContinue + 1
 		if newMin >= wow.MaxRollValue {
