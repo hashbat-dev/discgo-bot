@@ -13,37 +13,58 @@ import (
 )
 
 var (
-	dataInit                             = false
-	dataLowestWowRank  map[string]string = make(map[string]string)
-	dataCurrentWeather WeatherResponse
-	dataPokemonList    PokemonList
+	dataInit                                = false
+	dataLowestWowRank     map[string]string = make(map[string]string)
+	dataHighestWowInGuild map[string]int    = make(map[string]int)
+	dataCurrentWeather    WeatherResponse
+	dataPokemonList       PokemonList
 )
 
 func GetEffectData() {
 	dataInit = true
 	logger.Info("WOW", "Getting Effect Data")
 
-	getDataLowestWowRanks()
+	getDataWowRanks()
 	getDataWeatherData()
 	getAllPokemon()
 }
 
-func getDataLowestWowRanks() {
+func getDataWowRanks() {
 	for _, g := range cache.ActiveGuilds {
-		var UserID sql.NullString
-
-		err := database.Db.QueryRow("SELECT UserID FROM DiscGo.WowStats WHERE GuildID = ? ORDER BY MaxWow LIMIT 1", g.DiscordID).Scan(&UserID)
-		if err != nil {
-			if err != sql.ErrNoRows {
-				logger.Error("WOW", err)
-			}
-			continue
+		lowRank, _ := getWowRank(g.DiscordID, true)
+		if lowRank != "" {
+			dataLowestWowRank[g.DiscordID] = lowRank
 		}
 
-		if UserID.Valid {
-			dataLowestWowRank[g.DiscordID] = UserID.String
+		_, highWow := getWowRank(g.DiscordID, false)
+		if highWow > 0 {
+			dataHighestWowInGuild[g.DiscordID] = highWow
 		}
 	}
+}
+
+func getWowRank(guildId string, lowest bool) (string, int) {
+	var UserID sql.NullString
+	var MaxWow sql.NullInt32
+	descText := ""
+	if !lowest {
+		descText = " DESC"
+	}
+	query := fmt.Sprintf("SELECT UserID, MaxWow FROM WowStats WHERE GuildID = ? ORDER BY MaxWow%s LIMIT 1", descText)
+	err := database.Db.QueryRow(query, guildId).Scan(&UserID)
+	if err != nil && err != sql.ErrNoRows {
+		return "", 0
+	}
+
+	userId := ""
+	maxWow := 0
+	if UserID.Valid {
+		userId = UserID.String
+	}
+	if MaxWow.Valid {
+		maxWow = int(MaxWow.Int32)
+	}
+	return userId, maxWow
 }
 
 type WeatherCurrentUnits struct {

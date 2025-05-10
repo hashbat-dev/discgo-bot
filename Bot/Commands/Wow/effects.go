@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
 )
 
 type Effect struct {
@@ -47,7 +49,7 @@ func staticMessageID(wow *Generation) []*Effect {
 	}
 
 	if wow.Message.ID[len(wow.Message.ID)-3:] == "420" {
-		i := getRandomNumber(6, 9)
+		i := helpers.GetRandomNumber(6, 9)
 		wow.BonusRolls += i
 		ret = append(ret, &Effect{
 			Name:        "Blaze it",
@@ -235,7 +237,7 @@ func staticFactWithStats(wow *Generation) []*Effect {
 }
 
 func staticPokemon(wow *Generation) []*Effect {
-	randomNumber := getRandomNumber(1, dataPokemonList.Count) - 1
+	randomNumber := helpers.GetRandomNumber(1, dataPokemonList.Count) - 1
 	pokemon := getPokemonData(dataPokemonList.Results[randomNumber].URL)
 	if pokemon == nil {
 		return nil
@@ -294,7 +296,7 @@ func rollRandomExtras(wow *Generation) []*Effect {
 	var ret []*Effect
 
 	// Current Roll randomiser
-	i := getRandomNumber(1, 50)
+	i := helpers.GetRandomNumber(1, 50)
 	description := ""
 	switch i {
 	case 50:
@@ -312,7 +314,7 @@ func rollRandomExtras(wow *Generation) []*Effect {
 	}
 
 	// Current Total randomiser
-	i = getRandomNumber(1, 100)
+	i = helpers.GetRandomNumber(1, 100)
 	description = ""
 	switch i {
 	case 100:
@@ -331,7 +333,7 @@ func rollRandomExtras(wow *Generation) []*Effect {
 	}
 
 	// Death Dodger
-	i = getRandomNumber(1, 300)
+	i = helpers.GetRandomNumber(1, 300)
 	description = ""
 	switch i {
 	case 300:

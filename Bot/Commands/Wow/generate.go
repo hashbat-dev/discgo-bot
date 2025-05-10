@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
@@ -21,6 +22,7 @@ type Generation struct {
 	DiceRolls     []DiceRoll
 	StaticEffects []Effect
 	Effects       []Effect
+	EffectCount   int
 	Output        string
 	WowMessageID  string
 }
@@ -50,6 +52,9 @@ func generate(message *discordgo.MessageCreate) {
 		effects := fn(&wow)
 		if len(effects) > 0 {
 			for _, effect := range effects {
+				if !effect.SkipStatsOutput {
+					wow.EffectCount++
+				}
 				wow.StaticEffects = append(wow.StaticEffects, *effect)
 				wow.Effects = append(wow.Effects, *effect)
 			}
@@ -57,10 +62,11 @@ func generate(message *discordgo.MessageCreate) {
 	}
 
 	// Apply Dice Rolls
+	fullDebuffMsgGiven := false
 	for {
 		// 1. Roll
 		wow.Rolls++
-		wow.CurrentRoll = getRandomNumber(1, wow.MaxRollValue)
+		wow.CurrentRoll = helpers.GetRandomNumber(1, wow.MaxRollValue)
 
 		// 2. Loop through any Roll based effects
 		var rollEffects []Effect
@@ -68,6 +74,9 @@ func generate(message *discordgo.MessageCreate) {
 			effects := fn(&wow)
 			if len(effects) > 0 {
 				for _, effect := range effects {
+					if !effect.SkipStatsOutput {
+						wow.EffectCount++
+					}
 					rollEffects = append(rollEffects, *effect)
 					wow.Effects = append(wow.Effects, *effect)
 				}
@@ -76,24 +85,44 @@ func generate(message *discordgo.MessageCreate) {
 
 		// 3. See whether to break off from future Rolls
 		finished := false
-		addText := ""
+		var addText []string
 
-		if wow.CurrentRoll < wow.MinContinue {
+		minContinue := wow.MinContinue
+		reduction := wow.BonusRolls / 3
+		if reduction > 0 {
+			if !fullDebuffMsgGiven {
+				addText = append(addText, fmt.Sprintf("continue roll debuffed due to %d bonus rolls", wow.BonusRolls))
+				fullDebuffMsgGiven = true
+			} else {
+				addText = append(addText, fmt.Sprintf("debuff - %d bonus rolls", wow.BonusRolls))
+			}
+		}
+		minContinue -= reduction
+		if minContinue < 1 {
+			minContinue = 1
+		}
+
+		if wow.CurrentRoll < minContinue {
 			if wow.BonusRolls > 0 {
 				wow.BonusRolls--
-				addText = fmt.Sprintf("bonus roll used to avoid death, %d left", wow.BonusRolls)
+				addText = append(addText, fmt.Sprintf("bonus roll avoided death - %d left", wow.BonusRolls))
 			} else {
 				finished = true
 			}
 		}
 
-		// 3. Add to the Roll cache
+		additionalText := ""
+		if len(addText) > 0 {
+			additionalText = strings.Join(addText, ", ")
+		}
+
+		// 4. Add to the Roll cache
 		wow.OCount += wow.CurrentRoll
 		wow.DiceRolls = append(wow.DiceRolls, DiceRoll{
 			Number:         wow.Rolls,
 			Roll:           wow.CurrentRoll,
 			Effects:        rollEffects,
-			AdditionalText: addText,
+			AdditionalText: additionalText,
 		})
 
 		if finished {
@@ -110,12 +139,8 @@ func generate(message *discordgo.MessageCreate) {
 		wow.OCount = int(math.Ceil(float64(wow.OCount) * wow.Multiplier))
 	}
 
-	effectCountText := ""
-	if len(wow.Effects) > 0 {
-		effectCountText = " " + intAsSubscript(len(wow.Effects))
-	}
-
-	wowText := fmt.Sprintf("W%sw%s", getOs(wow.OCount), effectCountText)
+	subText := " " + intAsSubscript(wow.OCount) + "." + intAsSubscript(wow.EffectCount)
+	wowText := fmt.Sprintf("W%sw%s", getOs(wow.OCount), subText)
 	if wow.OCount > 75 {
 		wowText = strings.ToUpper(wowText)
 	}
