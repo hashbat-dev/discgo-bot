@@ -31,12 +31,12 @@ func GetEffectData() {
 
 func getDataWowRanks() {
 	for _, g := range cache.ActiveGuilds {
-		lowRank, _ := getWowRank(g.DiscordID, true)
+		lowRank, _ := getWowRank("1267442281187639339", true)
 		if lowRank != "" {
 			dataLowestWowRank[g.DiscordID] = lowRank
 		}
 
-		_, highWow := getWowRank(g.DiscordID, false)
+		_, highWow := getWowRank("1267442281187639339", false)
 		if highWow > 0 {
 			dataHighestWowInGuild[g.DiscordID] = highWow
 		}
@@ -51,7 +51,7 @@ func getWowRank(guildId string, lowest bool) (string, int) {
 		descText = " DESC"
 	}
 	query := fmt.Sprintf("SELECT UserID, MaxWow FROM WowStats WHERE GuildID = ? ORDER BY MaxWow%s LIMIT 1", descText)
-	err := database.Db.QueryRow(query, guildId).Scan(&UserID)
+	err := database.Db.QueryRow(query, guildId).Scan(&UserID, &MaxWow)
 	if err != nil && err != sql.ErrNoRows {
 		return "", 0
 	}
