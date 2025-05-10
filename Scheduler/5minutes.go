@@ -8,4 +8,5 @@ import (
 func RunEvery5Minutes() {
 	go cache.PruneCache()
 	go wow.CleanCache()
+	go wow.GetEffectData()
 }
