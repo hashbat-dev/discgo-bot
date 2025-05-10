@@ -54,7 +54,12 @@ func getPokemonData(url string) *PokemonData {
 		logger.Error("WOW", err)
 		return nil
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			logger.Error("WOW", err)
+		}
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

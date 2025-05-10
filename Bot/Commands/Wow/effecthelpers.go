@@ -56,7 +56,12 @@ func checkIfRandomFactHasStats() (string, bool) {
 		logger.Error("WOW", err)
 		return "", false
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			logger.Error("WOW", err)
+		}
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
