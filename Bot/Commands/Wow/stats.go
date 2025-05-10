@@ -15,6 +15,9 @@ func GetStatsText(messageId string) (int, string) {
 		if len(wow.Generation.StaticEffects) > 0 {
 			s += "\n"
 			for _, effect := range wow.Generation.StaticEffects {
+				if effect.SkipStatsOutput {
+					continue
+				}
 				emoji := effect.Emoji
 				if emoji == "" {
 					emoji = DefaultEmoji
@@ -29,9 +32,16 @@ func GetStatsText(messageId string) (int, string) {
 			if i == len(wow.Generation.DiceRolls)-1 {
 				emoji = "💀"
 			}
-			s += fmt.Sprintf("\n%s **%d**", emoji, roll.Roll)
+			addText := ""
+			if roll.AdditionalText != "" {
+				addText = "\u00A0\u00A0" + roll.AdditionalText
+			}
+			s += fmt.Sprintf("\n%s **%d**%s", emoji, roll.Roll, addText)
 			if len(roll.Effects) > 0 {
 				for _, effect := range roll.Effects {
+					if effect.SkipStatsOutput {
+						continue
+					}
 					emoji := effect.Emoji
 					if emoji == "" {
 						emoji = DefaultEmoji
