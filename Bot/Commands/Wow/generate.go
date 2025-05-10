@@ -26,9 +26,10 @@ type Generation struct {
 }
 
 type DiceRoll struct {
-	Number  int
-	Roll    int
-	Effects []Effect
+	Number         int
+	Roll           int
+	Effects        []Effect
+	AdditionalText string
 }
 
 func generate(message *discordgo.MessageCreate) {
@@ -46,10 +47,12 @@ func generate(message *discordgo.MessageCreate) {
 
 	// Apply Static effects, some of these include free rolls
 	for _, fn := range staticEffectList {
-		effect := fn(&wow)
-		if effect != nil {
-			wow.StaticEffects = append(wow.StaticEffects, *effect)
-			wow.Effects = append(wow.Effects, *effect)
+		effects := fn(&wow)
+		if len(effects) > 0 {
+			for _, effect := range effects {
+				wow.StaticEffects = append(wow.StaticEffects, *effect)
+				wow.Effects = append(wow.Effects, *effect)
+			}
 		}
 	}
 
@@ -62,27 +65,41 @@ func generate(message *discordgo.MessageCreate) {
 		// 2. Loop through any Roll based effects
 		var rollEffects []Effect
 		for _, fn := range rollEffectList {
-			effect := fn(&wow)
-			if effect != nil {
-				rollEffects = append(rollEffects, *effect)
-				wow.Effects = append(wow.Effects, *effect)
+			effects := fn(&wow)
+			if len(effects) > 0 {
+				for _, effect := range effects {
+					rollEffects = append(rollEffects, *effect)
+					wow.Effects = append(wow.Effects, *effect)
+				}
+			}
+		}
+
+		// 3. See whether to break off from future Rolls
+		finished := false
+		addText := ""
+
+		if wow.CurrentRoll < wow.MinContinue {
+			if wow.BonusRolls > 0 {
+				wow.BonusRolls--
+				addText = fmt.Sprintf("bonus roll used to avoid death, %d left", wow.BonusRolls)
+			} else {
+				finished = true
 			}
 		}
 
 		// 3. Add to the Roll cache
 		wow.OCount += wow.CurrentRoll
 		wow.DiceRolls = append(wow.DiceRolls, DiceRoll{
-			Number:  wow.Rolls,
-			Roll:    wow.CurrentRoll,
-			Effects: rollEffects,
+			Number:         wow.Rolls,
+			Roll:           wow.CurrentRoll,
+			Effects:        rollEffects,
+			AdditionalText: addText,
 		})
 
-		// 4. See whether to break off from future Rolls
-		if wow.BonusRolls > 0 {
-			wow.BonusRolls--
-		} else if wow.CurrentRoll < wow.MinContinue {
+		if finished {
 			break
 		}
+
 	}
 
 	if wow.OCount < 1 {
@@ -99,7 +116,7 @@ func generate(message *discordgo.MessageCreate) {
 	}
 
 	wowText := fmt.Sprintf("W%sw%s", getOs(wow.OCount), effectCountText)
-	if wow.OCount > 40 {
+	if wow.OCount > 75 {
 		wowText = strings.ToUpper(wowText)
 	}
 	wow.Output = wowText

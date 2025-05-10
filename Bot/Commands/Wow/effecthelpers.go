@@ -1,8 +1,14 @@
 package wow
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"regexp"
 	"strconv"
+
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 func countMatchingLastDigits(s string) int {
@@ -38,4 +44,40 @@ func sumDigits(s string) (int, error) {
 
 func endsInZero(n int) bool {
 	return n%10 == 0
+}
+
+type UselessFact struct {
+	Text string `json:"text"`
+}
+
+func checkIfRandomFactHasStats() (string, bool) {
+	resp, err := http.Get("https://uselessfacts.jsph.pl/api/v2/facts/random")
+	if err != nil {
+		logger.Error("WOW", err)
+		return "", false
+	}
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			logger.Error("WOW", err)
+		}
+	}()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("WOW", err)
+		return "", false
+	}
+
+	var fact UselessFact
+	if err := json.Unmarshal(body, &fact); err != nil {
+		logger.Error("WOW", err)
+		return "", false
+	}
+
+	hasNumbers, _ := regexp.MatchString(`\d`, fact.Text)
+	if hasNumbers {
+		return fact.Text, true
+	}
+	return "", false
 }
