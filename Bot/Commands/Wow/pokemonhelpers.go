@@ -256,7 +256,7 @@ func getPokemonEffects(wow *Generation, pokemon *PokemonData) []*Effect {
 		}
 	}
 
-	// Apply for Specific Pokemon
+	// Furry Check ==========================================================
 	furryBonus := []int{
 		6,    // Charizard
 		31,   // Nidoqueen
@@ -318,7 +318,7 @@ func getPokemonEffects(wow *Generation, pokemon *PokemonData) []*Effect {
 		})
 	}
 
-	// Specific Conditions separate to above
+	// Pokemon Specific =====================================================
 	switch pokemon.ID {
 	case 70, 71, 779: // Weepinbell, Victreebel, Bruxish
 		wow.MinContinue++
@@ -429,7 +429,7 @@ func getPokemonEffects(wow *Generation, pokemon *PokemonData) []*Effect {
 		ret = append(ret, &Effect{
 			Name:            "Pokémon Mmm Monke",
 			Description:     "Mmm.. Monke. +3 bonus rolls.",
-			Emoji:           "🐴",
+			Emoji:           "🐒",
 			SkipStatsOutput: true,
 		})
 	case 872: // Snom
@@ -453,7 +453,7 @@ func getPokemonEffects(wow *Generation, pokemon *PokemonData) []*Effect {
 		ret = append(ret, &Effect{
 			Name:            "Pokémon Smash",
 			Description:     "Watch it SMASH your min continue roll down by 1!",
-			Emoji:           "☘️",
+			Emoji:           "🔨",
 			SkipStatsOutput: true,
 		})
 	}
