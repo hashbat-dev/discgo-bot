@@ -31,12 +31,12 @@ func GetEffectData() {
 
 func getDataWowRanks() {
 	for _, g := range cache.ActiveGuilds {
-		lowRank, _ := getWowRank("1267442281187639339", true)
+		lowRank, _ := getWowRank(g.DiscordID, true)
 		if lowRank != "" {
 			dataLowestWowRank[g.DiscordID] = lowRank
 		}
 
-		_, highWow := getWowRank("1267442281187639339", false)
+		_, highWow := getWowRank(g.DiscordID, false)
 		if highWow > 0 {
 			dataHighestWowInGuild[g.DiscordID] = highWow
 		}
