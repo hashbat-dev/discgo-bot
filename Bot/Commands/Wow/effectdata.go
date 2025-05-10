@@ -78,7 +78,12 @@ func getDataWeatherData() {
 		logger.Error("WOW", err)
 		return
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			logger.Error("WOW", err)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		logger.Error("WOW", fmt.Errorf("unexpected status code: %d", resp.StatusCode))
