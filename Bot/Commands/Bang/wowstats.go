@@ -42,5 +42,6 @@ func (s WowStats) Execute(message *discordgo.MessageCreate, command string) erro
 	e.SetTitle(title)
 	e.SetDescription(msg)
 	discord.ReplyToMessageWithEmbed(message.ReferencedMessage, *e)
+	discord.DeleteMessage(message)
 	return nil
 }
