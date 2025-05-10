@@ -37,7 +37,6 @@ func ProcessNewMessage(message *discordgo.MessageCreate) {
 		// 4. Retrieve command using the name
 		command := getCommandByName(commandName)
 		if command != nil {
-			// 5. TODO - check user permissions
 			DispatchTask(&Task{
 				CommandType: config.CommandTypeBang,
 				Complexity:  command.Complexity(),
@@ -130,7 +129,7 @@ func checkForAndProcessTriggers(message *discordgo.MessageCreate) {
 			},
 		})
 	} else {
-		// If no triggers, send for Wow detectoin
+		// If no triggers, send for Wow detection
 		wow.QueueDetect <- message
 	}
 }

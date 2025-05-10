@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"math/rand"
 	"reflect"
 	"strings"
 	"time"
@@ -104,4 +105,11 @@ func ordinal(n int) string {
 	default:
 		return "th"
 	}
+}
+
+func GetRandomNumber(min, max int) int {
+	if min > max {
+		min, max = max, min // swap if min > max
+	}
+	return rand.Intn(max-min+1) + min
 }

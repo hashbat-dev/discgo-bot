@@ -25,7 +25,7 @@ type UserWowStatEffect struct {
 func GetUserWowStats(guildId string, userId string) (*UserWowStats, error) {
 	query := `SELECT S.MaxWow, S.MaxWowUpdated, E.EffectType, E.EffectName, E.EffectEmoji, E.Count, E.LastTriggered 
 			FROM WowStats S LEFT JOIN WowEffects E ON E.UserID = S.UserID AND E.GuildID = S.GuildID
-			WHERE S.GuildID = ? AND S.UserID = ? ORDER BY EffectType, E.Count DESC`
+			WHERE S.GuildID = ? AND S.UserID = ? AND E.EffectName NOT LIKE 'Pokémon%' AND E.EffectName NOT LIKE 'A Wild%' ORDER BY EffectType, E.Count DESC`
 	rows, err := Db.Query(query, guildId, userId)
 	if err != nil {
 		logger.Error(guildId, err)

@@ -38,16 +38,24 @@ func WowStats(i *discordgo.InteractionCreate, correlationId string) {
 	}
 
 	title := fmt.Sprintf("%s's Wow Stats", helpers.CapitaliseWords(i.Member.User.Username))
+	baseDescription := fmt.Sprintf("Max Wow: **%d**", stats.MaxWow)
+	baseDescription += fmt.Sprintf("\nObtained: **%s**", helpers.NiceDateFormat(stats.MaxWowUpdated))
 
-	description := fmt.Sprintf("Max Wow: **%d**", stats.MaxWow)
-	description += fmt.Sprintf("\nObtained: **%s**", helpers.NiceDateFormat(stats.MaxWowUpdated))
+	embeds := []*discordgo.MessageEmbed{}
+	firstEmbed := embed.NewEmbed()
+	firstEmbed.SetTitle(title)
+	firstEmbed.SetDescription(baseDescription)
+	embeds = append(embeds, firstEmbed.MessageEmbed)
 
+	// Build effect history text
 	if len(stats.Effects) > 0 {
-		description += "\n\n**Effect History**"
+		var effectChunks []string
 		lastType := ""
+		currentChunk := "**Effect History**"
+
 		for _, effect := range stats.Effects {
 			if lastType != effect.Type {
-				description += fmt.Sprintf("\n**%s**", helpers.CapitaliseWords(effect.Type))
+				currentChunk += fmt.Sprintf("\n\n**%s**", helpers.CapitaliseWords(effect.Type))
 				lastType = effect.Type
 			}
 			time := "time"
@@ -58,22 +66,55 @@ func WowStats(i *discordgo.InteractionCreate, correlationId string) {
 			if emoji == "" {
 				emoji = wow.DefaultEmoji
 			}
-			description += fmt.Sprintf("\n%s%s %s - **%d** %s, last used **%s**", wow.IndentPadding, emoji, effect.Name, effect.Count, time, helpers.NiceDateFormat(effect.LastTriggered))
+			line := fmt.Sprintf("\n%s%s %s - **%d** %s, last used **%s**", wow.IndentPadding, emoji, effect.Name, effect.Count, time, helpers.NiceDateFormat(effect.LastTriggered))
+
+			// If adding this line would overflow currentChunk, start a new chunk
+			if len(currentChunk)+len(line) > config.MAX_EMBED_DESC_LENGTH {
+				effectChunks = append(effectChunks, currentChunk)
+				currentChunk = ""
+			}
+			currentChunk += line
+		}
+		if currentChunk != "" {
+			effectChunks = append(effectChunks, currentChunk)
+		}
+
+		// Create an embed for each effect chunk
+		for _, chunk := range effectChunks {
+			e := embed.NewEmbed()
+			e.SetDescription(chunk)
+			embeds = append(embeds, e.MessageEmbed)
 		}
 	}
 
-	errEmbed := embed.NewEmbed()
-	errEmbed.SetTitle(title)
-	errEmbed.SetDescription(description)
+	// Limit to Discord's 10-embed maximum
+	if len(embeds) > 10 {
+		embeds = embeds[:10]
+	}
+
+	// Respond with the first embed
 	err = config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{errEmbed.MessageEmbed},
+			Embeds: []*discordgo.MessageEmbed{embeds[0]},
 		},
 	})
 
 	if err != nil {
 		logger.Error(i.GuildID, err)
+		cache.InteractionComplete(correlationId)
+		return
+	}
+
+	// Follow up with additional embeds
+	for _, embed := range embeds[1:] {
+		_, err := config.Session.FollowupMessageCreate(i.Interaction, false, &discordgo.WebhookParams{
+			Embeds: []*discordgo.MessageEmbed{embed},
+		})
+		if err != nil {
+			logger.Error(i.GuildID, err)
+			break
+		}
 	}
 
 	cache.InteractionComplete(correlationId)

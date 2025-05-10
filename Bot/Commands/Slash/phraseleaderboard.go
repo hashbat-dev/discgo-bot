@@ -14,10 +14,6 @@ import (
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
-var (
-	trophyImgUrl = "https://i.imgur.com/XK0Fqvr.png"
-)
-
 func PhraseLeaderboard(i *discordgo.InteractionCreate, correlationId string) {
 	cachedInteraction := cache.ActiveInteractions[correlationId]
 	phrase := cachedInteraction.Values.String["phrase"]
@@ -67,7 +63,7 @@ func PhraseLeaderboard(i *discordgo.InteractionCreate, correlationId string) {
 	e := embed.NewEmbed()
 	e.SetTitle(helpers.CapitaliseWords(phrase) + " Leaderboard")
 	e.SetDescription(getPhraseLeaderboardText(ranks))
-	e.SetThumbnail(trophyImgUrl)
+	e.SetThumbnail(config.TROPHY_IMG_URL)
 	e.SetColor(discord.EmbedColourGold)
 	err = config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

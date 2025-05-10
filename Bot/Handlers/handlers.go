@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"github.com/bwmarrin/discordgo"
+	"github.com/google/uuid"
+	config "github.com/hashbat-dev/discgo-bot/Config"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
@@ -64,4 +66,17 @@ func workerMessageReactionRemove() {
 			ProcessReactionRemove(i)
 		}(item)
 	}
+}
+
+func ManuallyQueueCommand(message *discordgo.MessageCreate, commandName string) {
+	command := getCommandByName(commandName)
+	DispatchTask(&Task{
+		CommandType: config.CommandTypeBang,
+		Complexity:  command.Complexity(),
+		BangDetails: &BangTaskDetails{
+			Message:       message,
+			Command:       command,
+			CorrelationId: uuid.New(),
+		},
+	})
 }

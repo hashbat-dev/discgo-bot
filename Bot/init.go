@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/bwmarrin/discordgo"
+	random "github.com/hashbat-dev/discgo-bot/Bot/Commands/Random"
 	wow "github.com/hashbat-dev/discgo-bot/Bot/Commands/Wow"
 	handlers "github.com/hashbat-dev/discgo-bot/Bot/Handlers"
 	config "github.com/hashbat-dev/discgo-bot/Config"
@@ -63,6 +64,7 @@ func Init() {
 	// 7. Start the Worker pools
 	handlers.Start()
 	wow.Start()
+	random.Start()
 
 	// 8. Reset Global Discord /commands
 	handlers.RefreshSlashCommands("")

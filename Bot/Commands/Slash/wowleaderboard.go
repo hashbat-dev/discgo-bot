@@ -25,7 +25,7 @@ func WowLeaderboard(i *discordgo.InteractionCreate, correlationId string) {
 	e := embed.NewEmbed()
 	e.SetTitle("Wow Leaderboard")
 	e.SetDescription(getWowLeaderboardText(ranks))
-	e.SetThumbnail(trophyImgUrl)
+	e.SetThumbnail(config.TROPHY_IMG_URL)
 	e.SetColor(discord.EmbedColourGold)
 	err = config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
