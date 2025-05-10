@@ -3,6 +3,7 @@ package wow
 import (
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
@@ -31,6 +32,10 @@ type DiceRoll struct {
 }
 
 func generate(message *discordgo.MessageCreate) {
+	if !dataInit {
+		GetEffectData()
+	}
+
 	wow := Generation{
 		Message:      message,
 		MinContinue:  6,
@@ -75,7 +80,7 @@ func generate(message *discordgo.MessageCreate) {
 		// 4. See whether to break off from future Rolls
 		if wow.BonusRolls > 0 {
 			wow.BonusRolls--
-		} else if wow.CurrentRoll <= wow.MinContinue {
+		} else if wow.CurrentRoll < wow.MinContinue {
 			break
 		}
 	}
@@ -92,7 +97,11 @@ func generate(message *discordgo.MessageCreate) {
 	if len(wow.Effects) > 0 {
 		effectCountText = " " + intAsSubscript(len(wow.Effects))
 	}
+
 	wowText := fmt.Sprintf("W%sw%s", getOs(wow.OCount), effectCountText)
+	if wow.OCount > 40 {
+		wowText = strings.ToUpper(wowText)
+	}
 	wow.Output = wowText
 	pushWow(wow)
 }

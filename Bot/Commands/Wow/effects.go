@@ -10,9 +10,6 @@ type Effect struct {
 	Name        string
 	Description string
 	Emoji       string
-	RollNumber  int
-	BonusRolls  int
-	Multiplier  float32
 }
 
 type EffectList func(*Generation) *Effect
@@ -24,6 +21,13 @@ var staticEffectList = []EffectList{
 	staticSpecificNumber,
 	staticDayOfTheYear,
 	staticMessageDubs,
+	staticMessageIDSum,
+	staticPityBonus,
+	staticWeatherTemperature,
+	staticWeatherClouds,
+	staticWeatherWindy,
+	staticWeatherNight,
+	staticWeatherRaining,
 }
 
 var rollEffectList = []EffectList{
@@ -44,7 +48,6 @@ func staticSixetyNine(wow *Generation) *Effect {
 	return &Effect{
 		Name:        "Niceeee",
 		Description: "Message ID ended in 69, get 3 free rolls.",
-		BonusRolls:  3,
 	}
 }
 
@@ -58,7 +61,6 @@ func staticBlazeIt(wow *Generation) *Effect {
 	return &Effect{
 		Name:        "Blaze it",
 		Description: "Message ID ended in 420! Get a random number of free rolls between 6 and 9.",
-		BonusRolls:  i,
 	}
 }
 
@@ -69,7 +71,6 @@ func staticWeekend(wow *Generation) *Effect {
 		return &Effect{
 			Name:        "Weekend Sweetener",
 			Description: "It's the Weekend! Have a roll on the house.",
-			BonusRolls:  1,
 		}
 	}
 	return nil
@@ -84,7 +85,6 @@ func staticSpecificNumber(wow *Generation) *Effect {
 	return &Effect{
 		Name:        "Bad Vibes",
 		Description: "Something about having your Message ID end in 365 lowered your multiplier by 0.8x.",
-		Multiplier:  0.8,
 	}
 }
 
@@ -99,7 +99,6 @@ func staticDayOfTheYear(wow *Generation) *Effect {
 	return &Effect{
 		Name:        "Calendar Maxxing",
 		Description: fmt.Sprintf("Today is the %s day of the year, the same number your Message ID ends in! Have 5 bonus rolls!", yearDay),
-		BonusRolls:  5,
 		Emoji:       "📆",
 	}
 }
@@ -124,9 +123,111 @@ func staticMessageDubs(wow *Generation) *Effect {
 	return &Effect{
 		Name:        "Check 'em",
 		Description: fmt.Sprintf("The last %d digits of your Message ID match! Get a %fx multiplier", matchingTrailingNumbers, multi),
-		Multiplier:  float32(multi),
 		Emoji:       "👉",
 	}
+}
+
+func staticMessageIDSum(wow *Generation) *Effect {
+	idSum, err := sumDigits(wow.Message.ID)
+	if err != nil {
+		return nil
+	}
+
+	if !endsInZero(idSum) {
+		return nil
+	}
+	wow.MinContinue--
+	return &Effect{
+		Name:        "O.C.D.",
+		Description: fmt.Sprintf("Adding up all the digits of your Message ID makes a nice, tidy rounded number! Your min continue roll was reduced to %d", wow.MinContinue),
+	}
+}
+
+func staticPityBonus(wow *Generation) *Effect {
+	if lowerRankUserId, exists := dataLowestWowRank[wow.Message.GuildID]; exists {
+		if lowerRankUserId != wow.Message.Author.ID {
+			return nil
+		}
+	} else {
+		return nil
+	}
+
+	wow.Multiplier *= 1.2
+	wow.BonusRolls += 2
+	return &Effect{
+		Name:        "Pity Bonus",
+		Description: "You're the lowest ranking Wower in the server. Damn bro, have a 1.2x multiplier and 2 free rolls",
+		Emoji:       "🥺",
+	}
+}
+
+func staticWeatherTemperature(wow *Generation) *Effect {
+	if dataCurrentWeather.Current.Temperature2m > 18.0 {
+		wow.Multiplier *= 0.8
+		return &Effect{
+			Name: "Go Outside",
+			Description: fmt.Sprintf("It's %f%s in Manchester right now, you should be touching grass. 0.8x multiplier.",
+				dataCurrentWeather.Current.Temperature2m, dataCurrentWeather.CurrentUnits.Temperature2m),
+			Emoji: "🌞",
+		}
+	} else if dataCurrentWeather.Current.Temperature2m < 5.0 {
+		wow.Multiplier *= 1.2
+		return &Effect{
+			Name: "Bit Nippy",
+			Description: fmt.Sprintf("It's %f%s in Manchester right now, stay inside and stay warm. 1.2x multiplier.",
+				dataCurrentWeather.Current.Temperature2m, dataCurrentWeather.CurrentUnits.Temperature2m),
+			Emoji: "❄️",
+		}
+	}
+	return nil
+}
+
+func staticWeatherClouds(wow *Generation) *Effect {
+	if dataCurrentWeather.Current.CloudCover == 0 {
+		wow.BonusRolls++
+		return &Effect{
+			Name:        "Cloudless",
+			Description: "There's not a cloud in the sky in Manchester right now, how neat! Have a bonus roll.",
+			Emoji:       "☀️",
+		}
+	}
+	return nil
+}
+
+func staticWeatherWindy(wow *Generation) *Effect {
+	if dataCurrentWeather.Current.WindSpeed10m > 10.0 {
+		wow.BonusRolls += 3
+		return &Effect{
+			Name:        "Wimdy",
+			Description: fmt.Sprintf("The wind is %f%s in Manchester right now, it blew 3 bonus rolls your way!", dataCurrentWeather.Current.WindSpeed10m, dataCurrentWeather.CurrentUnits.WindSpeed10m),
+			Emoji:       "💨",
+		}
+	}
+	return nil
+}
+
+func staticWeatherNight(wow *Generation) *Effect {
+	if dataCurrentWeather.Current.IsDay == 0 {
+		wow.BonusRolls++
+		return &Effect{
+			Name:        "Night night",
+			Description: "It's nighttime in Manchester, will a bonus roll help get you into bed?",
+			Emoji:       "🌜",
+		}
+	}
+	return nil
+}
+
+func staticWeatherRaining(wow *Generation) *Effect {
+	if dataCurrentWeather.Current.Rain > 0.0 {
+		wow.MinContinue--
+		return &Effect{
+			Name:        "Pretty Moist",
+			Description: fmt.Sprintf("There's %f%s in Manchester right now (of course), lets lower your min continue roll to %d", dataCurrentWeather.Current.Rain, dataCurrentWeather.CurrentUnits.Rain, wow.MinContinue),
+			Emoji:       "🌧️",
+		}
+	}
+	return nil
 }
 
 // Roll Based Effects ====================================================================
@@ -135,10 +236,10 @@ func rollRolled10(wow *Generation) *Effect {
 		return nil
 	}
 
+	wow.BonusRolls++
 	return &Effect{
 		Name:        "Crit Roll",
 		Description: "You rolled a 10! Have another roll on the house",
-		BonusRolls:  1,
 		Emoji:       "🎯",
 	}
 }

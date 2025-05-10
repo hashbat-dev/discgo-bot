@@ -9,7 +9,7 @@ var (
 
 func GetStatsText(messageId string) (int, string) {
 	if wow, ok := cacheBank[messageId]; ok {
-		s := "To createa Wow we keep rolling a 1 to 10 dice until you roll 5 or under. The total number rolled is how long your Wow is!"
+		s := "To create a Wow we keep rolling a 1 to 10 dice until you roll 5 or under. The total number rolled is how long your Wow is!"
 		s += " There are various modifiers and effects which you may be lucky enough to trigger!"
 
 		if len(wow.Generation.StaticEffects) > 0 {
