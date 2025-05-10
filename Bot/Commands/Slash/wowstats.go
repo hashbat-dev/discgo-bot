@@ -75,5 +75,6 @@ func WowStats(i *discordgo.InteractionCreate, correlationId string) {
 	if err != nil {
 		logger.Error(i.GuildID, err)
 	}
+
 	cache.InteractionComplete(correlationId)
 }
