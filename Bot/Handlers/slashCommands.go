@@ -29,7 +29,7 @@ var slashCommands = []SlashCommand{
 	//	/tts-play
 	{
 		Command: &discordgo.ApplicationCommand{
-			Name:        "tts-play",
+			Name:        "tts-make",
 			Description: "Convert Text to Speech through one of FakeYou.com's thousands of Voice Models",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
