@@ -41,7 +41,7 @@ func Error_IgnoreDiscord(guildId string, err error, a ...any) {
 }
 
 func InsertIntoDB(codeSource string, errorText string, guildId string) {
-	stmt, err := Db.Prepare("INSERT INTO Errors (CodeSource, ErrorText, GuildID) VALUES (?, ?, ?)")
+	stmt, err := Db.Prepare("INSERT INTO Errors (IsDev, CodeSource, ErrorText, GuildID) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		ErrorWithoutDB(guildId, err)
 		return
@@ -53,7 +53,11 @@ func InsertIntoDB(codeSource string, errorText string, guildId string) {
 		}
 	}(guildId)
 
-	_, err = stmt.Exec(codeSource, errorText, guildId)
+	isDev := 0
+	if config.ServiceSettings.ISDEV {
+		isDev = 1
+	}
+	_, err = stmt.Exec(isDev, codeSource, errorText, guildId)
 	if err != nil {
 		ErrorWithoutDB(guildId, err)
 	}
