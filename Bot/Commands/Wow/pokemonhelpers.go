@@ -221,6 +221,8 @@ func getAllPokemon() {
 		}
 		dataPokemon[pokemon.PokemonID] = pokemon.Data
 	}
+
+	pokeInit = true
 }
 
 func getPokemonEffects(wow *Generation, pokemon *PokemonData) []*Effect {
