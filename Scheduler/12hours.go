@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	wow "github.com/hashbat-dev/discgo-bot/Bot/Commands/Wow"
 	database "github.com/hashbat-dev/discgo-bot/Database"
 	fakeyou "github.com/hashbat-dev/discgo-bot/External/FakeYou"
 	imgur "github.com/hashbat-dev/discgo-bot/External/Imgur"
@@ -12,6 +13,7 @@ func RunEvery12Hours() {
 	go fakeyou.UpdateModels()
 	go imgur.TidySubmissions()
 	go ImageBankCheck()
+	go wow.UpdatePokemonDatabase()
 }
 
 func ImageBankCheck() {

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
+	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
 type Effect struct {
@@ -237,9 +238,17 @@ func staticFactWithStats(wow *Generation) []*Effect {
 }
 
 func staticPokemon(wow *Generation) []*Effect {
-	randomNumber := helpers.GetRandomNumber(1, dataPokemonList.Count) - 1
-	pokemon := getPokemonData(dataPokemonList.Results[randomNumber].URL)
-	if pokemon == nil {
+	if !pokeInit {
+		return nil
+	}
+
+	randomNumber := helpers.GetRandomNumber(1, len(dataPokemon)) - 1
+	var pokemon *PokemonData
+
+	if poke, exists := dataPokemon[randomNumber]; exists {
+		pokemon = &poke
+	} else {
+		logger.ErrorText("WOW", "Pokémon ID %d was not in the data cache", randomNumber)
 		return nil
 	}
 
