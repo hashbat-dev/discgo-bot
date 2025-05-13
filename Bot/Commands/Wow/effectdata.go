@@ -14,19 +14,16 @@ import (
 
 var (
 	dataInit                                = false
+	pokeInit                                = false
 	dataLowestWowRank     map[string]string = make(map[string]string)
 	dataHighestWowInGuild map[string]int    = make(map[string]int)
 	dataCurrentWeather    WeatherResponse
-	dataPokemonList       PokemonList
 )
 
 func GetEffectData() {
-	dataInit = true
-	logger.Info("WOW", "Getting Effect Data")
-
 	getDataWowRanks()
 	getDataWeatherData()
-	getAllPokemon()
+	dataInit = true
 }
 
 func getDataWowRanks() {
@@ -126,46 +123,4 @@ func getDataWeatherData() {
 	}
 
 	dataCurrentWeather = result
-}
-
-type PokemonEntry struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
-}
-
-type PokemonList struct {
-	Count   int            `json:"count"`
-	Results []PokemonEntry `json:"results"`
-}
-
-func getAllPokemon() {
-	if len(dataPokemonList.Results) > 0 {
-		return
-	}
-
-	resp, err := http.Get("https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0")
-	if err != nil {
-		logger.Error("WOW", err)
-		return
-	}
-	defer func() {
-		err := resp.Body.Close()
-		if err != nil {
-			logger.Error("WOW", err)
-		}
-	}()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		logger.Error("WOW", err)
-		return
-	}
-
-	var list PokemonList
-	if err := json.Unmarshal(body, &list); err != nil {
-		logger.Error("WOW", err)
-		return
-	}
-
-	dataPokemonList = list
 }

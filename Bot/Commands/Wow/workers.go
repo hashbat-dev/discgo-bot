@@ -28,6 +28,9 @@ func Start() {
 	go workerGenerate()
 	go workerRespond()
 	go workerDatabase()
+
+	// Pokemon Data
+	go getAllPokemon()
 }
 
 func workerDetect() {

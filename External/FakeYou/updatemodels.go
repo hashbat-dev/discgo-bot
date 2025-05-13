@@ -12,7 +12,7 @@ import (
 func UpdateModels() {
 	// 1. Check how long it has been since the last update, we'll give a 1 hour lee-way considering this
 	// 	  function runs every 12 hours, to avoid it skipping when the last check was 11h 45m ago.
-	lastTime, err := database.GetLastFakeYouCheck()
+	lastTime, err := database.GetLastCheck("LastFakeYouCheck")
 	if err == nil {
 		if time.Since(lastTime) <= time.Duration(11*time.Hour) {
 			logger.Debug("FAKEYOU", "Skipping Model updates, last update done at: %v", lastTime)
@@ -81,5 +81,5 @@ func UpdateModels() {
 	}
 
 	// 6. Update the Database to say we've completed the check
-	database.UpdateLastFakeYouCheck()
+	database.UpdateLastCheck("LastFakeYouCheck")
 }

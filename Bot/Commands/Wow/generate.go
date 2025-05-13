@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	discord "github.com/hashbat-dev/discgo-bot/Discord"
 	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
@@ -36,7 +37,11 @@ type DiceRoll struct {
 
 func generate(message *discordgo.MessageCreate) {
 	if !dataInit {
-		GetEffectData()
+		err := discord.ReplyToMessage(message, "Bot is starting, try again shortly!")
+		if err != nil {
+			logger.Error(message.GuildID, err)
+		}
+		return
 	}
 
 	wow := Generation{

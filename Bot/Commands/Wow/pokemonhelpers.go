@@ -1,17 +1,30 @@
 package wow
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"slices"
 	"strings"
+	"time"
 
+	database "github.com/hashbat-dev/discgo-bot/Database"
 	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
+// ALL Pokemon Data structs ==================================
+type PokemonEntry struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
+type PokemonList struct {
+	Count   int            `json:"count"`
+	Results []PokemonEntry `json:"results"`
+}
+
+// INDIVIDUAL Pokemon structs ================================
 type NamedPokemonAPIResource struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
@@ -48,32 +61,166 @@ type PokemonData struct {
 	Weight         int                       `json:"weight"`
 }
 
-func getPokemonData(url string) *PokemonData {
-	resp, err := http.Get(url)
+type PokemonDatabaseEntry struct {
+	ID          int
+	PokemonID   int
+	Name        string
+	Data        PokemonData
+	LastUpdated time.Time
+}
+
+// Variables
+var (
+	dataMaxPokeId int
+	dataPokemon   map[int]PokemonData = make(map[int]PokemonData)
+	getAllUrl                         = "https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0"
+)
+
+func UpdatePokemonDatabase() {
+	// See if we should skip check
+	lastTime, err := database.GetLastCheck("LastPokemonCheck")
+	if err == nil {
+		if time.Since(lastTime) <= time.Duration(72*time.Hour) {
+			logger.Debug("WOW", "Skipping Pokemon updates, last update done at: %v", lastTime)
+			return
+		}
+	}
+
+	logger.Info("WOW", "Starting to update Pokémon database...")
+
+	// Get ALL Pokemon
+	body, err := helpers.GetBytesFromURL("WOW", getAllUrl)
+	if err != nil {
+		return
+	}
+	var list PokemonList
+	if err := json.Unmarshal(body, &list); err != nil {
+		logger.Error("WOW", err)
+		return
+	}
+
+	// Get INVIDIVUDAL Pokemon
+	for _, poke := range list.Results {
+		body, err := helpers.GetBytesFromURL("WOW", poke.URL)
+		if err != nil {
+			logger.ErrorText("WOW", "Error getting data for %s: %s", poke.Name, err)
+			continue
+		}
+		updatePokemonInDb(poke.Name, body)
+	}
+
+	logger.Info("WOW", "Pokémon database updated...")
+	database.UpdateLastCheck("LastPokemonCheck")
+	getAllPokemon()
+}
+
+func updatePokemonInDb(pokemonName string, dataBody []byte) {
+
+	var data PokemonData
+	if err := json.Unmarshal(dataBody, &data); err != nil {
+		logger.ErrorText("WOW", "Error unmarshalling data for %s: %s", pokemonName, err)
+		return
+	}
+
+	timeNow := time.Now()
+	res, err := database.Db.Exec(`UPDATE PokemonCache SET PokemonID = ?, Data = ?, LastUpdated = ? WHERE Name = ?`,
+		data.ID, dataBody, timeNow, pokemonName)
+	if err != nil {
+		logger.ErrorText("WOW", "Error updating data for %s: %s", pokemonName, err)
+		return
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		logger.ErrorText("WOW", "Error getting affected rows for %s: %s", pokemonName, err)
+		return
+	}
+
+	if rowsAffected == 0 {
+		_, err = database.Db.Exec(`INSERT INTO PokemonCache (PokemonID, Name, Data, LastUpdated) VALUES (?, ?, ?, ?)`,
+			data.ID, pokemonName, dataBody, timeNow)
+		if err != nil {
+			logger.ErrorText("WOW", "Error Inserting data for %s: %s", pokemonName, err)
+			return
+		}
+	}
+}
+
+func getAllPokemon() {
+	if len(dataPokemon) > 0 {
+		return
+	}
+
+	// 1. Get all data from the Database ======================================
+	query := `SELECT
+					ID, PokemonID, Name, Data, LastUpdated
+				FROM
+					PokemonCache
+				WHERE
+					PokemonID < 10000`
+
+	var entries []PokemonDatabaseEntry
+
+	rows, err := database.Db.Query(query)
 	if err != nil {
 		logger.Error("WOW", err)
-		return nil
+		return
 	}
 	defer func() {
-		err := resp.Body.Close()
+		err := rows.Close()
 		if err != nil {
 			logger.Error("WOW", err)
 		}
 	}()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		logger.Error("WOW", err)
-		return nil
+	// Iterate over the rows
+	for rows.Next() {
+
+		currentRow := PokemonDatabaseEntry{}
+
+		var id, pokemonId sql.NullInt32
+		var name, data sql.NullString
+		var lastUpdated sql.NullTime
+
+		err := rows.Scan(&id, &pokemonId, &name, &data, &lastUpdated)
+		if err != nil {
+			continue
+		}
+
+		if id.Valid {
+			currentRow.ID = int(id.Int32)
+		}
+		if pokemonId.Valid {
+			currentRow.PokemonID = int(pokemonId.Int32)
+		}
+		if name.Valid {
+			currentRow.Name = name.String
+		}
+		if data.Valid {
+			if err := json.Unmarshal([]byte(data.String), &currentRow.Data); err != nil {
+				logger.Error("WOW", err)
+				continue
+			}
+		}
+		if lastUpdated.Valid {
+			currentRow.LastUpdated = lastUpdated.Time
+		}
+		entries = append(entries, currentRow)
 	}
 
-	var data PokemonData
-	if err := json.Unmarshal(body, &data); err != nil {
+	// Check for errors from iterating over rows
+	if err = rows.Err(); err != nil {
 		logger.Error("WOW", err)
-		return nil
+		return
 	}
 
-	return &data
+	// 2. Add to the Map ===============================================
+	for _, pokemon := range entries {
+		if pokemon.PokemonID > dataMaxPokeId {
+			dataMaxPokeId = pokemon.PokemonID
+		}
+		dataPokemon[pokemon.PokemonID] = pokemon.Data
+	}
 }
 
 func getPokemonEffects(wow *Generation, pokemon *PokemonData) []*Effect {
