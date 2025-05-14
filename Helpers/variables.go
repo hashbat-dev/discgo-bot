@@ -113,3 +113,50 @@ func GetRandomNumber(min, max int) int {
 	}
 	return rand.Intn(max-min+1) + min
 }
+
+func SplitText(wowString string, maxLength int) []string {
+	breaker := "..."
+	var messages []string
+
+	// Message is within constraints
+	if len(wowString) <= maxLength {
+		return []string{wowString}
+	}
+
+	// Message needs breaking up
+	var index int
+	for {
+		remaining := len(wowString) - index
+		var chunkSize int
+		var prefix, suffix string
+
+		if index == 0 {
+			// First chunk
+			chunkSize = maxLength - len(breaker)
+			suffix = breaker
+		} else if remaining <= maxLength-len(breaker) {
+			// Last chunk
+			chunkSize = remaining
+			prefix = breaker
+		} else {
+			// Middle chunk
+			chunkSize = maxLength - len(breaker)*2
+			prefix = breaker
+			suffix = breaker
+		}
+
+		if index+chunkSize > len(wowString) {
+			chunkSize = len(wowString) - index
+		}
+
+		part := wowString[index : index+chunkSize]
+		messages = append(messages, prefix+part+suffix)
+		index += chunkSize
+
+		if index >= len(wowString) {
+			break
+		}
+	}
+
+	return messages
+}

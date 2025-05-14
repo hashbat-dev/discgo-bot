@@ -26,31 +26,6 @@ var slashCommands = []SlashCommand{
 		},
 		Complexity: config.TRIVIAL_TASK,
 	},
-	//	/tts-play
-	{
-		Command: &discordgo.ApplicationCommand{
-			Name:        "tts-make",
-			Description: "Convert Text to Speech through one of FakeYou.com's thousands of Voice Models",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "voice",
-					Description: "The Voice model to use, you can choose from a list of results once submitted.",
-					Required:    true,
-				},
-				{
-					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "text",
-					Description: "The Text to convert to speech.",
-					Required:    true,
-				},
-			},
-		},
-		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
-			slash.TtsPlay(i, correlationId)
-		},
-		Complexity: config.IO_BOUND_TASK,
-	},
 	//	/help
 	{
 		Command: &discordgo.ApplicationCommand{

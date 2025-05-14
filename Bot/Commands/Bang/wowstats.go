@@ -2,7 +2,6 @@ package bang
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
@@ -33,39 +32,17 @@ func (s WowStats) Execute(message *discordgo.MessageCreate, command string) erro
 	}
 
 	// Is message in Wow cache?
-	length, msg := wow.GetStatsText(message.ReferencedMessage.ID)
-	if length == 0 || msg == "" {
+	length, messages := wow.GetStatsText(message.ReferencedMessage.ID)
+	if length == 0 || len(messages) == 0 {
 		return discord.ReplyToMessage(message, "Couldn't find stats for this Wow! We keep detailed statistics for 60 minutes, though every Wow still counts towards your personal statistics!")
 	}
 
-	// Split msg by lines and group into chunks
-	lines := strings.Split(msg, "\n")
-	var chunks []string
-	currentChunk := ""
-
-	for _, line := range lines {
-		// +1 for the newline being added back in
-		if len(currentChunk)+len(line)+1 > config.MAX_EMBED_DESC_LENGTH {
-			chunks = append(chunks, currentChunk)
-			currentChunk = ""
-		}
-		if currentChunk != "" {
-			currentChunk += "\n"
-		}
-		currentChunk += line
-	}
-	if currentChunk != "" {
-		chunks = append(chunks, currentChunk)
-	}
-
 	// Build embeds from chunks
-	title := fmt.Sprintf("Level %d Wow", length)
 	var embeds []*discordgo.MessageEmbed
-
-	for i, chunk := range chunks {
+	for i, chunk := range messages {
 		e := embed.NewEmbed()
 		if i == 0 {
-			e.SetTitle(title)
+			e.SetTitle(fmt.Sprintf("Level %d Wow", length))
 		} else {
 			e.SetTitle(fmt.Sprintf("Level %d Wow (continued)", length))
 		}
@@ -75,7 +52,7 @@ func (s WowStats) Execute(message *discordgo.MessageCreate, command string) erro
 
 	// Send first embed as reply
 	_, err := config.Session.ChannelMessageSendComplex(message.ChannelID, &discordgo.MessageSend{
-		Reference: message.Reference(),
+		Reference: message.ReferencedMessage.Reference(),
 		Embed:     embeds[0],
 	})
 	if err != nil {
@@ -85,7 +62,7 @@ func (s WowStats) Execute(message *discordgo.MessageCreate, command string) erro
 	// Send remaining embeds as follow-ups
 	for _, e := range embeds[1:] {
 		_, err = config.Session.ChannelMessageSendComplex(message.ChannelID, &discordgo.MessageSend{
-			Reference: message.Reference(),
+			Reference: message.ReferencedMessage.Reference(),
 			Embed:     e,
 		})
 		if err != nil {

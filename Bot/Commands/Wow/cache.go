@@ -15,9 +15,11 @@ type CacheItem struct {
 }
 
 func addToCache(wow *Generation) {
-	cacheBank[wow.WowMessageID] = CacheItem{
-		Generation: *wow,
-		Added:      time.Now(),
+	for _, id := range wow.WowMessageIDs {
+		cacheBank[id] = CacheItem{
+			Generation: *wow,
+			Added:      time.Now(),
+		}
 	}
 }
 
