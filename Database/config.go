@@ -28,7 +28,7 @@ func GetLastCheck(field string) (time.Time, error) {
 
 func UpdateLastCheck(field string) {
 	query := fmt.Sprintf("UPDATE Config SET %s = NOW()", field)
-	_, err := Db.Exec(query, field)
+	_, err := Db.Exec(query)
 	if err != nil {
 		logger.Error("CONFIG", err)
 	}
