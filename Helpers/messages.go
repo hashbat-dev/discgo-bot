@@ -78,7 +78,6 @@ func GetImageFromMessage(message *discordgo.Message, requiredExtension string) s
 
 	// D. No file?
 	if imgLink == "" {
-		logger.Error(message.GuildID, errors.New("no suitable image found"))
 		return ""
 	}
 
