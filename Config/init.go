@@ -241,7 +241,7 @@ var (
 const (
 	MAX_SELECT_LENGTH     int    = 25
 	MAX_MESSAGE_LENGTH    int    = 2000
-	MAX_EMBED_DESC_LENGTH int    = 2500
+	MAX_EMBED_DESC_LENGTH int    = 2048
 	ROOT_FOLDER           string = "discgo-bot/"
 	BOT_SUB_FOLDER        string = "Bot/"
 	TEMP_FOLDER           string = "temp/"

@@ -1,13 +1,19 @@
 package wow
 
-import "fmt"
+import (
+	"fmt"
+
+	config "github.com/hashbat-dev/discgo-bot/Config"
+)
 
 var (
 	IndentPadding = "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"
 	DefaultEmoji  = "⭐"
 )
 
-func GetStatsText(messageId string) (int, string) {
+func GetStatsText(messageId string) (int, []string) {
+	var messages []string
+	maxMsgLength := config.MAX_EMBED_DESC_LENGTH
 	if wow, ok := cacheBank[messageId]; ok {
 		s := "To create a Wow we keep rolling a 1 to 10 dice until you roll 5 or under. The total number rolled is how long your Wow is!"
 		s += " There are various modifiers and effects which you may be lucky enough to trigger!"
@@ -22,11 +28,19 @@ func GetStatsText(messageId string) (int, string) {
 				if emoji == "" {
 					emoji = DefaultEmoji
 				}
-				s += fmt.Sprintf("\n%s **%s**: %s", emoji, effect.Name, effect.Description)
+				newLine := fmt.Sprintf("%s **%s**: %s", emoji, effect.Name, effect.Description)
+				if (len(s) + len(newLine) + 2) > maxMsgLength {
+					messages = append(messages, s)
+					s = newLine
+				} else {
+					s += "\n" + newLine
+				}
+
 			}
 		}
 
-		s += "\n\n**Your Rolls...**"
+		rollHeader := "**Your Rolls...**"
+		headerSent := false
 		for i, roll := range wow.Generation.DiceRolls {
 			emoji := "🎲"
 			if i == len(wow.Generation.DiceRolls)-1 {
@@ -36,7 +50,7 @@ func GetStatsText(messageId string) (int, string) {
 			if roll.AdditionalText != "" {
 				addText = "\u00A0\u00A0" + roll.AdditionalText
 			}
-			s += fmt.Sprintf("\n%s **%d**%s", emoji, roll.Roll, addText)
+			newLine := fmt.Sprintf("%s **%d**%s", emoji, roll.Roll, addText)
 			if len(roll.Effects) > 0 {
 				for _, effect := range roll.Effects {
 					if effect.SkipStatsOutput {
@@ -46,12 +60,34 @@ func GetStatsText(messageId string) (int, string) {
 					if emoji == "" {
 						emoji = DefaultEmoji
 					}
-					s += fmt.Sprintf("\n%s%s **%s**: %s", IndentPadding, emoji, effect.Name, effect.Description)
+					newLine += fmt.Sprintf("\n%s%s **%s**: %s", IndentPadding, emoji, effect.Name, effect.Description)
 				}
 			}
+
+			if headerSent {
+				if (len(s) + len(newLine) + 2) > maxMsgLength {
+					messages = append(messages, s)
+					s = newLine
+				} else {
+					s += "\n" + newLine
+				}
+			} else {
+				if (len(s) + len(newLine) + 6 + len(rollHeader)) > maxMsgLength {
+					messages = append(messages, s)
+					s = rollHeader + "\n" + newLine
+				} else {
+					s += "\n\n" + rollHeader + "\n" + newLine
+				}
+				headerSent = true
+			}
 		}
-		return wow.Generation.OCount, s
+
+		if len(s) > 0 {
+			messages = append(messages, s)
+		}
+
+		return wow.Generation.OCount, messages
 	} else {
-		return 0, ""
+		return 0, nil
 	}
 }

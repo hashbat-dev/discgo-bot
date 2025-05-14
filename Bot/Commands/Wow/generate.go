@@ -25,7 +25,7 @@ type Generation struct {
 	Effects       []Effect
 	EffectCount   int
 	Output        string
-	WowMessageID  string
+	WowMessageIDs []string
 }
 
 type DiceRoll struct {

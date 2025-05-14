@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	config "github.com/hashbat-dev/discgo-bot/Config"
 	database "github.com/hashbat-dev/discgo-bot/Database"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
@@ -39,6 +40,10 @@ type DbWowEffects struct {
 }
 
 func postToDatabase(i *Generation) {
+	if config.ServiceSettings.ISDEV {
+		return
+	}
+
 	cacheKey := fmt.Sprintf("%s|%s", i.Message.GuildID, i.Message.Author.ID)
 	lock := getLock(cacheKey)
 	// === dbo.WowStats =====================================================

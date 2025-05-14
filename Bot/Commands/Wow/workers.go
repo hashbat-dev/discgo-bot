@@ -1,11 +1,7 @@
 package wow
 
 import (
-	"fmt"
-
 	"github.com/bwmarrin/discordgo"
-	embed "github.com/clinet/discordgo-embed"
-	config "github.com/hashbat-dev/discgo-bot/Config"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
@@ -55,35 +51,7 @@ func workerRespond() {
 	logger.Info("WOW", "Respond Queue starting...")
 	for item := range queueRespond {
 		go func(i Generation) {
-			msg := &discordgo.MessageSend{
-				Content:   i.Output,
-				Reference: i.Message.Reference(),
-			}
-			wowMsg, err := config.Session.ChannelMessageSendComplex(i.Message.ChannelID, msg)
-			if err != nil {
-				logger.Error(i.Message.GuildID, err)
-			}
-			i.WowMessageID = wowMsg.ID
-			addToCache(&i)
-
-			// New Record?
-			if item.OCount > dataHighestWowInGuild[i.Message.GuildID] {
-				emb := embed.NewEmbed()
-				emb.SetTitle("New Wow Record")
-				emb.SetDescription(fmt.Sprintf("Ladies and Gentlemen, <@%s> has just broken the all time Wow record!", i.Message.Author.ID))
-				emb.SetThumbnail(config.TROPHY_IMG_URL)
-				emb.SetFooter(fmt.Sprintf("%d level Wow", i.OCount))
-				_, err = config.Session.ChannelMessageSendComplex(i.Message.ChannelID, &discordgo.MessageSend{
-					Reference: wowMsg.Reference(),
-					Embed:     emb.MessageEmbed,
-				})
-
-				if err != nil {
-					logger.Error(i.Message.GuildID, err)
-				}
-
-				dataHighestWowInGuild[i.Message.GuildID] = item.OCount
-			}
+			respond(&i)
 		}(*item)
 	}
 }
