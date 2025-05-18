@@ -160,3 +160,7 @@ func SplitText(wowString string, maxLength int) []string {
 
 	return messages
 }
+
+func ShowIntAsCurrency(n int) string {
+	return fmt.Sprintf("%d", n)
+}

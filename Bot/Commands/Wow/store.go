@@ -9,6 +9,7 @@ import (
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	database "github.com/hashbat-dev/discgo-bot/Database"
 	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
@@ -35,10 +36,11 @@ func BuyItem(i *discordgo.InteractionCreate, correlationId string, ID int) {
 	}
 
 	userId := cache.GetUserIDFromCorrelationID(correlationId)
+	userErrorHeader := fmt.Sprintf("<@%s> tried buying a %s for `%s%s`\n\n", userId, item.Name, helpers.ShowIntAsCurrency(item.Cost), CurrencyIcon)
 
 	// Have they hit the max item count?
 	if item.MaxAtOnce > 0 && wowInventoryItemCount(i.GuildID, userId, item.ID) >= item.MaxAtOnce {
-		discord.UpdateInteractionResponse(i, "Max Item Count", fmt.Sprintf("You cannot have more than %d %s items at once", item.MaxAtOnce, item.Name), config.EmbedColourRed)
+		discord.UpdateInteractionResponse(i, "Max Item Count", fmt.Sprintf("%sYou cannot have more than %d %s items at once", userErrorHeader, item.MaxAtOnce, item.Name), config.EmbedColourRed)
 		return
 	}
 
@@ -50,7 +52,7 @@ func BuyItem(i *discordgo.InteractionCreate, correlationId string, ID int) {
 	}
 
 	if userBalance < item.Cost {
-		text := fmt.Sprintf("Your balance is %d%s", userBalance, CurrencyIcon)
+		text := fmt.Sprintf("%sYour balance is %s%s", userErrorHeader, helpers.ShowIntAsCurrency(userBalance), CurrencyIcon)
 		if userBalance < 10000 {
 			text += ", you're broke."
 		}
@@ -75,11 +77,18 @@ func BuyItem(i *discordgo.InteractionCreate, correlationId string, ID int) {
 		return
 	}
 
-	text := fmt.Sprintf("You bought %s for `%d%s`\nYour new balance is `%d%s`", item.Name, item.Cost, CurrencyIcon, userBalance-item.Cost, CurrencyIcon)
+	text := fmt.Sprintf("<@%s> bought %s for `%s%s`\nTheir new balance is `%s%s`", userId, item.Name, helpers.ShowIntAsCurrency(item.Cost), CurrencyIcon, helpers.ShowIntAsCurrency(userBalance-item.Cost), CurrencyIcon)
 	discord.UpdateInteractionResponse(i, "Transaction Successful", text, config.EmbedColourGreen)
 }
 
 func GetWowInventoryText(guildId string, userId string) string {
+
+	balance, err := database.GetUserWowBalance(guildId, userId)
+	if err != nil {
+		logger.Error(guildId, err)
+		return ""
+	}
+	s := fmt.Sprintf("<@%s>'s Current Balance: `%s%s`\n\n", userId, helpers.ShowIntAsCurrency(balance), CurrencyIcon)
 	var userInv []InventoryItem
 	found := false
 	dataInventoryLock.RLock()
@@ -90,7 +99,7 @@ func GetWowInventoryText(guildId string, userId string) string {
 	dataInventoryLock.RUnlock()
 
 	if !found {
-		return "This user doesn't have any Wow items at the moment!"
+		return s + "This user doesn't have any Wow items at the moment!"
 	}
 
 	itemCounts := make(map[string]int)
@@ -99,7 +108,7 @@ func GetWowInventoryText(guildId string, userId string) string {
 	}
 	var nameCheck []string
 
-	s := fmt.Sprintf("<@%s> currently has the following Wow Items in their inventory...", userId)
+	s += "Wow items currently in their inventory..."
 	for _, inv := range userInv {
 		if slices.Contains(nameCheck, inv.ShopItem.Name) {
 			continue

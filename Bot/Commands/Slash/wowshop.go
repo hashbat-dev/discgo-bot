@@ -11,6 +11,7 @@ import (
 	cache "github.com/hashbat-dev/discgo-bot/Cache"
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	discord "github.com/hashbat-dev/discgo-bot/Discord"
+	helpers "github.com/hashbat-dev/discgo-bot/Helpers"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
 )
 
@@ -111,7 +112,7 @@ func ServeWowShop(i *discordgo.InteractionCreate, correlationId string, minIndex
 			emoji = item.Emoji
 		}
 
-		shopText += fmt.Sprintf("%s **%s** `%d%s`", emoji, item.Name, item.Cost, wow.CurrencyIcon)
+		shopText += fmt.Sprintf("%s **%s** `%s%s`", emoji, item.Name, helpers.ShowIntAsCurrency(item.Cost), wow.CurrencyIcon)
 		shopText += "\n" + item.Description
 		shopText += "\n\n"
 
