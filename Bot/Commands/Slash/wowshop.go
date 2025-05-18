@@ -99,7 +99,7 @@ func ServeWowShop(i *discordgo.InteractionCreate, correlationId string, minIndex
 	if buttonPrevIndex < minIndex {
 		navButtons = append(navButtons, prevButton)
 	}
-	if buttonNextIndex > minIndex {
+	if buttonNextIndex > minIndex && len(wow.ShopItems) > buttonNextIndex {
 		navButtons = append(navButtons, nextButton)
 	}
 
