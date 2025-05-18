@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -162,5 +163,13 @@ func SplitText(wowString string, maxLength int) []string {
 }
 
 func ShowIntAsCurrency(n int) string {
-	return fmt.Sprintf("%d", n)
+	in := strconv.Itoa(n)
+	out := ""
+	for i, digit := range in {
+		if i != 0 && (len(in)-i)%3 == 0 {
+			out += ","
+		}
+		out += string(digit)
+	}
+	return out
 }
