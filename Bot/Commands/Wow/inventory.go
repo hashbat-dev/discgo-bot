@@ -87,7 +87,7 @@ func getDataWowInventories() {
 		logger.ErrorText("WOW", "Error in row loop: %s", err.Error())
 	}
 
-	var newCache map[string][]InventoryItem = make(map[string][]InventoryItem)
+	var newCache = make(map[string][]InventoryItem)
 	for _, db := range dbItems {
 		var item WowShopItem
 		found := false
