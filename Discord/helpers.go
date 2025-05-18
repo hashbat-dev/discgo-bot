@@ -234,6 +234,9 @@ func DeleteMessageObject(message *discordgo.Message) {
 func InteractionLoadingStart(i *discordgo.InteractionCreate) {
 	err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags: discordgo.MessageFlagsEphemeral,
+		},
 	})
 	if err != nil {
 		logger.Error(i.GuildID, err)

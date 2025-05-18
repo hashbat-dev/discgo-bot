@@ -214,12 +214,12 @@ var slashCommands = []SlashCommand{
 	{
 		Command: &discordgo.ApplicationCommand{
 			Name:        "wow-inventory",
-			Description: "See yours (or someone else's) Wow Inventory, showing all their currently active shop items!",
+			Description: "See yours (or someone else's) Wow Balance and current Inventory.",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Type:        discordgo.ApplicationCommandOptionUser,
 					Name:        "user",
-					Description: "The user to see the Wow Inventory for",
+					Description: "The user to see the Wow Balance/Inventory for",
 					Required:    true,
 				},
 			},
