@@ -219,13 +219,7 @@ func generate(message *discordgo.MessageCreate) {
 		minContinue := wow.MinContinue
 		loopBonuses := wow.BonusRolls
 		addedWarn := false
-		for {
-			if loopBonuses <= 5 {
-				break
-			}
-			if minContinue >= wow.MaxRollValue-1 {
-				break
-			}
+		for loopBonuses > 5 && minContinue < wow.MaxRollValue-1 {
 			minContinue++
 			loopBonuses -= 3
 			if !addedWarn {
