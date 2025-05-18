@@ -13,7 +13,7 @@ import (
 
 var (
 	dataInventoryLock   sync.RWMutex
-	dataUserInventories map[string][]InventoryItem = make(map[string][]InventoryItem)
+	dataUserInventories = make(map[string][]InventoryItem)
 )
 
 type InventoryItem struct {
