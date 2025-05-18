@@ -40,7 +40,11 @@ func respond(wow *Generation) {
 	addToCache(wow)
 
 	// New Record?
-	if wow.OCount > dataHighestWowInGuild[wow.Message.GuildID] {
+	dataHighRankLock.RLock()
+	currHighest := dataHighestWowInGuild[wow.Message.GuildID]
+	dataHighRankLock.RUnlock()
+
+	if wow.OCount > currHighest {
 		emb := embed.NewEmbed()
 		emb.SetTitle("New Wow Record")
 		emb.SetDescription(fmt.Sprintf("Ladies and Gentlemen, <@%s> has just broken the all time Wow record!", wow.Message.Author.ID))
@@ -55,6 +59,8 @@ func respond(wow *Generation) {
 			logger.Error(wow.Message.GuildID, err)
 		}
 
+		dataHighRankLock.Lock()
 		dataHighestWowInGuild[wow.Message.GuildID] = wow.OCount
+		dataHighRankLock.Unlock()
 	}
 }

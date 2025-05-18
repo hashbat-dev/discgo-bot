@@ -13,7 +13,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 	// 1. Create a Private Thread to handle the options
 	channel, err := discord.CreateAdminChannel(i.GuildID, "edit-hall-reactions")
 	if err != nil {
-		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.")
+		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
@@ -22,7 +22,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 	cache.ActiveInteractions[correlationId].Values.String["tempChannelId"] = channel.ID
 
 	// 2. By this point we can Acknowledge the original Interaction
-	discord.SendEmbedFromInteraction(i, "Editing Hall Reactions", "We have opened a Private Channel for you to apply changes.")
+	discord.SendEmbedFromInteraction(i, "Editing Hall Reactions", "We have opened a Private Channel for you to apply changes.", 0)
 
 	// 3. Post Messages in the Thread
 	// => Introduction Message
@@ -34,7 +34,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 	msgText += "* Click [Cancel Changes] discard everything here and destroy this channel.\n"
 	_, err = config.Session.ChannelMessageSend(channel.ID, msgText)
 	if err != nil {
-		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.")
+		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.", 0)
 		cache.InteractionComplete(correlationId)
 		discord.DeleteAdminChannel(i.GuildID, channel.ID)
 		logger.Error(i.GuildID, err)
@@ -43,7 +43,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 	// => Upvote Message
 	upMsg, err := config.Session.ChannelMessageSend(channel.ID, "Upvote Reactions")
 	if err != nil {
-		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.")
+		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.", 0)
 		cache.InteractionComplete(correlationId)
 		discord.DeleteAdminChannel(i.GuildID, channel.ID)
 		logger.Error(i.GuildID, err)
@@ -52,7 +52,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 	// => Downvote Message
 	downMsg, err := config.Session.ChannelMessageSend(channel.ID, "Downvote Reactions")
 	if err != nil {
-		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.")
+		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.", 0)
 		cache.InteractionComplete(correlationId)
 		discord.DeleteAdminChannel(i.GuildID, channel.ID)
 		logger.Error(i.GuildID, err)
@@ -118,7 +118,7 @@ func EditReactions(i *discordgo.InteractionCreate, correlationId string) {
 
 	_, err = config.Session.ChannelMessageSendComplex(channel.ID, buttonMessage)
 	if err != nil {
-		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.")
+		discord.SendEmbedFromInteraction(i, "Error", "There was an error processing your request, please try again.", 0)
 		cache.InteractionComplete(correlationId)
 		discord.DeleteAdminChannel(i.GuildID, channel.ID)
 		logger.Error(i.GuildID, err)

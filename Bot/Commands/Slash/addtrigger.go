@@ -19,12 +19,12 @@ func AddTrigger(i *discordgo.InteractionCreate, correlationId string) {
 
 	// 1. Validate
 	if phrase == "" {
-		discord.SendEmbedFromInteraction(i, "Error", "No Phrase entered!")
+		discord.SendEmbedFromInteraction(i, "Error", "No Phrase entered!", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
 	if len(phrase) > 50 {
-		discord.SendEmbedFromInteraction(i, "Error", fmt.Sprintf("Phrase too long! Your phrase was %d characters out of the maximum of 50.", len(phrase)))
+		discord.SendEmbedFromInteraction(i, "Error", fmt.Sprintf("Phrase too long! Your phrase was %d characters out of the maximum of 50.", len(phrase)), 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
@@ -46,7 +46,7 @@ func AddTrigger(i *discordgo.InteractionCreate, correlationId string) {
 	}
 
 	if linkExists {
-		discord.SendEmbedFromInteraction(i, "Error", "This Phrase already exists! Use the /edit-phrase command instead to update it.")
+		discord.SendEmbedFromInteraction(i, "Error", "This Phrase already exists! Use the /edit-phrase command instead to update it.", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
@@ -77,5 +77,5 @@ func AddTrigger(i *discordgo.InteractionCreate, correlationId string) {
 
 	// Done!
 	cache.InteractionComplete(correlationId)
-	discord.SendEmbedFromInteraction(i, "Phrase Added", fmt.Sprintf("The phrase '%s' is now being tracked in the server!", phrase))
+	discord.SendEmbedFromInteraction(i, "Phrase Added", fmt.Sprintf("The phrase '%s' is now being tracked in the server!", phrase), 0)
 }

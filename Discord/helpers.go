@@ -2,17 +2,13 @@ package discord
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	embed "github.com/clinet/discordgo-embed"
 	"github.com/google/uuid"
 	config "github.com/hashbat-dev/discgo-bot/Config"
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
-)
-
-var (
-	// From here: https://gist.github.com/thomasbnt/b6f455e2c7d743b796917fa3c205f812
-	EmbedColourGold = 15844367
 )
 
 func SendUserError(message *discordgo.MessageCreate, errorText string) {
@@ -73,10 +69,16 @@ func SendGenericErrorFromInteraction(i *discordgo.InteractionCreate) {
 	}
 }
 
-func SendEmbedFromInteraction(i *discordgo.InteractionCreate, embedTitle string, embedText string) {
+func SendEmbedFromInteraction(i *discordgo.InteractionCreate, embedTitle string, embedText string, color int) {
+
 	errEmbed := embed.NewEmbed()
 	errEmbed.SetTitle(embedTitle)
 	errEmbed.SetDescription(embedText)
+	if color > 0 {
+		errEmbed.SetColor(color)
+	} else if strings.Contains(embedTitle, "Error") {
+		errEmbed.SetColor(config.EmbedColourRed)
+	}
 	err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -90,10 +92,13 @@ func SendEmbedFromInteraction(i *discordgo.InteractionCreate, embedTitle string,
 	}
 }
 
-func UpdateInteractionResponse(i *discordgo.InteractionCreate, embedTitle string, embedText string) {
+func UpdateInteractionResponse(i *discordgo.InteractionCreate, embedTitle string, embedText string, color int) {
 	newEmbed := embed.NewEmbed()
 	newEmbed.SetTitle(embedTitle)
 	newEmbed.SetDescription(embedText)
+	if color > 0 {
+		newEmbed.SetColor(color)
+	}
 
 	wipeContent := ""
 	embeds := []*discordgo.MessageEmbed{newEmbed.MessageEmbed}
@@ -223,5 +228,21 @@ func DeleteMessageObject(message *discordgo.Message) {
 	err := config.Session.ChannelMessageDelete(message.ChannelID, message.ID)
 	if err != nil {
 		logger.Error(message.GuildID, err)
+	}
+}
+
+func InteractionLoadingStart(i *discordgo.InteractionCreate) {
+	err := config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+	})
+	if err != nil {
+		logger.Error(i.GuildID, err)
+	}
+}
+
+func InteractionLoadingFinish(i *discordgo.InteractionCreate) {
+	err := config.Session.InteractionResponseDelete(i.Interaction)
+	if err != nil {
+		logger.Error(i.GuildID, err)
 	}
 }

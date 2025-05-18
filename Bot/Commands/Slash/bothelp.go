@@ -9,7 +9,7 @@ import (
 
 func SendHelp(i *discordgo.InteractionCreate, correlationId string) {
 
-	discord.SendEmbedFromInteraction(i, "", "Sending Help information to your DM's")
+	discord.SendEmbedFromInteraction(i, "", "Sending Help information to your DM's", 0)
 
 	if len(config.UserBangHelpText) > 0 {
 		userText := "## Chat Commands\n"

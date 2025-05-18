@@ -199,6 +199,36 @@ var slashCommands = []SlashCommand{
 		},
 		Complexity: config.TRIVIAL_TASK,
 	},
+	//	/wow-shop
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name:        "wow-shop",
+			Description: "Spend your Wow Bucks!",
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.WowShop(i, correlationId)
+		},
+		Complexity: config.TRIVIAL_TASK,
+	},
+	//	/wow-inventory
+	{
+		Command: &discordgo.ApplicationCommand{
+			Name:        "wow-inventory",
+			Description: "See yours (or someone else's) Wow Inventory, showing all their currently active shop items!",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Type:        discordgo.ApplicationCommandOptionUser,
+					Name:        "user",
+					Description: "The user to see the Wow Inventory for",
+					Required:    true,
+				},
+			},
+		},
+		Handler: func(i *discordgo.InteractionCreate, correlationId string) {
+			slash.WowInventory(i, correlationId)
+		},
+		Complexity: config.TRIVIAL_TASK,
+	},
 }
 
 // Message Commands are not allowed Descriptions, enter User descriptions below for these.
@@ -246,7 +276,7 @@ func SlashCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 		if !confirmPermissions(i, cmd.PermissionLevel) {
 			logger.Event(i.GuildID, "User [ID: %s, UserName: %s] was blocked from using command [%s]", i.Member.User.ID, i.Member.User.Username, cmd.Command.Name)
-			discord.SendEmbedFromInteraction(i, "Permission Denied", "You do not have permission to use this command.")
+			discord.SendEmbedFromInteraction(i, "Permission Denied", "You do not have permission to use this command.", 0)
 		} else {
 			DispatchTask(&Task{
 				CommandType: config.CommandTypeSlash,

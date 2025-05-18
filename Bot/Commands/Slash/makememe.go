@@ -39,13 +39,13 @@ func MakeMemeInit(i *discordgo.InteractionCreate, correlationId string) {
 	// 2. Check there's an associated Image
 	imgUrl := helpers.GetImageFromMessage(message, "")
 	if imgUrl == "" {
-		discord.SendEmbedFromInteraction(i, "Error", "No image found in message")
+		discord.SendEmbedFromInteraction(i, "Error", "No image found in message", 0)
 		return
 	}
 
 	imgExtension := imgwork.GetExtensionFromURL(imgUrl)
 	if imgExtension == "" {
-		discord.SendEmbedFromInteraction(i, "Error", fmt.Sprintf("Invalid image extension (%s)", imgExtension))
+		discord.SendEmbedFromInteraction(i, "Error", fmt.Sprintf("Invalid image extension (%s)", imgExtension), 0)
 		return
 	}
 
@@ -132,7 +132,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	//		- The MemeGen API doesn't support .webp
 	//		- Discord's CDN actively blocks Proxy URLs from external sites
 	//		- The MemeGen API doesn't support links with Query strings
-	discord.UpdateInteractionResponse(i, "Creating Meme", "Getting image...")
+	discord.UpdateInteractionResponse(i, "Creating Meme", "Getting image...", 0)
 	var imgSource int
 	// 0 - Inbound URL
 	// 1 - Temp File
@@ -164,7 +164,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	case 1: // Download the file to the temp/ directory and provide that URL to the API
 		tempFileReader, err := imgwork.DownloadImageToReader(i.GuildID, cachedInteraction.Values.String["imgUrl"], cachedInteraction.Values.String["imgExtension"] == ".gif")
 		if err != nil {
-			discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.")
+			discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.", 0)
 			cache.InteractionComplete(correlationId)
 			return
 		}
@@ -173,7 +173,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 		if cachedInteraction.Values.String["imgExtension"] == ".webp" {
 			pngReader, err := imgwork.ConvertWebpToPNG(tempFileReader)
 			if err != nil {
-				discord.UpdateInteractionResponse(i, "Error", "Couldn't convert .webp image.")
+				discord.UpdateInteractionResponse(i, "Error", "Couldn't convert .webp image.", 0)
 				cache.InteractionComplete(correlationId)
 				return
 			} else {
@@ -183,7 +183,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 
 		tempFile := tempfiles.AddFile(tempFileReader, cachedInteraction.Values.String["imgExtension"])
 		if tempFile == "" {
-			discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.")
+			discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.", 0)
 			cache.InteractionComplete(correlationId)
 			return
 		}
@@ -194,9 +194,9 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 		imgurUrl, imgurDeleteHash, err := getImgurLink(i.GuildID, i.Member.User.ID, cachedInteraction.Values.String["imgUrl"], cachedInteraction.Values.String["imgExtension"])
 		if err != nil {
 			if strings.Contains(err.Error(), "413") {
-				discord.UpdateInteractionResponse(i, "Error", "File size too large.")
+				discord.UpdateInteractionResponse(i, "Error", "File size too large.", 0)
 			} else {
-				discord.UpdateInteractionResponse(i, "Error", "Error getting image.")
+				discord.UpdateInteractionResponse(i, "Error", "Error getting image.", 0)
 			}
 			cache.InteractionComplete(correlationId)
 			return
@@ -207,7 +207,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 		sendImgExt = imgwork.GetExtensionFromURL(imgurUrl)
 	default:
 		logger.ErrorText(i.GuildID, "Unknown imgSource value: %v", imgSource)
-		discord.UpdateInteractionResponse(i, "Error", "An Error occured.")
+		discord.UpdateInteractionResponse(i, "Error", "An Error occured.", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
@@ -216,13 +216,13 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 		sendImgExt = ".jpg"
 	}
 	if sendImgUrl == "" || sendImgExt == "" {
-		discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.")
+		discord.UpdateInteractionResponse(i, "Error", "Couldn't download image.", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
 
 	// 3. Generate the Request URL
-	discord.UpdateInteractionResponse(i, "Creating Meme", "Building request...")
+	discord.UpdateInteractionResponse(i, "Creating Meme", "Building request...", 0)
 	url := MemeGenCustomBase
 	logUrl := ""
 	captionText := ""
@@ -247,7 +247,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	} else {
 		// In Image Caption
 		if topText == "" && bottomText == "" {
-			discord.UpdateInteractionResponse(i, "Error", "No Captions provided.")
+			discord.UpdateInteractionResponse(i, "Error", "No Captions provided.", 0)
 			cache.InteractionComplete(correlationId)
 			return
 		}
@@ -269,10 +269,10 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	}
 
 	// 4. Get the Meme
-	discord.UpdateInteractionResponse(i, "Creating Meme", "Getting Meme...")
+	discord.UpdateInteractionResponse(i, "Creating Meme", "Getting Meme...", 0)
 	newMemeReader, err := getMemeImage(i.GuildID, url)
 	if err != nil {
-		discord.UpdateInteractionResponse(i, "Error", "Error Getting Meme.")
+		discord.UpdateInteractionResponse(i, "Error", "Error Getting Meme.", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
@@ -281,7 +281,7 @@ func MakeMemeStart(i *discordgo.InteractionCreate, correlationId string) {
 	_, err = io.Copy(&buffer, newMemeReader)
 	if err != nil {
 		logger.Error(i.GuildID, err)
-		discord.UpdateInteractionResponse(i, "Error", "Error Generating Meme.")
+		discord.UpdateInteractionResponse(i, "Error", "Error Generating Meme.", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}

@@ -38,5 +38,5 @@ func AssignNewAdminRole(i *discordgo.InteractionCreate, correlationId string) {
 	}
 
 	logger.Event(i.GuildID, "Bot Administrator role changed from [%s] to [%s]", oldRoleId, newRoleId)
-	discord.SendEmbedFromInteraction(i, "Admin Role Update", "Bot Administrator role is now: ["+newRoleName+"]")
+	discord.SendEmbedFromInteraction(i, "Admin Role Update", "Bot Administrator role is now: ["+newRoleName+"]", 0)
 }

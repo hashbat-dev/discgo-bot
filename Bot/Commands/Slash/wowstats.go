@@ -19,13 +19,13 @@ func WowStats(i *discordgo.InteractionCreate, correlationId string) {
 	user := cachedInteraction.Values.User["user"]
 
 	if user == nil {
-		discord.SendEmbedFromInteraction(i, "Error", "No User provided!")
+		discord.SendEmbedFromInteraction(i, "Error", "No User provided!", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
 
 	if user.ID == config.Session.State.User.ID {
-		discord.SendEmbedFromInteraction(i, "Error", "I don't Wow! Well, I did then, but I don't count.")
+		discord.SendEmbedFromInteraction(i, "Error", "I don't Wow! Well, I did then, but I don't count.", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
