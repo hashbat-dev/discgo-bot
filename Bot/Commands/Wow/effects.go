@@ -15,6 +15,7 @@ type Effect struct {
 	SkipStatsOutput bool
 	Emoji           string
 	FromShop        bool
+	SelfDestruct    bool
 }
 
 type EffectList func(*Generation) []*Effect

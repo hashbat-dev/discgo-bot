@@ -35,6 +35,13 @@ func BuyItem(i *discordgo.InteractionCreate, correlationId string, ID int) {
 	}
 
 	userId := cache.GetUserIDFromCorrelationID(correlationId)
+
+	// Have they hit the max item count?
+	if item.MaxAtOnce > 0 && wowInventoryItemCount(i.GuildID, userId, item.ID) >= item.MaxAtOnce {
+		discord.UpdateInteractionResponse(i, "Max Item Count", fmt.Sprintf("You cannot have more than %d %s items at once", item.MaxAtOnce, item.Name), config.EmbedColourRed)
+		return
+	}
+
 	// Can they afford it?
 	userBalance, err := database.GetUserWowBalance(i.GuildID, userId)
 	if err != nil {

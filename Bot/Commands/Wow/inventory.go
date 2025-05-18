@@ -160,6 +160,24 @@ func addToWowInventory(guildId string, userId string, item WowShopItem) error {
 	return nil
 }
 
+func wowInventoryItemCount(guildId string, userId string, itemId int) int {
+	var items []InventoryItem
+	key := guildId + "|" + userId
+
+	dataInventoryLock.RLock()
+	items = dataUserInventories[key]
+	dataInventoryLock.RUnlock()
+
+	count := 0
+	for _, i := range items {
+		if i.ShopItem.ID == itemId {
+			count++
+		}
+	}
+
+	return count
+}
+
 func deleteFromWowInventory(guildId string, userId string, dbId int) {
 	var userInv []InventoryItem
 	key := fmt.Sprintf("%s|%s", guildId, userId)

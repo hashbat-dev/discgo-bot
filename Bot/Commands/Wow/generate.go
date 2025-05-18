@@ -141,6 +141,9 @@ func generate(message *discordgo.MessageCreate) {
 				}
 				wow.StaticEffects = append(wow.StaticEffects, *effect)
 				wow.Effects = append(wow.Effects, *effect)
+				if effect.SelfDestruct {
+					deleteFromWowInventory(message.GuildID, message.Author.ID, inv.DatabaseID)
+				}
 			}
 		}
 		// Was it one time use?
@@ -194,6 +197,9 @@ func generate(message *discordgo.MessageCreate) {
 					}
 					rollEffects = append(rollEffects, *effect)
 					wow.Effects = append(wow.Effects, *effect)
+					if effect.SelfDestruct {
+						deleteFromWowInventory(message.GuildID, message.Author.ID, inv.DatabaseID)
+					}
 				}
 			}
 			// Was it one time use?

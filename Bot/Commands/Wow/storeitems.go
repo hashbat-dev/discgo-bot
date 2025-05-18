@@ -21,6 +21,7 @@ type WowShopItem struct {
 	Cost        int
 	Duration    time.Duration
 	OneTimeUse  bool
+	MaxAtOnce   int
 	Apply       func(*Generation) []*Effect
 }
 
@@ -70,6 +71,7 @@ var (
 			Emoji:       "🐟",
 			Cost:        40000,
 			Duration:    time.Hour * 1,
+			MaxAtOnce:   3,
 			Apply: func(g *Generation) []*Effect {
 				var countText string
 				if time.Now().Weekday() == time.Friday {
@@ -97,6 +99,7 @@ var (
 			Emoji:       "🚬",
 			Cost:        15000,
 			Duration:    time.Hour * 1,
+			MaxAtOnce:   3,
 			Apply: func(g *Generation) []*Effect {
 				isDrum := helpers.GetRandomNumber(0, 1) == 1
 				var desc string
@@ -136,11 +139,12 @@ var (
 		{
 			ID:          6,
 			TypeID:      shopItemTypeRoll,
-			Name:        "Funny Number",
+			Name:        "Funny Number Bolt-on",
 			Description: "For the next hour if you roll a 6, add a 9 onto the roll.",
 			Emoji:       "💞",
 			Cost:        3000,
 			Duration:    time.Hour * 1,
+			MaxAtOnce:   3,
 			Apply: func(g *Generation) []*Effect {
 				if g.CurrentRoll == 6 {
 					g.CurrentRoll += 9
@@ -157,11 +161,12 @@ var (
 		{
 			ID:          7,
 			TypeID:      shopItemTypeRoll,
-			Name:        "Close Shave",
+			Name:        "Close Shave Scissors",
 			Description: "For the next hour if you roll your min roll continue value your roll value is doubled.",
 			Emoji:       "✂️",
 			Cost:        10000,
 			Duration:    time.Hour * 1,
+			MaxAtOnce:   3,
 			Apply: func(g *Generation) []*Effect {
 				if g.CurrentRoll == g.MinContinue {
 					g.CurrentRoll *= 2
@@ -173,6 +178,113 @@ var (
 					}}
 				}
 				return nil
+			},
+		},
+		{
+			ID:          8,
+			TypeID:      shopItemTypeStatic,
+			Name:        "Lucky 115 Briefcase",
+			Description: "For the next 15 hours, roll a dice on every Wow roll between 1-115. If you get 115 you gain a x15 multiplier. If you roll a 1 this item is deleted.",
+			Emoji:       "💙",
+			Cost:        50000,
+			Duration:    time.Hour * 15,
+			MaxAtOnce:   1,
+			Apply: func(g *Generation) []*Effect {
+				rand := helpers.GetRandomNumber(1, 115)
+				switch rand {
+				case 115:
+					g.Multiplier *= 15
+					return []*Effect{{
+						Name:        "Lucky 115",
+						Description: "You rolled 115! Get a x15 multiplier.",
+						Emoji:       "💙",
+						FromShop:    true,
+					}}
+				case 1:
+					return []*Effect{{
+						Name:         "Lucky 115",
+						Description:  "You rolled 1, this item is now deleted.",
+						Emoji:        "💙",
+						FromShop:     true,
+						SelfDestruct: true,
+					}}
+				default:
+					return nil
+				}
+			},
+		},
+		{
+			ID:          9,
+			TypeID:      shopItemTypeRoll,
+			Name:        "Double or Nothing Shot",
+			Description: "The next time you hit a 10, gain a 5x multiplier. However if you hit a 1 before then gain a 0.5x multiplier. Item is deleted on use.",
+			Emoji:       "🥃",
+			Cost:        20000,
+			Duration:    time.Hour * 200,
+			MaxAtOnce:   1,
+			Apply: func(g *Generation) []*Effect {
+				switch g.CurrentRoll {
+				case 10:
+					g.Multiplier *= 5
+					return []*Effect{{
+						Name:         "Double or Nothing Shot",
+						Description:  "You rolled a 10! Gain a 5x multiplier, this item is now deleted.",
+						Emoji:        "🥃",
+						FromShop:     true,
+						SelfDestruct: true,
+					}}
+				case 1:
+					g.Multiplier *= 0.5
+					return []*Effect{{
+						Name:         "Double or Nothing Shot",
+						Description:  "You rolled 1, applying a 0.5x multiplier, this item is now deleted.",
+						Emoji:        "🥃",
+						FromShop:     true,
+						SelfDestruct: true,
+					}}
+				default:
+					return nil
+				}
+			},
+		},
+		{
+			ID:          10,
+			TypeID:      shopItemTypeRoll,
+			Name:        "Loaded Dice",
+			Description: "For the next hour, rolling a 7, 8 or 9 will bump it to a 10 and double it.",
+			Emoji:       "🪛",
+			Cost:        20000,
+			Duration:    time.Hour * 1,
+			MaxAtOnce:   1,
+			Apply: func(g *Generation) []*Effect {
+				switch g.CurrentRoll {
+				case 7:
+					g.CurrentRoll = 20
+					return []*Effect{{
+						Name:        "Loaded Dice",
+						Description: "For the next hour, rolling a 7, 8 or 9 will bump it to a 10 and double it.",
+						Emoji:       "🪛",
+						FromShop:    true,
+					}}
+				case 8:
+					g.CurrentRoll = 20
+					return []*Effect{{
+						Name:        "Loaded Dice",
+						Description: "For the next hour, rolling a 7, 8 or 9 will bump it to a 10 and double it.",
+						Emoji:       "🪛",
+						FromShop:    true,
+					}}
+				case 9:
+					g.CurrentRoll = 20
+					return []*Effect{{
+						Name:        "Loaded Dice",
+						Description: "For the next hour, rolling a 7, 8 or 9 will bump it to a 10 and double it.",
+						Emoji:       "🪛",
+						FromShop:    true,
+					}}
+				default:
+					return nil
+				}
 			},
 		},
 	}
