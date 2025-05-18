@@ -217,20 +217,28 @@ func generate(message *discordgo.MessageCreate) {
 		var addText []string
 
 		minContinue := wow.MinContinue
-		reduction := wow.BonusRolls / 3
-		if reduction > 0 {
-			if !fullDebuffMsgGiven {
-				addText = append(addText, fmt.Sprintf("continue roll debuffed due to %d bonus rolls", wow.BonusRolls))
-				fullDebuffMsgGiven = true
-			} else {
-				addText = append(addText, fmt.Sprintf("debuff - %d bonus rolls", wow.BonusRolls))
+		loopBonuses := wow.BonusRolls
+		addedWarn := false
+		for {
+			if loopBonuses <= 5 {
+				break
+			}
+			if minContinue >= wow.MaxRollValue-1 {
+				break
+			}
+			minContinue++
+			loopBonuses -= 3
+			if !addedWarn {
+				if !fullDebuffMsgGiven {
+					addText = append(addText, fmt.Sprintf("continue roll debuffed due to %d bonus rolls", wow.BonusRolls))
+					fullDebuffMsgGiven = true
+				} else {
+					addText = append(addText, fmt.Sprintf("debuff - %d bonus rolls", wow.BonusRolls))
+				}
 			}
 		}
-		minContinue -= reduction
-		if minContinue < 1 {
-			minContinue = 1
-		}
-		logger.Dev("GENERATE", "Roll %d - Calculated deductions: %d", wow.Rolls, reduction)
+
+		logger.Dev("GENERATE", "Roll %d - Calculated deductions, Min Continue went from %d to %d", wow.Rolls, wow.MinContinue, minContinue)
 		if wow.CurrentRoll < minContinue {
 			if wow.BonusRolls > 0 {
 				wow.BonusRolls--
