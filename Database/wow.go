@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	logger "github.com/hashbat-dev/discgo-bot/Logger"
@@ -149,4 +151,95 @@ func GetWowLeaderboard(guildId string) ([]WowLeaderboard, error) {
 
 	return wows, nil
 
+}
+
+func GetUserWowBalance(guildId string, userId string) (int, error) {
+	var balance sql.NullInt64
+	query := "SELECT Currency FROM WowCurrency WHERE GuildID = ? AND UserID = ? LIMIT 1"
+	err := Db.QueryRow(query, guildId, userId).Scan(&balance)
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows") {
+			return 0, nil
+		}
+		logger.Error(guildId, err)
+		return 0, err
+	}
+
+	ret := 0
+	if balance.Valid {
+		ret = int(balance.Int64)
+	}
+
+	return ret, nil
+}
+
+func UpdateWowBalance(guildId string, userId string, amount int, add bool) error {
+	char := "-"
+	if add {
+		char = "+"
+	}
+	// 1. Try an Update
+	updateQuery := fmt.Sprintf(`UPDATE WowCurrency
+		SET Currency = Currency%s%d, LastUpdated = NOW()
+		WHERE GuildID = ? AND UserID = ?`, char, amount)
+
+	result, err := Db.Exec(updateQuery, guildId, userId)
+	if err != nil {
+		logger.Error(guildId, err)
+		return err
+	}
+
+	// 2. Check if we affected a row
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.Error(guildId, err)
+		return err
+	}
+
+	if rowsAffected == 0 {
+
+		insAmount := amount
+		if !add {
+			insAmount = -amount
+		}
+
+		// 3. If not, insert the new row
+		insertQuery := `
+			INSERT INTO WowCurrency
+			(GuildID, UserID, Currency, LastUpdated)
+			VALUES
+			(?, ?, ?, NOW())
+		`
+		_, err = Db.Exec(insertQuery, guildId, userId, insAmount)
+		if err != nil {
+			logger.Error(guildId, err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func CountWowPurchase(guildId string, userId string, shopItemId int) {
+	res, err := Db.Exec(`UPDATE WowPurchases SET Count = Count + 1, LastPurchased = NOW() WHERE GuildID = ? AND UserID = ? AND ShopItemID =?`,
+		guildId, userId, shopItemId)
+	if err != nil {
+		logger.ErrorText("WOW", "Error counting Wow Purchase for [%s|%s|%d]: %s", guildId, userId, shopItemId, err)
+		return
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		logger.ErrorText("WOW", "Error getting affected rows for [%s|%s|%d]: %s", guildId, userId, shopItemId, err)
+		return
+	}
+
+	if rowsAffected == 0 {
+		_, err = Db.Exec(`INSERT INTO WowPurchases (GuildID, UserID, ShopItemID) VALUES (?, ?, ?)`,
+			guildId, userId, shopItemId)
+		if err != nil {
+			logger.ErrorText("WOW", "Error inserting currency for [%s|%s|%d]: %s", guildId, userId, shopItemId, err)
+			return
+		}
+	}
 }

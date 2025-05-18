@@ -108,6 +108,13 @@ var Colours map[string]Colour = map[string]Colour{
 	},
 }
 
+var (
+	// From here: https://gist.github.com/thomasbnt/b6f455e2c7d743b796917fa3c205f812
+	EmbedColourGold  = 15844367
+	EmbedColourRed   = 15548997
+	EmbedColourGreen = 5763719
+)
+
 const (
 	CommandLevelUser = iota
 	CommandLevelBotAdmin

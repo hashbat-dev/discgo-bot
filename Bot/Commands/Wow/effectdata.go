@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 
 	cache "github.com/hashbat-dev/discgo-bot/Cache"
 	database "github.com/hashbat-dev/discgo-bot/Database"
@@ -13,8 +14,10 @@ import (
 )
 
 var (
-	dataInit                                = false
-	pokeInit                                = false
+	dataInit              = false
+	pokeInit              = false
+	dataLowRankLock       sync.RWMutex
+	dataHighRankLock      sync.RWMutex
 	dataLowestWowRank     map[string]string = make(map[string]string)
 	dataHighestWowInGuild map[string]int    = make(map[string]int)
 	dataCurrentWeather    WeatherResponse
@@ -22,6 +25,7 @@ var (
 
 func GetEffectData() {
 	getDataWowRanks()
+	getDataWowInventories()
 	getDataWeatherData()
 	dataInit = true
 }
@@ -30,12 +34,16 @@ func getDataWowRanks() {
 	for _, g := range cache.ActiveGuilds {
 		lowRank, _ := getWowRank(g.DiscordID, true)
 		if lowRank != "" {
+			dataLowRankLock.Lock()
 			dataLowestWowRank[g.DiscordID] = lowRank
+			dataLowRankLock.Unlock()
 		}
 
 		_, highWow := getWowRank(g.DiscordID, false)
 		if highWow > 0 {
+			dataHighRankLock.Lock()
 			dataHighestWowInGuild[g.DiscordID] = highWow
+			dataHighRankLock.Unlock()
 		}
 	}
 }

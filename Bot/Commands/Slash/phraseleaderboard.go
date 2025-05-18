@@ -21,12 +21,12 @@ func PhraseLeaderboard(i *discordgo.InteractionCreate, correlationId string) {
 
 	// 1. Validate
 	if phrase == "" {
-		discord.SendEmbedFromInteraction(i, "Error", "No Phrase entered!")
+		discord.SendEmbedFromInteraction(i, "Error", "No Phrase entered!", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
 	if len(phrase) > 50 {
-		discord.SendEmbedFromInteraction(i, "Error", "Phrase too long! Phrases can be a maximum of 50 characters")
+		discord.SendEmbedFromInteraction(i, "Error", "Phrase too long! Phrases can be a maximum of 50 characters", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
@@ -46,7 +46,7 @@ func PhraseLeaderboard(i *discordgo.InteractionCreate, correlationId string) {
 	}
 
 	if !linkExists {
-		discord.SendEmbedFromInteraction(i, "Error", fmt.Sprintf("The phrase '%s' isn't being tracked! You can ask a bot admin to create it with /add-trigger", phrase))
+		discord.SendEmbedFromInteraction(i, "Error", fmt.Sprintf("The phrase '%s' isn't being tracked! You can ask a bot admin to create it with /add-trigger", phrase), 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
@@ -64,7 +64,7 @@ func PhraseLeaderboard(i *discordgo.InteractionCreate, correlationId string) {
 	e.SetTitle(helpers.CapitaliseWords(phrase) + " Leaderboard")
 	e.SetDescription(getPhraseLeaderboardText(ranks))
 	e.SetThumbnail(config.TROPHY_IMG_URL)
-	e.SetColor(discord.EmbedColourGold)
+	e.SetColor(config.EmbedColourGold)
 	err = config.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{

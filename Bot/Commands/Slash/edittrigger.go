@@ -6,6 +6,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	cache "github.com/hashbat-dev/discgo-bot/Cache"
+	config "github.com/hashbat-dev/discgo-bot/Config"
 	database "github.com/hashbat-dev/discgo-bot/Database"
 	discord "github.com/hashbat-dev/discgo-bot/Discord"
 )
@@ -44,12 +45,12 @@ func EditTrigger(i *discordgo.InteractionCreate, correlationId string) {
 
 	// 1. Validate
 	if phrase == "" {
-		discord.SendEmbedFromInteraction(i, "Error", "No Phrase entered!")
+		discord.SendEmbedFromInteraction(i, "Error", "No Phrase entered!", 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
 	if len(phrase) > 50 {
-		discord.SendEmbedFromInteraction(i, "Error", fmt.Sprintf("Phrase too long! Your phrase was %d characters out of the maximum of 50.", len(phrase)))
+		discord.SendEmbedFromInteraction(i, "Error", fmt.Sprintf("Phrase too long! Your phrase was %d characters out of the maximum of 50.", len(phrase)), 0)
 		cache.InteractionComplete(correlationId)
 		return
 	}
@@ -69,13 +70,13 @@ func EditTrigger(i *discordgo.InteractionCreate, correlationId string) {
 	}
 
 	if !linkExists {
-		discord.SendEmbedFromInteraction(i, "Error", fmt.Sprintf("The phrase '%s' doesn't exist! use /add-phrase to create it", phrase))
+		discord.SendEmbedFromInteraction(i, "Error", fmt.Sprintf("The phrase '%s' doesn't exist! use /add-phrase to create it", phrase), config.EmbedColourRed)
 		cache.InteractionComplete(correlationId)
 		return
 	}
 
 	if notify == -1 && phraseOnly == -1 && delete == -1 {
-		discord.SendEmbedFromInteraction(i, "Error", "Nothing to update! Our work here is done :)")
+		discord.SendEmbedFromInteraction(i, "Error", "Nothing to update! Our work here is done :)", config.EmbedColourRed)
 		cache.InteractionComplete(correlationId)
 		return
 	}
@@ -105,5 +106,5 @@ func EditTrigger(i *discordgo.InteractionCreate, correlationId string) {
 	cache.AddGuildTrigger(i.GuildID, newPhrase[0].Phrase)
 
 	cache.InteractionComplete(correlationId)
-	discord.SendEmbedFromInteraction(i, "Phrase Updated", fmt.Sprintf("The phrase '%s' has been successfully updated!", phrase))
+	discord.SendEmbedFromInteraction(i, "Phrase Updated", fmt.Sprintf("The phrase '%s' has been successfully updated!", phrase), 0)
 }

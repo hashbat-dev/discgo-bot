@@ -41,7 +41,7 @@ type DbWowEffects struct {
 
 func postToDatabase(i *Generation) {
 	if config.ServiceSettings.ISDEV {
-		return
+		//return
 	}
 
 	cacheKey := fmt.Sprintf("%s|%s", i.Message.GuildID, i.Message.Author.ID)
@@ -56,8 +56,12 @@ func postToDatabase(i *Generation) {
 	for _, roll := range i.DiceRolls {
 		if len(roll.Effects) > 0 {
 			for _, effect := range roll.Effects {
+				effectType := "roll"
+				if effect.FromShop {
+					effectType = "shop-roll"
+				}
 				lock.Lock()
-				recordEffect(cacheKey, "roll", i, effect)
+				recordEffect(cacheKey, effectType, i, effect)
 				lock.Unlock()
 			}
 		}
@@ -65,8 +69,12 @@ func postToDatabase(i *Generation) {
 
 	// 2. Static Effects
 	for _, effect := range i.StaticEffects {
+		effectType := "static"
+		if effect.FromShop {
+			effectType = "shop-static"
+		}
 		lock.Lock()
-		recordEffect(cacheKey, "static", i, effect)
+		recordEffect(cacheKey, effectType, i, effect)
 		lock.Unlock()
 	}
 }
@@ -94,6 +102,8 @@ func recordStats(cacheKey string, i *Generation) {
 		dbWowStats[cacheKey] = *new
 	}
 
+	database.LogCommandUsage(i.Message.GuildID, i.Message.Author.ID, config.CommandTypeBang, "wow")
+	dbAddWowCurrency(i.OCount, i.Message.GuildID, i.Message.Author.ID)
 	if val, ok := dbWowStats[cacheKey]; ok {
 		// -> Get the WowStats out of the cache and update them
 		if i.OCount >= val.MaxWow {
@@ -195,6 +205,30 @@ func dbUpdateWowStats(cacheKey string, s DbWowStats) error {
 	dbWowStats[cacheKey] = s
 
 	return nil
+}
+
+func dbAddWowCurrency(currency int, guildId string, userId string) {
+	res, err := database.Db.Exec(`UPDATE WowCurrency SET Currency = Currency + ?, LastUpdated = NOW() WHERE GuildID = ? AND UserID = ?`,
+		currency, guildId, userId)
+	if err != nil {
+		logger.ErrorText("WOW", "Error updating currency for [%s|%s|%d]: %s", guildId, userId, currency, err)
+		return
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		logger.ErrorText("WOW", "Error getting affected rows for [%s|%s|%d]: %s", guildId, userId, currency, err)
+		return
+	}
+
+	if rowsAffected == 0 {
+		_, err = database.Db.Exec(`INSERT INTO WowCurrency (GuildID, UserID, Currency) VALUES (?, ?, ?)`,
+			guildId, userId, currency)
+		if err != nil {
+			logger.ErrorText("WOW", "Error inserting currency for [%s|%s|%d]: %s", guildId, userId, currency, err)
+			return
+		}
+	}
 }
 
 func dbTryGetWowEffects(guildId string, userId string, effectType string, effectName string) (*DbWowEffects, error) {

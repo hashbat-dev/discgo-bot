@@ -14,6 +14,7 @@ type Effect struct {
 	Description     string
 	SkipStatsOutput bool
 	Emoji           string
+	FromShop        bool
 }
 
 type EffectList func(*Generation) []*Effect
@@ -139,6 +140,8 @@ func staticTimeAndDate(wow *Generation) []*Effect {
 }
 
 func staticPityBonus(wow *Generation) []*Effect {
+	dataLowRankLock.RLock()
+	defer dataLowRankLock.RUnlock()
 	if lowerRankUserId, exists := dataLowestWowRank[wow.Message.GuildID]; exists {
 		if lowerRankUserId != wow.Message.Author.ID {
 			return nil
@@ -347,20 +350,20 @@ func rollRandomExtras(wow *Generation) []*Effect {
 	switch i {
 	case 300:
 		oldMin := wow.MinContinue
-		newMin := wow.MinContinue + 2
-		if newMin >= wow.MaxRollValue {
-			newMin = wow.MaxRollValue - 1
+		newMin := wow.MinContinue - 2
+		if newMin < 1 {
+			newMin = 1
 		}
 		wow.MinContinue = newMin
-		description = fmt.Sprintf("Your min continue roll increased from %d to %d! (1/300 chance)", oldMin, newMin)
+		description = fmt.Sprintf("Your min continue roll decreased from %d to %d! (1/300 chance)", oldMin, newMin)
 	case 100, 200:
 		oldMin := wow.MinContinue
-		newMin := wow.MinContinue + 1
-		if newMin >= wow.MaxRollValue {
-			newMin = wow.MaxRollValue - 1
+		newMin := wow.MinContinue - 1
+		if newMin < 1 {
+			newMin = 1
 		}
 		wow.MinContinue = newMin
-		description = fmt.Sprintf("Your min continue roll increased from %d to %d! (1/150 chance)", oldMin, newMin)
+		description = fmt.Sprintf("Your min continue roll decreased from %d to %d! (1/150 chance)", oldMin, newMin)
 	}
 
 	if description != "" {
