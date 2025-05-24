@@ -19,12 +19,6 @@ func Init() {
 		return
 	}
 
-	// 1. Database Init
-	if !database.Init() {
-		logger.Error("", errors.New("failed to initialise database"))
-		return
-	}
-
 	// 2. Discord Session Init
 	if !sessionInit() {
 		logger.Error("", errors.New("failed to initialise session"))
